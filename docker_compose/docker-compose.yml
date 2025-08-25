@@ -28,7 +28,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ../socket:/home
+      - ../socket-server:/home
     ports:
       - "3000:3000"
     networks:
