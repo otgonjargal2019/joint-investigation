@@ -1,0 +1,60 @@
+services:
+  db:
+    image: bitnami/postgresql:15.3.0
+    ports:
+      - 5432:5432
+    volumes:
+      - join_investigation_db:/bitnami/postgresql
+      - ../db/dump:/home/dump
+    environment:
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=password
+      - POSTGRESQL_DATABASE=test_gem
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "20m"
+    # restart: always
+    networks:
+      - net_db
+
+  socket_server:
+    image: node:22.15.0-alpine3.21
+    # environment:
+    #   - VAR1=5000
+    #   - VAR2=/models/tfjs_model
+    command: tail -f /dev/null
+    depends_on:
+      - db
+    volumes:
+      - ../socket:/home
+    ports:
+      - "3000:3000"
+    networks:
+      - net_db
+
+  # nginx:
+  #   # build: ../nginx
+  #   image: nginx:alpine
+  #   # ports:
+  #   #   - 80:80
+  #   # restart: always
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-file: "5"
+  #       max-size: "20m"
+  #   depends_on:
+  #     - socket_server
+  #   network_mode: "host"
+
+volumes:
+  join_investigation_db:
+    external: true
+
+networks:
+  net_db:
+    external: false
+
+# docker volume create --name=join_investigation_db
