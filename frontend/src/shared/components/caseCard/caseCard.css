@@ -1,0 +1,21 @@
+.case-card-wrapper {
+}
+.case-card-head {
+  min-width: 100px;
+  height: 100px;
+}
+
+.case-card-head-2 {
+  min-width: 120px;
+  height: 100px;
+}
+
+@media (max-width: 640px) {
+  .case-card-head {
+    min-width: 80px;
+  }
+
+  .case-card-head-2 {
+    min-width: 100px;
+  }
+}

@@ -1,0 +1,115 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import React, { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+
+import { login } from "@/app/actions/auth";
+import FormField from "@/shared/components/form/formField";
+import Label from "@/shared/components/form/label";
+import Input from "@/shared/components/form/input";
+import Checkbox from "@/shared/components/form/checkbox";
+import Button from "@/shared/components/button";
+import Modal from "@/shared/components/modal";
+import LogoBig from "@/shared/components/icons/logoBig";
+
+function LoginPage() {
+  const [modalOpen, setModalOpen] = useState(true);
+  const { register, watch, setValue, handleSubmit } = useForm();
+  const [error, setError] = useState(true);
+
+  const t = useTranslations();
+  const router = useRouter();
+
+  const onSubmit = async (formValues) => {
+    const result = await login(formValues);
+    // if (result?.error) {
+    // return;
+    // }
+    console.log("result:", result);
+    window.location.href = "/";
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="w-[596px] h-[637px] bg-color-4 border-color-16 rounded-16 pb-[80px] pt-[72.8px] px-[64px] shadow-lg">
+        <div className="flex justify-center items-center gap-2 mb-10">
+          <LogoBig />
+          <h2 className="text-white text-[30.345px] font-medium">
+            {t("header.title")}
+          </h2>
+        </div>
+        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+          <FormField>
+            <Label color="white" variant="big" minWidth="15">
+              ID
+            </Label>
+            <Input
+              register={register}
+              name="id"
+              variant="auth"
+              placeholder={t("placeholder.id")}
+              showError={false}
+            />
+          </FormField>
+          <FormField>
+            <Label color="white" variant="big" minWidth="15">
+              P/W
+            </Label>
+            <Input
+              register={register}
+              type="password"
+              name="password"
+              variant="auth"
+              placeholder={t("placeholder.password")}
+              showError={false}
+            />
+          </FormField>
+          <FormField>
+            <Label minWidth="15" />
+            <Checkbox
+              name="stayLoggedIn"
+              label={t("stay-logged-in")}
+              register={register}
+              watch={watch}
+              setValue={setValue}
+              color="white"
+              variant="big"
+              showError={false}
+            />
+          </FormField>
+
+          <p className="h-[28px] ml-[66px] text-color-100 text-[19.2px] font-normal leading-[19.2px] mb-4">
+            {error && t("error-msg.id-pass-not-match")}
+          </p>
+
+          <div className="flex flex-col justify-center gap-4 mt-4">
+            <Button type="submit" size="big">
+              {t("login")}
+            </Button>
+            <Button
+              size="big"
+              variant="gray2"
+              onClick={() => router.push("/join-membership")}
+            >
+              {t("join-membership")}
+            </Button>
+          </div>
+        </form>
+      </div>
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+        <h2 className="text-center text-[20px] text-color-24 mb-6">
+          {t("auth.admin-approve-msg")}
+        </h2>
+        <div className="flex justify-center ">
+          <Button size="small" className="min-w-[150px]">
+            {t("check")}
+          </Button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+export default LoginPage;
