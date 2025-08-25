@@ -15,6 +15,10 @@ User.init(
       allowNull: false,
       unique: true,
     },
+    displayName: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
   },
   {
     sequelize,

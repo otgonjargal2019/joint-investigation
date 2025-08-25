@@ -30,7 +30,7 @@ services:
     volumes:
       - ../socket-server:/home
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
       - net_db
 
@@ -56,5 +56,4 @@ volumes:
 networks:
   net_db:
     external: false
-
 # docker volume create --name=join_investigation_db
