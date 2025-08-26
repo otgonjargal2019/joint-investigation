@@ -5,26 +5,34 @@ class User extends Model {}
 
 User.init(
   {
-    id: {
-      type: DataTypes.INTEGER,
+    userId: {
+      type: DataTypes.UUID,
       primaryKey: true,
-      autoIncrement: true,
+      defaultValue: DataTypes.UUIDV4,
+      field: "user_id",
     },
-    username: {
-      type: DataTypes.STRING(100),
+    loginId: {
+      type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+      field: "login_id",
     },
-    displayName: {
-      type: DataTypes.STRING(150),
+    nameKr: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: "name_kr",
+    },
+    nameEn: {
+      type: DataTypes.STRING,
       allowNull: true,
+      field: "name_en",
     },
   },
   {
     sequelize,
     modelName: "User",
     tableName: "users",
-    timestamps: true,
+    timestamps: false,
     underscored: true,
   }
 );

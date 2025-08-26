@@ -1,0 +1,135 @@
+package com.lsware.joint_investigation.config.filter;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.lsware.joint_investigation.config.CustomUser;
+import com.lsware.joint_investigation.util.JwtHelper;
+
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    @Value("${security.jwt.header-string}")
+    private String headerAuthentication;
+
+    @Value("${security.jwt.token-prefix}")
+    private String tokenPrefix;
+
+    @Autowired
+    private JwtHelper jwtHelper;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        boolean doFilter = true;
+        List<String> urlExceptions = Arrays.asList(
+                "/api/auth/",
+                "/api/app/",
+                "/api/user/avatar",
+                "/web/",
+                "/files/download/",
+                "/api/admin/statistic/register/contactus");
+
+        for (String urlException : urlExceptions) {
+            if (request.getRequestURI().startsWith(urlException)) {
+                doFilter = false;
+                break;
+            }
+        }
+
+        if (doFilter) {
+            String jwtToken = getJWTFromRequest(request);
+            if (jwtToken == null) {
+                sendUnauthorized(response);
+                return;
+            }
+
+            try {
+
+                String username = jwtHelper.extractSubject(jwtToken);
+                if (username != null) {
+                    @SuppressWarnings("unchecked")
+                    Function<Claims, List<String>> roleResolver = claims -> (List<String>) claims.get("ROLE",
+                            List.class);
+                    Function<Claims, UUID> idResolver = claims -> (UUID) claims.get("id", UUID.class);
+
+                    List<String> rolesPayload = jwtHelper.extractClaim(jwtToken, roleResolver);
+                    UUID userId = jwtHelper.extractClaim(jwtToken, idResolver);
+
+                    Collection<GrantedAuthority> roles = rolesPayload.stream()
+                            .map(role -> new SimpleGrantedAuthority(role)).collect(Collectors.toList());
+
+                    UsernamePasswordAuthenticationToken authenticationToken;
+                    if (userId != null) {
+                        CustomUser userDetails = new CustomUser(userId, username, "", roles);
+                        authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
+                                userDetails.getPassword(),
+                                userDetails.getAuthorities());
+                    } else {
+                        User userDetails = new User(username, "", roles);
+                        authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
+                                userDetails.getPassword(),
+                                userDetails.getAuthorities());
+                    }
+
+                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                } else {
+                    sendUnauthorized(response);
+                    return;
+                }
+            } catch (Exception e) {
+                System.out.println("JWT Authentication failed: " + e.getMessage());
+                e.printStackTrace();
+                sendUnauthorized(response);
+                return;
+            }
+
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private void sendUnauthorized(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"status\":401,\"message\":\"Unauthorized\"}");
+        response.getWriter().flush();
+        response.getWriter().close();
+    }
+
+    private String getJWTFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader(headerAuthentication);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(tokenPrefix + " ")) {
+            return bearerToken.substring(7, bearerToken.length());
+        }
+        return null;
+    }
+
+}

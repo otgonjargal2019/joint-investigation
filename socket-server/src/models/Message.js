@@ -5,36 +5,44 @@ class Message extends Model {}
 
 Message.init(
   {
-    id: {
-      type: DataTypes.BIGINT,
+    messageId: {
+      type: DataTypes.UUID,
       primaryKey: true,
-      autoIncrement: true,
+      defaultValue: DataTypes.UUIDV4,
+      field: "message_id",
     },
     senderId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       field: "sender_id",
     },
-    receiverId: {
-      type: DataTypes.INTEGER,
+    recipientId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      field: "receiver_id",
+      field: "recipient_id",
     },
     content: {
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    readAt: {
+    isRead: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_read",
+    },
+    createdAt: {
       type: DataTypes.DATE,
-      allowNull: true,
-      field: "read_at",
+      allowNull: false,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
     },
   },
   {
     sequelize,
     modelName: "Message",
     tableName: "messages",
-    timestamps: true,
+    timestamps: false,
     underscored: true,
   }
 );
