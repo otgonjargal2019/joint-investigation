@@ -47,7 +47,8 @@ public class Users {
     private Role role;
 
     @Column(name = "status", nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private USER_STATUS status;
 
     @Column(name = "profile_image_url")
     private String profileImageUrl;
@@ -57,5 +58,11 @@ public class Users {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public enum USER_STATUS {
+        PENDING,
+        ACTIVE,
+        INACTIVE
+    }
 
 }
