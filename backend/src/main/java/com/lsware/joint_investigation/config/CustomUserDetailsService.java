@@ -25,9 +25,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email not found"));
-        return new CustomUser(user.getUserId(), user.getEmail(), user.getPasswordHash(), new ArrayList<>());
+    public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
+        // Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+        // return new CustomUser(user.getUserId(), user.getEmail(), user.getPasswordHash(), new ArrayList<>());
+
+        Users user = userRepository.findByLoginId(loginId).orElseThrow(() -> new UsernameNotFoundException("LoginID not found"));
+        return new CustomUser(user.getUserId(), user.getEmail(), user.getPasswordHash(), new ArrayList<>(), user.getRole().name());
     }
 
     // private Collection<GrantedAuthority> mapRolesToAuthorities(List<Role> roles) {

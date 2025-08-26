@@ -76,7 +76,8 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto) {
         try {
             Authentication authentication = authenticationService.authenticate(
-                    userDto.getEmail(),
+                    //userDto.getEmail(),
+                    userDto.getLoginId(),
                     userDto.getPassword());
 
             CustomUser userDetail = (CustomUser) authentication.getPrincipal();
@@ -90,6 +91,7 @@ public class AuthController {
             // }
 
             Map<String, Object> payload = new HashMap<>();
+            payload.put("ROLE", userDetail.getRoleString());
             // payload.put("ROLE",
             //         userDetail.getAuthorities().stream().map(role -> role.getAuthority())
             //                 .collect(Collectors.toList()));

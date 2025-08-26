@@ -73,6 +73,20 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
                         .fetchFirst());
     }
 
+    public Optional<Users> findByLoginId(String loginId) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(users.loginId.eq(loginId));
+
+        return Optional.ofNullable(
+                queryFactory
+                        .select(users)
+                        .from(users)
+                        .where(builder)
+                        .fetchFirst());
+    }
+
+    
+
     // // @Transactional(readOnly = false)
     // // public Boolean updateVerifiedCode(String email, String verifyCode) {
 
