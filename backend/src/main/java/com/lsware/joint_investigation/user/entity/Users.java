@@ -43,7 +43,8 @@ public class Users {
     private String department;
 
     @Column(name = "role", nullable = false)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(name = "status", nullable = false)
     private String status;

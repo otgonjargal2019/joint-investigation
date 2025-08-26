@@ -1,7 +1,9 @@
 package com.lsware.joint_investigation.user.entity;
 
 public enum Role {
-    ADMIN,
-    MANAGER,
-    INVESTIGATOR
+    PLATFORM_ADMIN,
+    INV_ADMIN,
+    INVESTIGATOR,
+    RESEARCHER,
+    COPYRIGHT_HOLDER
 }
