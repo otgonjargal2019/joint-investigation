@@ -1,5 +1,6 @@
 package com.lsware.joint_investigation.investigation.entity;
 
+import java.util.UUID;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 
 import jakarta.persistence.Column;
@@ -18,8 +19,9 @@ import lombok.NoArgsConstructor;
 public class InvestigationRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String record_id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "record_id")
+    private UUID recordId;
 
     @Column(name = "record_name")
     private String recordName;
@@ -27,7 +29,7 @@ public class InvestigationRecord {
     private String content;
 
     public void fromDto(InvestigationRecordDto dto) {
-        this.record_id = dto.getRecord_id();
+        this.recordId = dto.getRecordId();
         this.recordName = dto.getRecordName();
         this.content = dto.getContent();
     }

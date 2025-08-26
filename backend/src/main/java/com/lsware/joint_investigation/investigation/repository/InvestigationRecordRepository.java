@@ -19,6 +19,7 @@ import jakarta.persistence.EntityManager;
 public class InvestigationRecordRepository extends SimpleJpaRepository<InvestigationRecord, String> {
 
     final private EntityManager em;
+
     private JPAQueryFactory queryFactory;
 
     public InvestigationRecordRepository(EntityManager entityManager, JPAQueryFactory queryFactory) {
@@ -49,7 +50,7 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
                 .fetch();
 
         Long total = queryFactory
-                .select(QInvestigationRecord.investigationRecord.record_id.count())
+                .select(QInvestigationRecord.investigationRecord.recordId.count())
                 .from(QInvestigationRecord.investigationRecord)
                 .where(combinedPredicate)
                 .fetchOne();
