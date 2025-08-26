@@ -1,1 +1,4 @@
 psql -U admin -d test_gem -f dump-test_gem-202508251522.sql
+
+// creating entity command from backend folder using powershell
+mvn exec:java "-Dexec.mainClass=com.lsware.joint_investigation.util.EntityGenerator"
