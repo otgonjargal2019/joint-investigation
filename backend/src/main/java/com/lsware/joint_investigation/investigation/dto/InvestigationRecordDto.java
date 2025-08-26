@@ -3,6 +3,8 @@ package com.lsware.joint_investigation.investigation.dto;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
+import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
+import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
 
 import lombok.*;
 
@@ -14,8 +16,8 @@ public class InvestigationRecordDto {
     private String recordName;
     private String content;
     private String securityLevel;
-    private String progressStatus;
-    private String reviewStatus;
+    private PROGRESS_STATUS progressStatus;
+    private REVIEW_STATUS reviewStatus;
     private String rejectionReason;
     private UUID createdBy;
     private UUID reviewerId;

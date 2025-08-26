@@ -6,6 +6,8 @@ import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,10 +41,26 @@ public class InvestigationRecord {
     private String securityLevel;
 
     @Column(name = "progress_status")
-    private String progressStatus;
+    @Enumerated(EnumType.STRING)
+    private PROGRESS_STATUS progressStatus;
 
-    @Column(name = "review_status", nullable = false)
-    private String reviewStatus;
+    public enum PROGRESS_STATUS {
+        PRE_INVESTIGATION,
+        INVESTIGATION,
+        REVIEW,
+        PROSECUTION,
+        CLOSED
+    }
+
+    @Column(name = "REVIEW_STATUS", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private REVIEW_STATUS reviewStatus;
+
+    public enum REVIEW_STATUS {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
 
     @Column(name = "rejection_reason")
     private String rejectionReason;
