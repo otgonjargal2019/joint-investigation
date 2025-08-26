@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.investigation.entity;
 
 import java.util.UUID;
+
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 
 import jakarta.persistence.Column;
@@ -9,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "investigation_records")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class InvestigationRecord {
 
     @Id
@@ -23,15 +26,58 @@ public class InvestigationRecord {
     @Column(name = "record_id")
     private UUID recordId;
 
-    @Column(name = "record_name")
+    @Column(name = "case_id", nullable = false)
+    private UUID caseId;
+
+    @Column(name = "record_name", nullable = false)
     private String recordName;
 
+    @Column(name = "content")
     private String content;
 
-    public void fromDto(InvestigationRecordDto dto) {
-        this.recordId = dto.getRecordId();
-        this.recordName = dto.getRecordName();
-        this.content = dto.getContent();
+    @Column(name = "security_level", nullable = false)
+    private String securityLevel;
+
+    @Column(name = "progress_status")
+    private String progressStatus;
+
+    @Column(name = "review_status", nullable = false)
+    private String reviewStatus;
+
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
+
+    @Column(name = "created_by", nullable = false)
+    private UUID createdBy;
+
+    @Column(name = "reviewer_id")
+    private UUID reviewerId;
+
+    @Column(name = "reviewed_at")
+    private String reviewedAt;
+
+    @Column(name = "created_at", nullable = false)
+    private String createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private String updatedAt;
+
+    public InvestigationRecordDto toDto() {
+        InvestigationRecordDto dto = new InvestigationRecordDto();
+        dto.setRecordId(this.recordId);
+        dto.setCaseId(this.caseId);
+        dto.setRecordName(this.recordName);
+        dto.setContent(this.content);
+        dto.setSecurityLevel(this.securityLevel);
+        dto.setProgressStatus(this.progressStatus);
+        dto.setReviewStatus(this.reviewStatus);
+        dto.setRejectionReason(this.rejectionReason);
+        dto.setCreatedBy(this.createdBy);
+        dto.setReviewerId(this.reviewerId);
+        dto.setReviewedAt(this.reviewedAt);
+        dto.setCreatedAt(this.createdAt);
+        dto.setUpdatedAt(this.updatedAt);
+        return dto;
     }
 
 }

@@ -16,12 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/investigation-records")
 public class InvestigationController {
 
-	private final InvestigationService investigationService;
-
 	@Autowired
-	public InvestigationController(InvestigationService investigationService) {
-		this.investigationService = investigationService;
-	}
+	private InvestigationService investigationService;
 
 	@GetMapping("")
 	public ResponseEntity<?> getInvestigationRecords(

@@ -19,10 +19,6 @@ import jakarta.persistence.EntityManager;
 @Repository
 public class InvestigationRecordRepository extends SimpleJpaRepository<InvestigationRecord, String> {
 
-    // public InvestigationRecordRepository(Class<InvestigationRecord> domainClass, EntityManager entityManager) {
-    //     super(domainClass, entityManager);
-    // }
-
     private EntityManager em;
 
     @Autowired
@@ -31,7 +27,6 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
     public InvestigationRecordRepository(EntityManager entityManager) {
         super(InvestigationRecord.class, entityManager);
         em = entityManager;
-        queryFactory = new JPAQueryFactory(em);
     }
 
     private BooleanExpression createPredicate(String recordName) {
