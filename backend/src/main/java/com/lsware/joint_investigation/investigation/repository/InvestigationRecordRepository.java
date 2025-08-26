@@ -6,6 +6,7 @@ import java.util.Map;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Repository;
@@ -18,14 +19,19 @@ import jakarta.persistence.EntityManager;
 @Repository
 public class InvestigationRecordRepository extends SimpleJpaRepository<InvestigationRecord, String> {
 
-    final private EntityManager em;
+    // public InvestigationRecordRepository(Class<InvestigationRecord> domainClass, EntityManager entityManager) {
+    //     super(domainClass, entityManager);
+    // }
 
+    private EntityManager em;
+
+    @Autowired
     private JPAQueryFactory queryFactory;
 
-    public InvestigationRecordRepository(EntityManager entityManager, JPAQueryFactory queryFactory) {
+    public InvestigationRecordRepository(EntityManager entityManager) {
         super(InvestigationRecord.class, entityManager);
-        this.em = entityManager;
-        this.queryFactory = queryFactory;
+        em = entityManager;
+        queryFactory = new JPAQueryFactory(em);
     }
 
     private BooleanExpression createPredicate(String recordName) {
