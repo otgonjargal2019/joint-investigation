@@ -2,17 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-
 import { useAuth } from "@/providers/authProviders";
 
 export default function MessengerPage() {
   const { user } = useAuth();
+  const currentUserId = user.userId;
 
   const [serverUrl] = useState(
     process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
   );
-  const [currentUserId, setCurrentUserId] = useState("");
+
   const [users, setUsers] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [selectedPeer, setSelectedPeer] = useState(null);
   const [allMessages, setAllMessages] = useState([]);
   const [messageContent, setMessageContent] = useState("");
@@ -20,21 +21,24 @@ export default function MessengerPage() {
 
   const socketRef = useRef(null);
 
+  // Initialize Socket
   useEffect(() => {
     socketRef.current = io(serverUrl, { transports: ["websocket"] });
 
     socketRef.current.on("connect", () => setStatus("connected"));
     socketRef.current.on("disconnect", () => setStatus("disconnected"));
 
-    // Receive all new messages from server
     socketRef.current.on("directMessage", (msg) => {
-      console.log("msg:::", msg);
       setAllMessages((prev) => {
-        // Avoid duplicates
         const exists = prev.some((m) => m.messageId === msg.messageId);
         if (exists) return prev;
         return [...prev, msg];
       });
+    });
+
+    // Load chat users initially
+    socketRef.current.emit("getChatUsers", currentUserId, (res) => {
+      setUsers(res);
     });
 
     return () => {
@@ -43,15 +47,9 @@ export default function MessengerPage() {
       socketRef.current.off("directMessage");
       socketRef.current.disconnect();
     };
-  }, [serverUrl]);
+  }, [serverUrl, currentUserId]);
 
-  const handleRegister = () => {
-    if (!currentUserId) return;
-    socketRef.current.emit("register", currentUserId, (res) => {
-      setUsers(res);
-    });
-  };
-
+  // Handle peer selection
   const handleSelectPeer = (peer) => {
     setSelectedPeer(peer);
     socketRef.current.emit(
@@ -70,6 +68,7 @@ export default function MessengerPage() {
     );
   };
 
+  // Handle sending a message
   const handleSend = () => {
     if (!currentUserId || !selectedPeer || !messageContent.trim()) return;
 
@@ -79,9 +78,26 @@ export default function MessengerPage() {
       content: messageContent,
     });
 
-    setMessageContent(""); // Clear input
+    setMessageContent("");
   };
 
+  const handleSearch = (text) => {
+    setSearchText(text);
+
+    if (!text.trim()) {
+      socketRef.current.emit("getChatUsers", currentUserId, (res) => {
+        setUsers(res);
+      });
+      return;
+    }
+
+    // Emit search text as a string, not object
+    socketRef.current.emit("searchUsers", text, (res) => {
+      setUsers(res);
+    });
+  };
+
+  // Filter messages for selected peer
   const filteredMessages = selectedPeer
     ? allMessages.filter(
         (m) =>
@@ -99,27 +115,19 @@ export default function MessengerPage() {
         Status: <span className="font-mono">{status}</span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          className="border p-2"
-          placeholder="Your User ID"
-          value={currentUserId}
-          onChange={(e) => setCurrentUserId(e.target.value)}
-        />
-        <button
-          className="bg-blue-600 text-white px-3 py-2 rounded"
-          onClick={handleRegister}
-        >
-          Register
-        </button>
-      </div>
-
       <div className="grid md:grid-cols-2 gap-4">
         {/* Users list */}
         <div className="p-3 border rounded max-h-96 overflow-auto">
           <h2 className="font-semibold mb-2">Users</h2>
+          <input
+            type="text"
+            className="border p-2 w-full mb-2"
+            placeholder="Search by loginId, nameEn, nameKr..."
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
           {users.length === 0 && (
-            <div className="text-sm text-gray-500">No other users</div>
+            <div className="text-sm text-gray-500">No users found</div>
           )}
           {users.map((u) => (
             <div
@@ -145,14 +153,21 @@ export default function MessengerPage() {
               <div
                 key={m.messageId}
                 className={`p-1 rounded my-1 ${
-                  m.senderId === currentUserId ? "bg-blue-50" : "bg-gray-50"
+                  m.senderId === currentUserId
+                    ? "bg-blue-50 self-end"
+                    : "bg-gray-50 self-start"
                 }`}
               >
                 <div className="text-xs text-gray-500">
                   {new Date(m.createdAt).toLocaleString()}
                 </div>
                 <div>
-                  <strong>{m.senderId}</strong>: {m.content}
+                  <strong>
+                    {m.senderId === currentUserId
+                      ? "Me"
+                      : selectedPeer.displayName}
+                  </strong>
+                  : {m.content}
                 </div>
               </div>
             ))}

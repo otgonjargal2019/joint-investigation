@@ -32,18 +32,79 @@ sequelize
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  let currentUserId = null;
-
-  // Register user and return all other users
-  socket.on("register", async (userId, ack) => {
+  // Get users you've chatted with
+  socket.on("getChatUsers", async (userId, ack) => {
     if (!userId) return;
-    currentUserId = userId;
+
+    socket.userId = userId; // store userId on socket
     socket.join(`user:${userId}`);
-    console.log(`${socket.id} registered as user ${userId}`);
+    console.log(`${socket.id} joined as user ${userId}`);
+
+    try {
+      // 1. Find all unique userIds you have messages with
+      const messages = await Message.findAll({
+        where: { [Op.or]: [{ senderId: userId }, { recipientId: userId }] },
+        attributes: ["senderId", "recipientId", "content", "createdAt"],
+        raw: true,
+      });
+
+      const peerIds = new Set();
+      messages.forEach((msg) => {
+        if (msg.senderId !== userId) peerIds.add(msg.senderId);
+        if (msg.recipientId !== userId) peerIds.add(msg.recipientId);
+      });
+
+      if (peerIds.size === 0) {
+        if (typeof ack === "function") ack([]);
+        return;
+      }
+
+      // 2. Fetch user details and last message for each peer
+      const usersWithLastMessage = await Promise.all(
+        Array.from(peerIds).map(async (peerId) => {
+          const lastMsg = await Message.findOne({
+            where: {
+              [Op.or]: [
+                { senderId: userId, recipientId: peerId },
+                { senderId: peerId, recipientId: userId },
+              ],
+            },
+            order: [["createdAt", "DESC"]],
+            raw: true,
+          });
+
+          const user = await User.findByPk(peerId, { raw: true });
+          return {
+            userId: user.userId,
+            displayName: user.nameEn || user.nameKr || user.loginId,
+            lastMessage: lastMsg ? lastMsg.content : null,
+            lastMessageTime: lastMsg ? lastMsg.createdAt : null,
+          };
+        })
+      );
+
+      if (typeof ack === "function") ack(usersWithLastMessage);
+    } catch (e) {
+      console.error("getChatUsers error:", e);
+      if (typeof ack === "function") ack([]);
+    }
+  });
+
+  socket.on("searchUsers", async (searchText, ack) => {
+    if (!socket.userId) return;
+    const text = String(searchText || "").trim();
+    if (!text) return ack([]);
 
     try {
       const users = await User.findAll({
-        where: { userId: { [Op.not]: userId } },
+        where: {
+          userId: { [Op.not]: socket.userId },
+          [Op.or]: [
+            { loginId: { [Op.iLike]: `%${text}%` } },
+            { nameEn: { [Op.iLike]: `%${text}%` } },
+            { nameKr: { [Op.iLike]: `%${text}%` } },
+          ],
+        },
         attributes: ["userId", "nameEn", "nameKr", "loginId"],
         order: [["nameEn", "ASC"]],
         raw: true,
@@ -56,7 +117,7 @@ io.on("connection", (socket) => {
 
       if (typeof ack === "function") ack(mapped);
     } catch (e) {
-      console.error("getAllUsers error", e);
+      console.error("searchUsers error:", e);
       if (typeof ack === "function") ack([]);
     }
   });
