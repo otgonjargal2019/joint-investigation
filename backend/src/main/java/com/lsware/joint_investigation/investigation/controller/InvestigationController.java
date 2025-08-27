@@ -44,7 +44,7 @@ public class InvestigationController {
 		MappingJacksonValue mapping = new MappingJacksonValue(result);
 
 		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-				.filterOutAllExcept("userId", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
+				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
 
 		FilterProvider filters = new SimpleFilterProvider()
 				.addFilter("UserFilter", userFilter);

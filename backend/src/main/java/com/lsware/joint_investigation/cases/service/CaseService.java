@@ -60,7 +60,7 @@ public class CaseService {
         MappingJacksonValue mapping = new MappingJacksonValue(caseDto);
 
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-                .filterOutAllExcept("userId", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
+                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
 
         FilterProvider filters = new SimpleFilterProvider()
                 .addFilter("UserFilter", userFilter);
