@@ -75,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (username != null) {
                     @SuppressWarnings("unchecked")
                     //Function<Claims, List<String>> roleResolver = claims -> (List<String>) claims.get("ROLE", List.class);
-                    Function<Claims, String> roleResolver = claims -> (String) claims.get("ROLE", String.class);
+                    Function<Claims, String> roleResolver = claims -> (String) claims.get("role", String.class);
                     Function<Claims, UUID> idResolver = claims -> (UUID) claims.get("id", UUID.class);
 
                     String rolePayload = jwtHelper.extractClaim(jwtToken, roleResolver);

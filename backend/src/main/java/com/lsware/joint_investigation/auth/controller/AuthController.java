@@ -91,7 +91,7 @@ public class AuthController {
             // }
 
             Map<String, Object> payload = new HashMap<>();
-            payload.put("ROLE", userDetail.getRoleString());
+            payload.put("role", userDetail.getRoleString());
             // payload.put("ROLE",
             //         userDetail.getAuthorities().stream().map(role -> role.getAuthority())
             //                 .collect(Collectors.toList()));
