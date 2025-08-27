@@ -2,6 +2,7 @@
 
 import Cookies from "js-cookie";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -15,28 +16,19 @@ import Button from "@/shared/components/button";
 import Modal from "@/shared/components/modal";
 import LogoBig from "@/shared/components/icons/logoBig";
 import { useSignIn } from "@/entities/auth/auth.mutation";
+import { loginFormSchema } from "@/entities/auth";
 
 function LoginPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const { register, watch, setValue, handleSubmit } = useForm();
+  const { register, formState: { errors }, watch, setValue, handleSubmit } = useForm({ resolver: zodResolver(loginFormSchema)});
   const [error, setError] = useState(true);
 
   const t = useTranslations();
   const router = useRouter();
   const loginMutation = useSignIn();
 
-  const onSubmit = async (formValues) => {
-    const values = {
-      loginId: "user1",
-      password: "password",
-    };
-
-    const values2 = {
-      loginId: "user3",
-      password: "password",
-    };
-
-    loginMutation.mutate(values2, {
+  const onSubmit = async (values) => {
+    loginMutation.mutate(values, {
       onSuccess: (res) => {
         console.log("res:", res.data);
         const { message, success, access_token } = res.data;
@@ -75,10 +67,11 @@ function LoginPage() {
             </Label>
             <Input
               register={register}
-              name="id"
+              name="loginId"
               variant="auth"
               placeholder={t("placeholder.id")}
-              showError={false}
+              //showError={false}
+              error={errors.loginId}
             />
           </FormField>
           <FormField>
@@ -91,7 +84,8 @@ function LoginPage() {
               name="password"
               variant="auth"
               placeholder={t("placeholder.password")}
-              showError={false}
+              //showError={false}
+              error={errors.password}
             />
           </FormField>
           <FormField>
