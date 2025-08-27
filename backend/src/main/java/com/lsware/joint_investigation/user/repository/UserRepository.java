@@ -8,6 +8,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class UserRepository extends SimpleJpaRepository<Users, Integer> {
@@ -45,6 +46,18 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     public Optional<Users> findByLoginId(String loginId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.loginId.eq(loginId));
+
+        return Optional.ofNullable(
+                queryFactory
+                        .select(users)
+                        .from(users)
+                        .where(builder)
+                        .fetchFirst());
+    }
+
+    public Optional<Users> findByUserId(UUID userId) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(users.userId.eq(userId));
 
         return Optional.ofNullable(
                 queryFactory

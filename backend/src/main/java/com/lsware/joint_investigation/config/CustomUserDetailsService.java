@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.config;
 
 import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +19,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         Users user = userRepository.findByLoginId(loginId).orElseThrow(() -> new UsernameNotFoundException("LoginID not found"));
-        return new CustomUser(user.getUserId(), user.getEmail(), user.getPasswordHash(), new ArrayList<>(), user.getRole().name());
+        return new CustomUser(user.getUserId(), user.getPasswordHash(), new ArrayList<>(), user.getRole().name());
     }
 }

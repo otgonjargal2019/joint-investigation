@@ -76,26 +76,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     @SuppressWarnings("unchecked")
                     //Function<Claims, List<String>> roleResolver = claims -> (List<String>) claims.get("ROLE", List.class);
                     Function<Claims, String> roleResolver = claims -> (String) claims.get("role", String.class);
-                    Function<Claims, UUID> idResolver = claims -> (UUID) claims.get("id", UUID.class);
 
                     String rolePayload = jwtHelper.extractClaim(jwtToken, roleResolver);
-                    UUID userId = jwtHelper.extractClaim(jwtToken, idResolver);
 
                     // Collection<GrantedAuthority> roles = rolesPayload.stream()
                     //         .map(role -> new SimpleGrantedAuthority(role)).collect(Collectors.toList());
 
                     UsernamePasswordAuthenticationToken authenticationToken;
-                    if (userId != null) {
-                        CustomUser userDetails = new CustomUser(userId, username, "", new ArrayList<>(), rolePayload);
-                        authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
-                                userDetails.getPassword(),
-                                userDetails.getAuthorities());
-                    } else {
-                        User userDetails = new User(username, "", new ArrayList<>());
-                        authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
-                                userDetails.getPassword(),
-                                userDetails.getAuthorities());
-                    }
+                    CustomUser userDetails = new CustomUser(UUID.fromString(username), "", new ArrayList<>(), rolePayload);
+                    authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
+                            userDetails.getPassword(),
+                            userDetails.getAuthorities());
 
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
