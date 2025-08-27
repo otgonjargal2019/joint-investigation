@@ -8,14 +8,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-//import org.thymeleaf.spring6.SpringTemplateEngine;
-
 import com.lsware.joint_investigation.auth.service.AuthService;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.config.CustomUserDetailsService;
@@ -24,26 +21,10 @@ import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.entity.Users.USER_STATUS;
 import com.lsware.joint_investigation.user.repository.UserRepository;
-//import com.lsware.nfteyes.user.enums.ActionType;
-//import com.lsware.nfteyes.util.Email;
 import com.lsware.joint_investigation.util.JwtHelper;
-
-import java.time.Duration;
+import java.util.Map;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.stream.Collectors;
-//import org.thymeleaf.context.Context;
-//import com.lsware.joint_investigation.util.Constant;
-import java.util.Map;
-//import java.util.Optional;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Value;
-
-//import java.util.Random;
-
-//import com.lsware.joint_investigation.user.repository.ActionLogRepository;
-//import com.lsware.joint_investigation.user.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -57,10 +38,6 @@ public class AuthController {
 
     @Autowired
     private JwtHelper jwtHelper;
-
-    
-    //@Value("${nfteyes.web}")
-    //private String webUrl;
 
     @Autowired
     public PasswordEncoder passwordEncoder;
@@ -76,42 +53,119 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto) {
         try {
             Authentication authentication = authenticationService.authenticate(
-                    //userDto.getEmail(),
                     userDto.getLoginId(),
                     userDto.getPassword());
 
             CustomUser userDetail = (CustomUser) authentication.getPrincipal();
-
-            //boolean isUser = userDetail.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("USER"));
-            // if(!isUser){
-            //     Map<String, Object> errorResponse = new HashMap<>();
-            //     errorResponse.put("success", false);
-            //     errorResponse.put("message", "Access denied. User role required.");
-            //     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-            // }
-
             Map<String, Object> payload = new HashMap<>();
             payload.put("role", userDetail.getRoleString());
-            // payload.put("ROLE",
-            //         userDetail.getAuthorities().stream().map(role -> role.getAuthority())
-            //                 .collect(Collectors.toList()));
             String jwtToken = jwtHelper.generateToken(payload, userDetail.getId(), false);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Login successful");
             response.put("access_token", jwtToken);
-            
             return ResponseEntity.ok(response);
-
         } catch (AuthenticationException ex) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Authentication failed. Invalid credentials.");
-
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
         }
     }
+
+    @PostMapping("/checkloginid")
+    public ResponseEntity<HashMap<String, String>> checkUserId(
+            @RequestBody UserDto userDto) {
+
+        HashMap<String, String> response = new HashMap<>();
+
+        try {
+            boolean idExist = authenticationService.checkloginIdExist(userDto.getLoginId());
+
+            if (!idExist) {
+                response.put("message", "LoginID not exist.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "LoginID exist.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+        } catch (IllegalArgumentException e) {
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    
+    @PostMapping("/checkemail")
+    public ResponseEntity<HashMap<String, String>> checkEmail(
+            @RequestBody UserDto userDto) {
+
+        HashMap<String, String> response = new HashMap<>();
+        try {
+            boolean emailExist = authenticationService.checkEmailExist(userDto.getEmail());
+            if (!emailExist) {
+                response.put("message", "Email not exist.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Email exist.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } catch (IllegalArgumentException e) {
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<Map<String, Object>> signup(@RequestBody UserDto userDto) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            boolean idExist = authenticationService.checkloginIdExist(userDto.getLoginId());
+            if (idExist) {
+                response.put("message", "LoginID exist.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            boolean emailExist = authenticationService.checkEmailExist(userDto.getEmail());
+            if (emailExist) {
+                response.put("message", "Email exist.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        
+            Users user = new Users();
+            user.setLoginId(userDto.getLoginId());
+            user.setNameKr(userDto.getNameKr());
+            user.setNameEn(userDto.getNameEn());
+            user.setEmail(userDto.getEmail());
+            user.setPhone(userDto.getPhone());
+            user.setCountry(userDto.getCountry());
+            user.setDepartment(userDto.getDepartment());
+            user.setRole(userDto.getRole());
+            user.setStatus(Users.USER_STATUS.PENDING);
+            String passwordString = userDto.getPassword();
+            user.setPasswordHash(passwordEncoder.encode(passwordString));
+            user.setCreatedAt(LocalDateTime.now());
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            response.put("success", true);
+            response.put("message", "Signup successful");
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Unexpected error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
 
     @PostMapping("/create")
     public ResponseEntity<HashMap<String, Object>> create(@RequestBody HashMap<String, String> payload,

@@ -3,7 +3,6 @@ package com.lsware.joint_investigation.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.*;
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
