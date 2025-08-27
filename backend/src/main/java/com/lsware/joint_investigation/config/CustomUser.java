@@ -9,20 +9,13 @@ import org.springframework.security.core.userdetails.User;
 public class CustomUser extends User {
 
     private UUID id;
-    private String role;
 
-    public CustomUser(UUID id, String password, Collection<? extends GrantedAuthority> authorities, String role) {
+    public CustomUser(UUID id, String password, Collection<? extends GrantedAuthority> authorities) {
         super(id.toString(), password, authorities);
         this.id = id;
-        this.role = role;
     }
 
     public UUID getId() {
         return id;
     }
-
-    public String getRoleString(){
-        return role;
-    }
-
 }

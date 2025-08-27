@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.lsware.joint_investigation.auth.service.AuthService;
 import com.lsware.joint_investigation.config.CustomUser;
-import com.lsware.joint_investigation.config.CustomUserDetailsService;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final CustomUserDetailsService customUserDetailsService;
     protected Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
@@ -45,10 +43,6 @@ public class AuthController {
     @Autowired
     UserRepository userRepository;
 
-    AuthController(CustomUserDetailsService customUserDetailsService) {
-        this.customUserDetailsService = customUserDetailsService;
-    }
-
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto) {
         try {
@@ -58,7 +52,7 @@ public class AuthController {
 
             CustomUser userDetail = (CustomUser) authentication.getPrincipal();
             Map<String, Object> payload = new HashMap<>();
-            payload.put("role", userDetail.getRoleString());
+            payload.put("role", userDetail.getAuthorities().stream().findFirst().get().getAuthority());
             String jwtToken = jwtHelper.generateToken(payload, userDetail.getId(), false);
 
             Map<String, Object> response = new HashMap<>();
@@ -96,7 +90,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
-    
+
     @PostMapping("/checkemail")
     public ResponseEntity<HashMap<String, String>> checkEmail(
             @RequestBody UserDto userDto) {
@@ -120,7 +114,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody UserDto userDto) {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             boolean idExist = authenticationService.checkloginIdExist(userDto.getLoginId());
             if (idExist) {
@@ -132,7 +126,7 @@ public class AuthController {
                 response.put("message", "Email exist.");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-        
+
             Users user = new Users();
             user.setLoginId(userDto.getLoginId());
             user.setNameKr(userDto.getNameKr());

@@ -74,16 +74,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = jwtHelper.extractSubject(jwtToken);
                 if (username != null) {
                     @SuppressWarnings("unchecked")
-                    //Function<Claims, List<String>> roleResolver = claims -> (List<String>) claims.get("ROLE", List.class);
                     Function<Claims, String> roleResolver = claims -> (String) claims.get("role", String.class);
 
                     String rolePayload = jwtHelper.extractClaim(jwtToken, roleResolver);
 
-                    // Collection<GrantedAuthority> roles = rolesPayload.stream()
-                    //         .map(role -> new SimpleGrantedAuthority(role)).collect(Collectors.toList());
+                    // Create authorities collection with the ROLE_ prefix that Spring Security expects
+                    Collection<GrantedAuthority> authorities = new ArrayList<>();
+                    if (rolePayload != null) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + rolePayload));
+                    }
 
                     UsernamePasswordAuthenticationToken authenticationToken;
-                    CustomUser userDetails = new CustomUser(UUID.fromString(username), "", new ArrayList<>(), rolePayload);
+                    CustomUser userDetails = new CustomUser(UUID.fromString(username), "", authorities);
                     authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
                             userDetails.getPassword(),
                             userDetails.getAuthorities());
