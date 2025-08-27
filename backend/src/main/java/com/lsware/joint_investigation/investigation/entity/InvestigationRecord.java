@@ -1,7 +1,9 @@
 package com.lsware.joint_investigation.investigation.entity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 
 import jakarta.persistence.Column;
@@ -11,6 +13,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,8 +32,12 @@ public class InvestigationRecord {
     @Column(name = "record_id")
     private UUID recordId;
 
-    @Column(name = "case_id", nullable = false)
-    private UUID caseId;
+    // @Column(name = "case_id", nullable = false)
+    // private UUID caseId;
+
+    @ManyToOne
+    @JoinColumn(name="case_id", nullable=false)
+    private Case caseInstance;
 
     @Column(name = "record_name", nullable = false)
     private String recordName;
@@ -72,18 +80,18 @@ public class InvestigationRecord {
     private UUID reviewerId;
 
     @Column(name = "reviewed_at")
-    private String reviewedAt;
+    private LocalDateTime reviewedAt;
 
     @Column(name = "created_at", nullable = false)
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private String updatedAt;
+    private LocalDateTime updatedAt;
 
     public InvestigationRecordDto toDto() {
         InvestigationRecordDto dto = new InvestigationRecordDto();
         dto.setRecordId(this.recordId);
-        dto.setCaseId(this.caseId);
+        dto.setCaseInstance(this.caseInstance != null ? this.caseInstance.toDto() : null);
         dto.setRecordName(this.recordName);
         dto.setContent(this.content);
         dto.setSecurityLevel(this.securityLevel);
@@ -97,5 +105,4 @@ public class InvestigationRecord {
         dto.setUpdatedAt(this.updatedAt);
         return dto;
     }
-
 }

@@ -1,7 +1,9 @@
 package com.lsware.joint_investigation.investigation.dto;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
@@ -12,7 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 public class InvestigationRecordDto {
     private UUID recordId;
-    private UUID caseId;
+    private CaseDto caseInstance;
     private String recordName;
     private String content;
     private String securityLevel;
@@ -21,26 +23,27 @@ public class InvestigationRecordDto {
     private String rejectionReason;
     private UUID createdBy;
     private UUID reviewerId;
-    private String reviewedAt;
-    private String createdAt;
-    private String updatedAt;
+    private LocalDateTime reviewedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public InvestigationRecord toEntity() {
-        InvestigationRecord investigationRecord = new InvestigationRecord();
-        investigationRecord.setRecordId(this.recordId);
-        investigationRecord.setCaseId(this.caseId);
-        investigationRecord.setRecordName(this.recordName);
-        investigationRecord.setContent(this.content);
-        investigationRecord.setSecurityLevel(this.securityLevel);
-        investigationRecord.setProgressStatus(this.progressStatus);
-        investigationRecord.setReviewStatus(this.reviewStatus);
-        investigationRecord.setRejectionReason(this.rejectionReason);
-        investigationRecord.setCreatedBy(this.createdBy);
-        investigationRecord.setReviewerId(this.reviewerId);
-        investigationRecord.setReviewedAt(this.reviewedAt);
-        investigationRecord.setCreatedAt(this.createdAt);
-        investigationRecord.setUpdatedAt(this.updatedAt);
-        return investigationRecord;
+        InvestigationRecord entity = new InvestigationRecord();
+        entity.setRecordId(this.recordId);
+        entity.setCaseInstance(this.caseInstance != null ? this.caseInstance.toEntity() : null);
+        entity.setRecordName(this.recordName);
+        entity.setContent(this.content);
+        entity.setSecurityLevel(this.securityLevel);
+        entity.setProgressStatus(this.progressStatus);
+        entity.setReviewStatus(this.reviewStatus);
+        entity.setRejectionReason(this.rejectionReason);
+        entity.setCreatedBy(this.createdBy);
+        entity.setReviewerId(this.reviewerId);
+        entity.setReviewedAt(this.reviewedAt);
+        entity.setCreatedAt(this.createdAt);
+        entity.setUpdatedAt(this.updatedAt);
+        return entity;
     }
+
 
 }
