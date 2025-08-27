@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,7 @@ import com.lsware.joint_investigation.config.filter.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -50,10 +52,8 @@ public class SecurityConfig {
         http.exceptionHandling(handling -> handling.accessDeniedHandler(accessDeniedHandler()));
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
                 .requestMatchers("/api/user/**").permitAll()
-                //.requestMatchers("/api/user/**").hasAuthority("USER")
-                //.requestMatchers("/api/admin/statistic/register/contactus").permitAll()
-                //.requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/cases/**").permitAll()
                 .anyRequest().permitAll());
         return http.build();
     }

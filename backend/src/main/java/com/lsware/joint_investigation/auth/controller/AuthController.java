@@ -52,7 +52,13 @@ public class AuthController {
 
             CustomUser userDetail = (CustomUser) authentication.getPrincipal();
             Map<String, Object> payload = new HashMap<>();
-            payload.put("role", userDetail.getAuthorities().stream().findFirst().get().getAuthority());
+            // Remove ROLE_ prefix when storing in JWT
+            String role = userDetail.getAuthorities().stream()
+                .findFirst()
+                .get()
+                .getAuthority()
+                .replace("ROLE_", "");
+            payload.put("role", role);
             String jwtToken = jwtHelper.generateToken(payload, userDetail.getId(), false);
 
             Map<String, Object> response = new HashMap<>();
