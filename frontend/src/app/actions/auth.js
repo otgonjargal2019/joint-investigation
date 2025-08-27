@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-export async function login({ id, password }) {
+export async function setTokenCookie(token) {
   //   if (id !== "testuser" || password !== "1234") {
   //     return { error: "Invalid credentials" };
   //   }
@@ -13,11 +13,11 @@ export async function login({ id, password }) {
   // 2. investigator
   // 3. manager
 
-  const token = jwt.sign(
-    { id: "crazy1000", role: "admin", name: "고광천" },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  // const token = jwt.sign(
+  //   { id: "crazy1000", role: "admin", name: "고광천" },
+  //   process.env.JWT_SECRET,
+  //   { expiresIn: "7d" }
+  // );
 
   const cookieStore = await cookies();
 
@@ -47,6 +47,7 @@ export async function logout() {
 export async function getUserFromCookie() {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
+  console.log("getUserFromCookie function--->", token);
 
   if (!token) {
     return null;
@@ -54,6 +55,7 @@ export async function getUserFromCookie() {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("getUserFromCookie --> decoded::", decoded);
 
     return {
       id: decoded.id,

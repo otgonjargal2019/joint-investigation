@@ -1,11 +1,12 @@
 "use client";
 
+import Cookies from "js-cookie";
 import { useForm } from "react-hook-form";
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
-import { login } from "@/app/actions/auth";
+import { setTokenCookie } from "@/app/actions/auth";
 import FormField from "@/shared/components/form/formField";
 import Label from "@/shared/components/form/label";
 import Input from "@/shared/components/form/input";
@@ -13,22 +14,49 @@ import Checkbox from "@/shared/components/form/checkbox";
 import Button from "@/shared/components/button";
 import Modal from "@/shared/components/modal";
 import LogoBig from "@/shared/components/icons/logoBig";
+import { useSignIn } from "@/entities/auth/auth.mutation";
 
 function LoginPage() {
-  const [modalOpen, setModalOpen] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const { register, watch, setValue, handleSubmit } = useForm();
   const [error, setError] = useState(true);
 
   const t = useTranslations();
   const router = useRouter();
+  const loginMutation = useSignIn();
 
   const onSubmit = async (formValues) => {
-    const result = await login(formValues);
+    const values = {
+      loginId: "user1",
+      password: "password",
+    };
+
+    const values2 = {
+      loginId: "user3",
+      password: "password",
+    };
+
+    loginMutation.mutate(values2, {
+      onSuccess: (res) => {
+        console.log("res:", res.data);
+        const { message, success, access_token } = res.data;
+        if (success) {
+          setTokenCookie(access_token);
+          // Cookies.set("access_token", access_token, {
+          //   path: "/",
+          //   sameSite: "lax",
+          //   // secure: true,
+          // });
+          // window.location.href = "/";
+          // setTokenCookie(access_token);
+        }
+      },
+      onError: (err) => {},
+    });
+    // const result = await login(formValues);
     // if (result?.error) {
     // return;
     // }
-    console.log("result:", result);
-    window.location.href = "/";
   };
 
   return (

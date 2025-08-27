@@ -24,13 +24,22 @@ services:
     # environment:
     #   - VAR1=5000
     #   - VAR2=/models/tfjs_model
-    command: tail -f /dev/null
+    working_dir: /home
+    command: ["npm", "run", "dev"]
     depends_on:
       - db
     volumes:
       - ../socket-server:/home
     ports:
-      - "3001:3000"
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DB_NAME=test_gem
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - FRONTEND_URL=http://localhost:3000
     networks:
       - net_db
 

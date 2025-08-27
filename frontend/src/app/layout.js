@@ -5,6 +5,8 @@ import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 
+import ReactQueryProvider from "@/providers/reactQueryProviders";
+
 const notoSansKR = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",
   subsets: ["latin"],
@@ -30,7 +32,9 @@ export default async function RootLayout({ children }) {
     <html lang={locale}>
       <body className={`${notoSansKR.variable} ${inter.variable} antialiased`}>
         <NextIntlClientProvider>
-          <main>{children}</main>
+          <ReactQueryProvider>
+            <main>{children}</main>
+          </ReactQueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>
