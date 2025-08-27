@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
+import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
+import com.lsware.joint_investigation.util.QuerydslHelper;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,25 +32,33 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         em = entityManager;
     }
 
-    private BooleanExpression createPredicate(String recordName) {
-        QInvestigationRecord qInvestigationRecord = QInvestigationRecord.investigationRecord;
+    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus) {
+        QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+
         BooleanExpression recordNamePredicate = recordName != null
-                ? qInvestigationRecord.recordName.containsIgnoreCase(recordName.trim())
+                ? q.recordName.containsIgnoreCase(recordName.trim())
                 : null;
 
-        return recordNamePredicate;
+        BooleanExpression progressStatusPredicate = progressStatus != null
+                ? q.progressStatus.eq(progressStatus)
+                : null;
+
+        if (recordNamePredicate != null && progressStatusPredicate != null) {
+            return recordNamePredicate.and(progressStatusPredicate);
+        }
+        return recordNamePredicate != null ? recordNamePredicate : progressStatusPredicate;
     }
 
-    public Map<String, Object> findInvestigationRecord(String recordName, Pageable pageable) {
+    public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, Pageable pageable) {
 
-        BooleanExpression combinedPredicate = createPredicate(recordName);
+        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus);
 
         List<InvestigationRecordDto> rows = queryFactory
                 .selectFrom(QInvestigationRecord.investigationRecord)
                 .where(combinedPredicate)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
-                .orderBy(QInvestigationRecord.investigationRecord.recordName.asc())
+                .orderBy(QuerydslHelper.getSortedColumn(QInvestigationRecord.investigationRecord, pageable.getSort()))
                 .fetch().stream().map(entity -> {
                     InvestigationRecordDto dto = entity.toDto();
                     return dto;
