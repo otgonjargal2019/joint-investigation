@@ -8,8 +8,10 @@ import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFilter;
 
 @Data
+@JsonFilter("UserFilter")
 public class UserDto {
     private UUID userId;
     private String loginId;

@@ -7,12 +7,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.converter.json.MappingJacksonValue;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import java.util.Map;
 
 
 @RestController
@@ -23,7 +28,7 @@ public class InvestigationController {
 	private InvestigationService investigationService;
 
 	@GetMapping("/list")
-	public ResponseEntity<?> getInvestigationRecords(
+	public MappingJacksonValue getInvestigationRecords(
 			@RequestParam(required = false) String recordName,
 			@RequestParam(required = false) PROGRESS_STATUS progressStatus,
 			@RequestParam(defaultValue = "0") int page,
@@ -34,6 +39,18 @@ public class InvestigationController {
 		Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
 		Sort sort = Sort.by(direction, sortBy);
 		Pageable pageable = PageRequest.of(page, size, sort);
-		return ResponseEntity.ok(investigationService.getInvestigationRecords(recordName, progressStatus, pageable));
+
+		Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, pageable);
+		MappingJacksonValue mapping = new MappingJacksonValue(result);
+
+		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
+				.filterOutAllExcept("userId", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
+
+		FilterProvider filters = new SimpleFilterProvider()
+				.addFilter("UserFilter", userFilter);
+
+		mapping.setFilters(filters);
+
+		return mapping;
 	}
 }

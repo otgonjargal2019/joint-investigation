@@ -2,8 +2,6 @@ package com.lsware.joint_investigation.investigation.repository;
 
 import java.util.List;
 import java.util.Map;
-
-import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.util.QuerydslHelper;
@@ -53,16 +51,13 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
 
         BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus);
 
-        List<InvestigationRecordDto> rows = queryFactory
+        List<InvestigationRecord> rows = queryFactory
                 .selectFrom(QInvestigationRecord.investigationRecord)
                 .where(combinedPredicate)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .orderBy(QuerydslHelper.getSortedColumn(QInvestigationRecord.investigationRecord, pageable.getSort()))
-                .fetch().stream().map(entity -> {
-                    InvestigationRecordDto dto = entity.toDto();
-                    return dto;
-                }).toList();
+                .fetch();
 
         Long total = queryFactory
                 .select(QInvestigationRecord.investigationRecord.recordId.count())
