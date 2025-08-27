@@ -19,6 +19,7 @@ public class UserDto {
     private String phone;
     private String country;
     private String department;
+    private Users.USER_STATUS status;
 
     @JsonIgnore
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -32,6 +33,7 @@ public class UserDto {
         this.phone = entity.getPhone();
         this.country = entity.getCountry();
         this.department = entity.getDepartment();
+        this.status = entity.getStatus();
     }
 
 }

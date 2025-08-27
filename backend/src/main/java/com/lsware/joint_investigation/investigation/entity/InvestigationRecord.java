@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
+import com.lsware.joint_investigation.user.entity.Users;
+import com.lsware.joint_investigation.user.dto.UserDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -70,11 +72,13 @@ public class InvestigationRecord {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
-    @Column(name = "created_by", nullable = false)
-    private UUID createdBy;
+    @ManyToOne
+    @JoinColumn(name = "created_by", nullable = false)
+    private Users creator;
 
-    @Column(name = "reviewer_id")
-    private UUID reviewerId;
+    @ManyToOne
+    @JoinColumn(name = "reviewer_id")
+    private Users reviewer;
 
     @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
@@ -95,8 +99,16 @@ public class InvestigationRecord {
         dto.setProgressStatus(this.progressStatus);
         dto.setReviewStatus(this.reviewStatus);
         dto.setRejectionReason(this.rejectionReason);
-        dto.setCreatedBy(this.createdBy);
-        dto.setReviewerId(this.reviewerId);
+        if (this.creator != null) {
+            UserDto creatorDto = new UserDto();
+            creatorDto.fromEntity(this.creator);
+            dto.setCreator(creatorDto);
+        }
+        if (this.reviewer != null) {
+            UserDto reviewerDto = new UserDto();
+            reviewerDto.fromEntity(this.reviewer);
+            dto.setReviewer(reviewerDto);
+        }
         dto.setReviewedAt(this.reviewedAt);
         dto.setCreatedAt(this.createdAt);
         dto.setUpdatedAt(this.updatedAt);

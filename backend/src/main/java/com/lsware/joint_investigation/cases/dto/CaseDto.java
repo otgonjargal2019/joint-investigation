@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
+import com.lsware.joint_investigation.user.dto.UserDto;
+import com.lsware.joint_investigation.user.entity.Users;
 import lombok.*;
 
 @Data
@@ -20,7 +22,7 @@ public class CaseDto {
     private Integer priority;
     private CASE_STATUS status;
     private LocalDate investigationDate;
-    private UUID createdBy;
+    private UserDto creator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String etc;
@@ -36,7 +38,11 @@ public class CaseDto {
         caseEntity.setPriority(this.priority);
         caseEntity.setStatus(this.status);
         caseEntity.setInvestigationDate(this.investigationDate);
-        caseEntity.setCreatedBy(this.createdBy);
+        if (this.creator != null) {
+            Users creatorEntity = new Users();
+            creatorEntity.setUserId(this.creator.getUserId());
+            caseEntity.setCreator(creatorEntity);
+        }
         caseEntity.setCreatedAt(this.createdAt);
         caseEntity.setUpdatedAt(this.updatedAt);
         caseEntity.setEtc(this.etc);
