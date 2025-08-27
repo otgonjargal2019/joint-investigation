@@ -3,6 +3,7 @@ package com.lsware.joint_investigation.investigation.repository;
 import java.util.List;
 import java.util.Map;
 
+import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 
@@ -42,13 +43,16 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
 
         BooleanExpression combinedPredicate = createPredicate(recordName);
 
-        List<InvestigationRecord> rows = queryFactory
+        List<InvestigationRecordDto> rows = queryFactory
                 .selectFrom(QInvestigationRecord.investigationRecord)
                 .where(combinedPredicate)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .orderBy(QInvestigationRecord.investigationRecord.recordName.asc())
-                .fetch();
+                .fetch().stream().map(entity -> {
+                    InvestigationRecordDto dto = entity.toDto();
+                    return dto;
+                }).toList();
 
         Long total = queryFactory
                 .select(QInvestigationRecord.investigationRecord.recordId.count())
