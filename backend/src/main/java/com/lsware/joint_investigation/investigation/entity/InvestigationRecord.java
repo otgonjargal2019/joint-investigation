@@ -32,9 +32,6 @@ public class InvestigationRecord {
     @Column(name = "record_id")
     private UUID recordId;
 
-    // @Column(name = "case_id", nullable = false)
-    // private UUID caseId;
-
     @ManyToOne
     @JoinColumn(name="case_id", nullable=false)
     private Case caseInstance;
