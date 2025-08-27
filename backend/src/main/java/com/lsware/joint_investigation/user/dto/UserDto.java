@@ -12,6 +12,7 @@ import lombok.Data;
 public class UserDto {
     private UUID userId;
     private String loginId;
+    @JsonIgnore
     private String password;
     private String nameKr;
     private String nameEn;
