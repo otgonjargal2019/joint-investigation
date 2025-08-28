@@ -2,14 +2,15 @@
 
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import io from "socket.io-client";
-import { useAuth } from "@/providers/authProviders";
 
+import { useAuth } from "@/providers/authProviders";
 import { useMessenger } from "@/providers/messengerProvider";
 
 export default function MessengerPage() {
   const { user } = useAuth();
-  const currentUserId = user.userId;
+  if (!(user && user.token)) return null;
 
+  const currentUserId = user.userId;
   const { unreadUsers, setUnreadUsers } = useMessenger();
 
   const socketRef = useRef(null);
@@ -27,7 +28,6 @@ export default function MessengerPage() {
   const [messageContent, setMessageContent] = useState("");
   const [status, setStatus] = useState("disconnected");
   const [isFetchingOlder, setIsFetchingOlder] = useState(false);
-  // const [unreadUsers, setUnreadUsers] = useState(new Set());
 
   const mergeMessages = (prevMessages, newMessages, prepend = false) => {
     const map = new Map();
@@ -41,14 +41,31 @@ export default function MessengerPage() {
   };
 
   useEffect(() => {
-    socketRef.current = io(serverUrl, { transports: ["websocket"] });
+    socketRef.current = io(serverUrl, {
+      transports: ["websocket"],
+      auth: { token: user.token },
+      // reconnectionAttempts: 5, // optional: try reconnecting 5 times
+      // reconnectionDelay: 1000, // 1s between attempts
+    });
 
-    socketRef.current.on("connect", () => setStatus("connected"));
-    socketRef.current.on("disconnect", () => setStatus("disconnected"));
+    socketRef.current.on("connect", () => {
+      setStatus("connected");
+      console.log(
+        `[Messenger] Connected. SocketID=${socketRef.current.id}, UserID=${currentUserId}`
+      );
+    });
+
+    socketRef.current.on("disconnect", (reason) => {
+      setStatus("disconnected");
+      console.log(`[Messenger] Disconnected. Reason: ${reason}`);
+    });
 
     socketRef.current.on("directMessage", (msg) => {
-      const container = chatContainerRef.current;
+      console.log(
+        `[Messenger] Received message from ${msg.senderId} to ${msg.recipientId}: "${msg.content}"`
+      );
 
+      const container = chatContainerRef.current;
       const isMessageForSelected =
         selectedPeerRef.current &&
         (msg.senderId === selectedPeerRef.current.userId ||
@@ -64,7 +81,6 @@ export default function MessengerPage() {
 
         setAllMessages((prev) => mergeMessages(prev, [msg]));
 
-        // scroll if near bottom
         if (nearBottom) {
           requestAnimationFrame(() => {
             container.scrollTop = container.scrollHeight;
@@ -80,11 +96,16 @@ export default function MessengerPage() {
       }
     });
 
-    socketRef.current.emit("getChatUsers", currentUserId, (res) =>
-      setUsers(res)
-    );
+    console.log("[Messenger] Fetching initial chat users...");
+    socketRef.current.emit("getChatUsers", (res) => {
+      console.log(`[Messenger] Fetched ${res.length} chat users`);
+      setUsers(res);
+    });
 
-    return () => socketRef.current.disconnect();
+    return () => {
+      console.log("[Messenger] Disconnecting socket...");
+      socketRef.current.disconnect();
+    };
   }, [serverUrl, currentUserId]);
 
   useEffect(() => {
@@ -162,9 +183,7 @@ export default function MessengerPage() {
   const handleSearch = (text) => {
     setSearchText(text);
     if (!text.trim()) {
-      socketRef.current.emit("getChatUsers", currentUserId, (res) =>
-        setUsers(res)
-      );
+      socketRef.current.emit("getChatUsers", (res) => setUsers(res));
       return;
     }
     socketRef.current.emit("searchUsers", text, (res) => setUsers(res));
