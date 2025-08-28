@@ -1,4 +1,21 @@
 {
+  "incident": {
+    "case-number": "Case Number",
+    "title": "Case Title",
+    "manager": "Manager",
+    "country-of-occurrence": "Country of Occurrence",
+    "investigation-start-date": "Investigation Start Date",
+    "infringement-type": "Infringement Type",
+    "status": "Status",
+    "progress-detail": "Progress Detail",
+    "review-status": {
+      "pending": "Pending",
+      "in_review": "In Review",
+      "reviewed": "Reviewed",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
   "case": "",
   "total": "total",
   "see-more": "see more",
