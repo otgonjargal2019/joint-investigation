@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +18,13 @@ const tabs = ["전체", "진행중인 사건", "종료 사건"];
 
 const ROWS_PER_PAGE = 10;
 
+// Helper function to safely get nested object values
+const getNestedValue = (obj, path) => {
+  return path.split('.').reduce((current, key) => {
+    return current ? current[key] : undefined;
+  }, obj);
+};
+
 function IncidentPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(0); // React Query uses 0-based pagination
@@ -32,6 +39,21 @@ function IncidentPage() {
     size: ROWS_PER_PAGE,
     progressStatus
   });
+
+  // Transform the data to handle nested properties
+  const transformedData = useMemo(() => {
+    if (!recordsData?.rows) return [];
+    return recordsData.rows.map(row => ({
+      ...row,
+      // Pre-compute nested values for table rendering
+      "caseInstance.caseId": getNestedValue(row, "caseInstance.caseId"),
+      "caseInstance.infringementType": getNestedValue(row, "caseInstance.infringementType"),
+      "caseInstance.investigationDate": getNestedValue(row, "caseInstance.investigationDate"),
+      "caseInstance.status": getNestedValue(row, "caseInstance.status"),
+      "creator.userId": getNestedValue(row, "creator.userId"),
+      "creator.country": getNestedValue(row, "creator.country")
+    }));
+  }, [recordsData?.rows]);
 
   const router = useRouter();
 
@@ -73,7 +95,7 @@ function IncidentPage() {
             title: t('incident.country-of-occurrence')
           },
           {
-            key: "startDate",
+            key: "caseInstance.investigationDate",
             title: t('incident.investigation-start-date'),
             render: (value) => new Date(value).toLocaleDateString()
           },
@@ -94,7 +116,7 @@ function IncidentPage() {
             render: (value) => t(`incident.review-status.${value.toLowerCase()}`)
           }
         ]}
-        data={recordsData?.rows || []}
+        data={transformedData}
         onClickRow={onClickRow}
         isLoading={isLoading}
       />
