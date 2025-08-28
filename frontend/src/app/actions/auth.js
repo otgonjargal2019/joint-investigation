@@ -58,6 +58,7 @@ export async function getUserFromCookie() {
     console.log("getUserFromCookie --> decoded::", decoded);
 
     return {
+      token,
       userId: decoded.sub,
       role: decoded.role,
       headquarters: "침해 대응 본부",

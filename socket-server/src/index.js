@@ -3,9 +3,11 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
+
 import sequelize from "./config/database.js";
 import { User, Message } from "./models/index.js";
-import { Op } from "sequelize";
 
 dotenv.config();
 
@@ -22,21 +24,43 @@ const io = new Server(server, {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
   },
+  transports: ["websocket"],
 });
 
+// Database connection
 sequelize
   .sync()
   .then(() => console.log("Database connected"))
   .catch((err) => console.error("DB connection error:", err));
 
+// Socket auth middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error("No token provided"));
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Socket auth payload:", payload);
+    socket.userId = payload.sub; //daraa solivol solih userId bolgoj
+    next();
+  } catch (err) {
+    next(new Error("Invalid token"));
+  }
+});
+
+// Connection
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log(`User connected: socketId=${socket.id}, userId=${socket.userId}`);
+  socket.join(`user:${socket.userId}`);
 
-  // Get users you've chatted with
-  socket.on("getChatUsers", async (userId, ack) => {
-    if (!userId) return;
+  // Emit initial status
+  socket.emit("connectionStatus", { status: "connected" });
 
-    socket.userId = userId; // store userId on socket
+  // Handle chat users
+  socket.on("getChatUsers", async (ack) => {
+    const userId = socket.userId;
+    if (!userId) return ack?.([]);
+
     socket.join(`user:${userId}`);
     console.log(`${socket.id} joined as user ${userId}`);
 
@@ -54,10 +78,7 @@ io.on("connection", (socket) => {
         if (msg.recipientId !== userId) peerIds.add(msg.recipientId);
       });
 
-      if (peerIds.size === 0) {
-        if (typeof ack === "function") ack([]);
-        return;
-      }
+      if (peerIds.size === 0) return ack?.([]);
 
       // 2. Fetch user details and last message for each peer
       const usersWithLastMessage = await Promise.all(
@@ -77,21 +98,23 @@ io.on("connection", (socket) => {
           return {
             userId: user.userId,
             displayName: user.nameEn || user.nameKr || user.loginId,
-            lastMessage: lastMsg ? lastMsg.content : null,
-            lastMessageTime: lastMsg ? lastMsg.createdAt : null,
+            lastMessage: lastMsg.content || null,
+            lastMessageTime: lastMsg.createdAt || null,
           };
         })
       );
 
-      if (typeof ack === "function") ack(usersWithLastMessage);
+      ack?.(usersWithLastMessage);
     } catch (e) {
       console.error("getChatUsers error:", e);
-      if (typeof ack === "function") ack([]);
+      ack?.([]);
     }
   });
 
+  // Search users
   socket.on("searchUsers", async (searchText, ack) => {
-    if (!socket.userId) return;
+    if (!socket.userId) return ack?.([]);
+
     const text = String(searchText || "").trim();
     if (!text) return ack([]);
 
@@ -110,15 +133,15 @@ io.on("connection", (socket) => {
         raw: true,
       });
 
-      const mapped = users.map((u) => ({
-        userId: u.userId,
-        displayName: u.nameEn || u.nameKr || u.loginId,
-      }));
-
-      if (typeof ack === "function") ack(mapped);
+      ack?.(
+        users.map((u) => ({
+          userId: u.userId,
+          displayName: u.nameEn || u.nameKr || u.loginId,
+        }))
+      );
     } catch (e) {
-      console.error("searchUsers error:", e);
-      if (typeof ack === "function") ack([]);
+      console.error("searchUsers error:", err);
+      ack?.([]);
     }
   });
 
@@ -138,9 +161,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Get chat history
+  // Get history
   socket.on("getHistory", async ({ userA, userB, before, limit = 50 }, ack) => {
-    if (!userA || !userB) return ack([]);
+    if (!userA || !userB) return ack?.([]);
 
     const where = {
       [Op.or]: [
@@ -160,15 +183,17 @@ io.on("connection", (socket) => {
         raw: true,
       });
 
-      if (typeof ack === "function") ack(messages);
+      ack?.(messages);
     } catch (e) {
       console.error("getHistory error", e);
-      if (typeof ack === "function") ack([]);
+      ack?.([]);
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+  socket.on("disconnect", (reason) => {
+    console.log(
+      `User disconnected: socketId=${socket.id}, userId=${socket.userId}, reason=${reason}`
+    );
   });
 });
 
