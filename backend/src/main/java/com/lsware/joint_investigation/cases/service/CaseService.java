@@ -1,9 +1,12 @@
 package com.lsware.joint_investigation.cases.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,6 +61,30 @@ public class CaseService {
         CaseDto caseDto = savedCase.toDto();
 
         MappingJacksonValue mapping = new MappingJacksonValue(caseDto);
+
+        SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
+
+        FilterProvider filters = new SimpleFilterProvider()
+                .addFilter("UserFilter", userFilter);
+
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+	@PreAuthorize("hasRole('INV_ADMIN')")
+    public MappingJacksonValue getCaseList(String name, CASE_STATUS status, Pageable pageable) {
+        Map<String, Object> result = caseRepository.getCaseList(name, status, pageable);
+
+        @SuppressWarnings("unchecked")
+        List<Case> records = (List<Case>)result.get("rows");
+        List<CaseDto> dtos = records.stream().map(Case::toDto).toList();
+
+		MappingJacksonValue mapping = new MappingJacksonValue(Map.of(
+			"rows", dtos,
+			"total", result.get("total")
+        ));
 
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
                 .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");

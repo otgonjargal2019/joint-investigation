@@ -30,8 +30,8 @@ function IncidentPage() {
   const [page, setPage] = useState(0); // React Query uses 0-based pagination
   const t = useTranslations();
 
-  const progressStatus = activeTab === 1 ? PROGRESS_STATUS.IN_PROGRESS :
-                        activeTab === 2 ? PROGRESS_STATUS.COMPLETED :
+  const progressStatus = activeTab === 1 ? PROGRESS_STATUS.INVESTIGATION :
+                        activeTab === 2 ? PROGRESS_STATUS.CLOSED :
                         undefined;
 
   const { data: recordsData, isLoading } = useInvestigationRecords({
