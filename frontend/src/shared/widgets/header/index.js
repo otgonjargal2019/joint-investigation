@@ -18,6 +18,7 @@ import UsersSmaller from "../../components/icons/usersSmaller";
 import Layers from "../../components/icons/layers";
 import { useAuth } from "@/providers/authProviders";
 import { logout } from "@/app/actions/auth";
+import { roles } from "@/shared/roleDic";
 
 const Header = () => {
   const pathname = usePathname();
@@ -34,13 +35,13 @@ const Header = () => {
   console.log("header dotroos role:", user.role);
 
   const incidentLink = useMemo(() => {
-    if (user?.role === "admin" || user?.role === "manager") {
+    if (user?.role === "admin" || user?.role === roles.INV_ADMIN) {
       return "/manager/incident";
     } else if (user?.role === "investigator") {
       return "/investigator/incident";
     }
     return "/";
-  }, [user?.role]);
+  }, [user]);
 
   function handleLogout() {
     startTransition(async () => {
