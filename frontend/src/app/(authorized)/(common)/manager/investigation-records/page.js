@@ -50,7 +50,7 @@ function IncidentPage() {
       "caseInstance.infringementType": getNestedValue(row, "caseInstance.infringementType"),
       "caseInstance.investigationDate": getNestedValue(row, "caseInstance.investigationDate"),
       "caseInstance.status": getNestedValue(row, "caseInstance.status"),
-      "creator.userId": getNestedValue(row, "creator.userId"),
+      "reviewer.nameKr": getNestedValue(row, "reviewer.nameKr"),
       "creator.country": getNestedValue(row, "creator.country")
     }));
   }, [recordsData?.rows]);
@@ -58,11 +58,11 @@ function IncidentPage() {
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push(`/manager/incident/${row.id}`);
+    router.push(`/manager/investigation-records/${row.recordId}`);
   };
 
   const onClickAdd = () => {
-    router.push(`/manager/incident/create`);
+    router.push(`/manager/investigation-records/create`);
   };
 
   return (
@@ -87,7 +87,7 @@ function IncidentPage() {
             title: t('incident.title')
           },
           {
-            key: "creator.userId",
+            key: "reviewer.nameKr",
             title: t('incident.manager')
           },
           {
