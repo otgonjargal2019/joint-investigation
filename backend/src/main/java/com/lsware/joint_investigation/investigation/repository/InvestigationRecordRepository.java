@@ -20,14 +20,11 @@ import jakarta.persistence.EntityManager;
 @Repository
 public class InvestigationRecordRepository extends SimpleJpaRepository<InvestigationRecord, String> {
 
-    private EntityManager em;
-
     @Autowired
     private JPAQueryFactory queryFactory;
 
     public InvestigationRecordRepository(EntityManager entityManager) {
         super(InvestigationRecord.class, entityManager);
-        em = entityManager;
     }
 
     private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus) {
