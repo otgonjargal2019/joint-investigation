@@ -33,17 +33,19 @@ function LoginPage() {
         console.log("res:", res.data);
         const { message, success, access_token } = res.data;
         if (success) {
-          setTokenCookie(access_token);
-          // Cookies.set("access_token", access_token, {
-          //   path: "/",
-          //   sameSite: "lax",
-          //   // secure: true,
-          // });
-          // window.location.href = "/";
+          // setTokenCookie(access_token);
+          Cookies.set("access_token", access_token, {
+            path: "/",
+            sameSite: "lax",
+            // secure: true,
+          });
+          window.location.href = "/";
           // setTokenCookie(access_token);
         }
       },
-      onError: (err) => {},
+      onError: (err) => {
+        console.log("err:", err);
+      },
     });
     // const result = await login(formValues);
     // if (result?.error) {
