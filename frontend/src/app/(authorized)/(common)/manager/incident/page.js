@@ -16,6 +16,8 @@ import { PROGRESS_STATUS } from "@/entities/investigation";
 
 const tabs = ["전체", "진행중인 사건", "종료 사건"];
 
+const ROWS_PER_PAGE = 10;
+
 function IncidentPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(0); // React Query uses 0-based pagination
@@ -27,7 +29,7 @@ function IncidentPage() {
 
   const { data: recordsData, isLoading } = useInvestigationRecords({
     page,
-    size: 10,
+    size: ROWS_PER_PAGE,
     progressStatus
   });
 
@@ -54,52 +56,52 @@ function IncidentPage() {
       </div>
       <SimpleDataTable
         columns={[
-          { 
-            key: "caseInstance.caseId", 
-            title: t('incident.case-number') 
+          {
+            key: "caseInstance.caseId",
+            title: t('incident.case-number')
           },
-          { 
-            key: "recordName", 
-            title: t('incident.title') 
+          {
+            key: "recordName",
+            title: t('incident.title')
           },
-          { 
-            key: "creator.userId", 
-            title: t('incident.manager') 
+          {
+            key: "creator.userId",
+            title: t('incident.manager')
           },
-          { 
-            key: "creator.country", 
-            title: t('incident.country-of-occurrence') 
+          {
+            key: "creator.country",
+            title: t('incident.country-of-occurrence')
           },
-          { 
-            key: "startDate", 
+          {
+            key: "startDate",
             title: t('incident.investigation-start-date'),
             render: (value) => new Date(value).toLocaleDateString()
           },
-          { 
-            key: "caseInstance.infringementType", 
-            title: t('incident.infringement-type') 
+          {
+            key: "caseInstance.infringementType",
+            title: t('incident.infringement-type')
           },
-          { 
-            key: "caseInstance.status", 
+          {
+            key: "caseInstance.status",
             title: t('incident.status'),
             render: (value) => (
               <Tag status={value === PROGRESS_STATUS.COMPLETED ? "수사종료" : "진행중"} />
             )
           },
-          { 
-            key: "reviewStatus", 
+          {
+            key: "reviewStatus",
             title: t('incident.progress-detail'),
             render: (value) => t(`incident.review-status.${value.toLowerCase()}`)
           }
         ]}
-        data={recordsData?.content || []}
+        data={recordsData?.rows || []}
         onClickRow={onClickRow}
         isLoading={isLoading}
       />
-      <Pagination 
-        currentPage={page + 1} 
-        totalPages={recordsData?.totalPages || 1} 
-        onPageChange={(newPage) => setPage(newPage - 1)} 
+      <Pagination
+        currentPage={page + 1}
+        totalPages={Math.ceil((recordsData?.total || 0) / ROWS_PER_PAGE)}
+        onPageChange={(newPage) => setPage(newPage - 1)}
       />
     </div>
   );
