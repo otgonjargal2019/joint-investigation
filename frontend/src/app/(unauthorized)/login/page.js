@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 import { setTokenCookie } from "@/app/actions/auth";
 import FormField from "@/shared/components/form/formField";
@@ -33,22 +34,27 @@ function LoginPage() {
         console.log("res:", res.data);
         const { message, success, access_token } = res.data;
         if (success) {
-          setTokenCookie(access_token);
-          // Cookies.set("access_token", access_token, {
-          //   path: "/",
-          //   sameSite: "lax",
-          //   // secure: true,
-          // });
-          // window.location.href = "/";
+          // setTokenCookie(access_token);
+          Cookies.set("access_token", access_token, {
+            path: "/",
+            sameSite: "lax",
+            // secure: true,
+          });
+          toast.success(`${message}`, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+          window.location.href = "/";
           // setTokenCookie(access_token);
         }
       },
-      onError: (err) => {},
+      onError: (err) => {
+        toast.warning(`LoginID or Password wrong`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      },
     });
-    // const result = await login(formValues);
-    // if (result?.error) {
-    // return;
-    // }
   };
 
   return (

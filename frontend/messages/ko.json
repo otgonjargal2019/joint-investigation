@@ -1,4 +1,21 @@
 {
+  "incident": {
+    "case-number": "사건번호",
+    "title": "사건 명",
+    "manager": "담당자",
+    "country-of-occurrence": "발생국가",
+    "investigation-start-date": "수사 시작일",
+    "infringement-type": "침해유형",
+    "status": "상태",
+    "progress-detail": "상세 진행 현황",
+    "review-status": {
+      "pending": "대기중",
+      "in_review": "검토중",
+      "reviewed": "검토완료",
+      "approved": "승인됨",
+      "rejected": "반려됨"
+    }
+  },
   "case": "건",
   "total": "총",
   "see-more": "더보기",
