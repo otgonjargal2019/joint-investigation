@@ -139,19 +139,27 @@ io.on("connection", (socket) => {
   });
 
   // Get chat history
-  socket.on("getHistory", async ({ userA, userB }, ack) => {
+  socket.on("getHistory", async ({ userA, userB, before, limit = 50 }, ack) => {
     if (!userA || !userB) return ack([]);
+
+    const where = {
+      [Op.or]: [
+        { senderId: userA, recipientId: userB },
+        { senderId: userB, recipientId: userA },
+      ],
+    };
+    if (before) {
+      where.createdAt = { [Op.lt]: before };
+    }
+
     try {
       const messages = await Message.findAll({
-        where: {
-          [Op.or]: [
-            { senderId: userA, recipientId: userB },
-            { senderId: userB, recipientId: userA },
-          ],
-        },
-        order: [["createdAt", "ASC"]],
+        where,
+        order: [["createdAt", "DESC"]],
+        limit,
         raw: true,
       });
+
       if (typeof ack === "function") ack(messages);
     } catch (e) {
       console.error("getHistory error", e);

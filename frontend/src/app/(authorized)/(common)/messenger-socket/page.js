@@ -1,27 +1,45 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import io from "socket.io-client";
 import { useAuth } from "@/providers/authProviders";
+
+import { useMessenger } from "@/providers/messengerProvider";
 
 export default function MessengerPage() {
   const { user } = useAuth();
   const currentUserId = user.userId;
 
+  const { unreadUsers, setUnreadUsers } = useMessenger();
+
+  const socketRef = useRef(null);
+  const selectedPeerRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const oldestMessageRef = useRef(null);
+
   const [serverUrl] = useState(
     process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
   );
-
   const [users, setUsers] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [selectedPeer, setSelectedPeer] = useState(null);
   const [allMessages, setAllMessages] = useState([]);
   const [messageContent, setMessageContent] = useState("");
   const [status, setStatus] = useState("disconnected");
+  const [isFetchingOlder, setIsFetchingOlder] = useState(false);
+  // const [unreadUsers, setUnreadUsers] = useState(new Set());
 
-  const socketRef = useRef(null);
+  const mergeMessages = (prevMessages, newMessages, prepend = false) => {
+    const map = new Map();
+    const combined = prepend
+      ? [...newMessages, ...prevMessages]
+      : [...prevMessages, ...newMessages];
+    combined.forEach((m) => map.set(m.messageId, m));
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
+  };
 
-  // Initialize Socket
   useEffect(() => {
     socketRef.current = io(serverUrl, { transports: ["websocket"] });
 
@@ -29,46 +47,106 @@ export default function MessengerPage() {
     socketRef.current.on("disconnect", () => setStatus("disconnected"));
 
     socketRef.current.on("directMessage", (msg) => {
-      setAllMessages((prev) => {
-        const exists = prev.some((m) => m.messageId === msg.messageId);
-        if (exists) return prev;
-        return [...prev, msg];
-      });
+      const container = chatContainerRef.current;
+
+      const isMessageForSelected =
+        selectedPeerRef.current &&
+        (msg.senderId === selectedPeerRef.current.userId ||
+          msg.recipientId === selectedPeerRef.current.userId ||
+          msg.senderId === currentUserId);
+
+      if (isMessageForSelected) {
+        const nearBottom =
+          container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight <
+          50;
+
+        setAllMessages((prev) => mergeMessages(prev, [msg]));
+
+        // scroll if near bottom
+        if (nearBottom) {
+          requestAnimationFrame(() => {
+            container.scrollTop = container.scrollHeight;
+          });
+        }
+      }
+
+      if (
+        msg.senderId !== currentUserId &&
+        msg.senderId !== selectedPeerRef.current?.userId
+      ) {
+        setUnreadUsers((prev) => new Set(prev).add(msg.senderId));
+      }
     });
 
-    // Load chat users initially
-    socketRef.current.emit("getChatUsers", currentUserId, (res) => {
-      setUsers(res);
-    });
+    socketRef.current.emit("getChatUsers", currentUserId, (res) =>
+      setUsers(res)
+    );
 
-    return () => {
-      socketRef.current.off("connect");
-      socketRef.current.off("disconnect");
-      socketRef.current.off("directMessage");
-      socketRef.current.disconnect();
-    };
+    return () => socketRef.current.disconnect();
   }, [serverUrl, currentUserId]);
 
-  // Handle peer selection
+  useEffect(() => {
+    selectedPeerRef.current = selectedPeer;
+  }, [selectedPeer]);
+
   const handleSelectPeer = (peer) => {
     setSelectedPeer(peer);
+    setUnreadUsers((prev) => {
+      const updated = new Set(prev);
+      updated.delete(peer.userId);
+      return updated;
+    });
+
     socketRef.current.emit(
       "getHistory",
-      { userA: currentUserId, userB: peer.userId },
+      { userA: currentUserId, userB: peer.userId, limit: 10 },
       (res) => {
-        setAllMessages((prev) => {
-          const ids = new Set(prev.map((m) => m.messageId));
-          const merged = [
-            ...prev,
-            ...(res || []).filter((m) => !ids.has(m.messageId)),
-          ];
-          return merged;
+        if (!res) return;
+        const sorted = [...res].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        setAllMessages(sorted);
+        if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
+      }
+    );
+  };
+
+  // Scroll to bottom whenever messages change for the selected peer
+  useLayoutEffect(() => {
+    if (!chatContainerRef.current) return;
+    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+  }, [allMessages, selectedPeer]);
+
+  const fetchHistory = (peerId, before = null) => {
+    if (isFetchingOlder) return;
+    setIsFetchingOlder(true);
+
+    const container = chatContainerRef.current;
+    const previousScrollHeight = container.scrollHeight;
+
+    socketRef.current.emit(
+      "getHistory",
+      { userA: currentUserId, userB: peerId, before, limit: 10 },
+      (res) => {
+        setIsFetchingOlder(false);
+        if (!res || res.length === 0) return;
+
+        const sorted = [...res].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+
+        setAllMessages((prev) => mergeMessages(sorted, prev, true));
+        oldestMessageRef.current = sorted[0].createdAt;
+
+        requestAnimationFrame(() => {
+          container.scrollTop = container.scrollHeight - previousScrollHeight;
         });
       }
     );
   };
 
-  // Handle sending a message
   const handleSend = () => {
     if (!currentUserId || !selectedPeer || !messageContent.trim()) return;
 
@@ -83,21 +161,22 @@ export default function MessengerPage() {
 
   const handleSearch = (text) => {
     setSearchText(text);
-
     if (!text.trim()) {
-      socketRef.current.emit("getChatUsers", currentUserId, (res) => {
-        setUsers(res);
-      });
+      socketRef.current.emit("getChatUsers", currentUserId, (res) =>
+        setUsers(res)
+      );
       return;
     }
-
-    // Emit search text as a string, not object
-    socketRef.current.emit("searchUsers", text, (res) => {
-      setUsers(res);
-    });
+    socketRef.current.emit("searchUsers", text, (res) => setUsers(res));
   };
 
-  // Filter messages for selected peer
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (container.scrollTop === 0 && selectedPeer) {
+      fetchHistory(selectedPeer.userId, oldestMessageRef.current);
+    }
+  };
+
   const filteredMessages = selectedPeer
     ? allMessages.filter(
         (m) =>
@@ -117,12 +196,15 @@ export default function MessengerPage() {
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* Users list */}
-        <div className="p-3 border rounded max-h-96 overflow-auto">
+        <div
+          className="p-3 border rounded overflow-auto"
+          style={{ height: "600px" }}
+        >
           <h2 className="font-semibold mb-2">Users</h2>
           <input
             type="text"
             className="border p-2 w-full mb-2"
-            placeholder="Search by loginId, nameEn, nameKr..."
+            placeholder="Search..."
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
           />
@@ -132,47 +214,60 @@ export default function MessengerPage() {
           {users.map((u) => (
             <div
               key={u.userId}
-              className={`p-2 border-b cursor-pointer ${
+              className={`p-2 border-b cursor-pointer flex items-center gap-2 ${
                 selectedPeer?.userId === u.userId ? "bg-gray-100" : ""
               }`}
               onClick={() => handleSelectPeer(u)}
             >
-              {u.displayName} (ID: {u.userId})
+              {unreadUsers.has(u.userId) && (
+                <span className="w-3 h-3 rounded-full bg-purple-500 block"></span>
+              )}
+              <span>{u.displayName}</span>
             </div>
           ))}
         </div>
 
         {/* Chat box */}
-        <div className="p-3 border rounded flex flex-col max-h-96">
+        <div
+          className="p-3 border rounded flex flex-col"
+          style={{ height: "600px" }}
+        >
           <h2 className="font-semibold mb-2">Chat</h2>
-          <div className="flex-1 overflow-auto border rounded p-2 mb-2">
+          <div
+            ref={chatContainerRef}
+            className="overflow-auto border rounded p-2 mb-2 flex-1"
+            onScroll={handleScroll}
+          >
             {filteredMessages.length === 0 && (
               <div className="text-sm text-gray-500">No messages</div>
             )}
-            {filteredMessages.map((m) => (
+            {filteredMessages.map((m, index) => (
               <div
-                key={m.messageId}
-                className={`p-1 rounded my-1 ${
+                key={m.messageId || `${m.senderId}-${m.createdAt}-${index}`}
+                className={`max-w-[70%] p-2 my-1 rounded break-words flex flex-col ${
                   m.senderId === currentUserId
-                    ? "bg-blue-50 self-end"
-                    : "bg-gray-50 self-start"
+                    ? "bg-blue-500 text-white self-end ml-auto items-end"
+                    : "bg-gray-200 text-gray-800 self-start mr-auto items-start"
                 }`}
               >
-                <div className="text-xs text-gray-500">
-                  {new Date(m.createdAt).toLocaleString()}
+                <div className="text-xs font-semibold">
+                  {m.senderId === currentUserId
+                    ? "Me"
+                    : selectedPeer.displayName}
                 </div>
-                <div>
-                  <strong>
-                    {m.senderId === currentUserId
-                      ? "Me"
-                      : selectedPeer.displayName}
-                  </strong>
-                  : {m.content}
+                <div className="text-[10px] text-gray-300 mb-1">
+                  {new Date(m.createdAt).toLocaleString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </div>
+                <div>{m.content}</div>
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
+
+          {/* Send message */}
+          <div className="flex gap-2 mt-auto">
             <input
               className="border p-2 flex-1"
               placeholder="Type a message..."
