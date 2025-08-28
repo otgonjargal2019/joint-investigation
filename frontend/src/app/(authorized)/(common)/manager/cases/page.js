@@ -58,11 +58,11 @@ function IncidentPage() {
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push(`/manager/investigation-records/${row.recordId}`);
+    router.push(`/manager/cases/${row.recordId}`);
   };
 
   const onClickAdd = () => {
-    router.push(`/manager/investigation-records/create`);
+    router.push(`/manager/cases/create`);
   };
 
   return (
