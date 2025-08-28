@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const passwordField = z
   .string()
-  .refine((val) => val.length >= 12 && val.length <= 24, {
+  .refine((val) => val.length >= 8 && val.length <= 16, {
     message: "Password must be between 12 and 24 characters long.",
   })
   .refine((val) => /[A-Z]/.test(val), {
@@ -23,7 +23,7 @@ const passwordField = z
 
 export const loginFormSchema = z.object({
   loginId: z.string().min(1, "Login ID is required"),
-  password: z.string().min(1, "Password is required"), //passwordField,
+  password: passwordField
 });
 
 const withPasswordConfirm = (schema) =>

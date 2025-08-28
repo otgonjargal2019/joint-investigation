@@ -33,6 +33,7 @@ function JoinMembershipPage() {
   const router = useRouter();
   const signupMutation = useSignUp();
   const checkLoginIdMutation = useCheckLoginId();
+  const checkEmailMutation = useCheckEmail();
 
   const onSubmit = async (values) => {
     
@@ -100,6 +101,32 @@ function JoinMembershipPage() {
     });
   };
 
+  const handleCheckEmail = async () => {
+    const isValid = await trigger(["email"]);
+
+    if (!isValid) {
+      return;
+    }
+    const reqData = {
+      email: watch("email")
+    };
+    
+    checkEmailMutation.mutate(reqData, {
+      onSuccess: (res) => {
+        toast.success(`${res.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      },
+      onError: (err) => {
+        setError("email", {
+          type: "manual",
+          message: err.response.data.message,
+        });
+      },
+    });
+  };
+
   return (
     <div className="w-full flex justify-center">
       <div className="text-center">
@@ -130,7 +157,7 @@ function JoinMembershipPage() {
                 <Input
                   register={register}
                   name="loginId"
-                  //showError={false}
+                  showError={false}
                   variant="form"
                   placeholder={t("placeholder.id")}
                   error={errors.loginId}
@@ -153,7 +180,7 @@ function JoinMembershipPage() {
                   register={register}
                   name="password"
                   type="password"
-                  //showError={false}
+                  showError={false}
                   variant="form"
                   placeholder={t("placeholder.password")}
                   error={errors.password}
@@ -210,7 +237,7 @@ function JoinMembershipPage() {
                 register={register}
                 name="country"
                 options={options}
-                //showError={false}
+                showError={false}
                 variant="form"
                 placeholder={t("placeholder.select-country")}
                 error={errors.country}
@@ -263,19 +290,19 @@ function JoinMembershipPage() {
                 <Input
                   register={register}
                   name="email"
-                  //showError={false}
+                  showError={false}
                   variant="form"
                   error={errors.email}
                 />
-                @
+                <span className="text-gray-700">@</span>
                 <Input
                   register={register}
                   name="email2"
-                  //showError={false}
+                  showError={false}
                   variant="form"
                   error={errors.email}
                 />
-                <Button size="small2" variant="gray3" className="min-w-[135px]">
+                <Button size="small2" variant="gray3" className="min-w-[135px]" onClick={handleCheckEmail}>
                   {t("check-redundancy")}
                 </Button>
               </div>
