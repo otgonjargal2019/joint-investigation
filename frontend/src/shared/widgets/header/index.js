@@ -18,6 +18,7 @@ import UsersSmaller from "../../components/icons/usersSmaller";
 import Layers from "../../components/icons/layers";
 import { useAuth } from "@/providers/authProviders";
 import { logout } from "@/app/actions/auth";
+import { useMessenger } from "@/providers/messengerProvider";
 
 const Header = () => {
   const pathname = usePathname();
@@ -25,6 +26,8 @@ const Header = () => {
   const [isPending, startTransition] = useTransition();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const t = useTranslations();
+
+  const { unreadUsersCount } = useMessenger();
 
   const { user } = useAuth();
   if (!user) return null;
@@ -131,10 +134,15 @@ const Header = () => {
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-5">
           <button
-            className="cursor-pointer"
+            className="relative cursor-pointer text-white"
             onClick={() => router.push("/messenger")}
           >
-            <PaperPlane color="#C3C3C3" />
+            <PaperPlane color="#C3C3C3" size={24} />
+            {unreadUsersCount > 0 && (
+              <span className="absolute -top-2 -right-3 bg-color-17 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {unreadUsersCount}
+              </span>
+            )}
           </button>
 
           <NotificationPopover
