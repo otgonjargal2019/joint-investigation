@@ -46,6 +46,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     public Optional<Users> findByLoginId(String loginId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.loginId.eq(loginId));
+        builder.and(users.status.eq(Users.USER_STATUS.ACTIVE));
 
         return Optional.ofNullable(
                 queryFactory

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 import PageTitle from "@/shared/components/pageTitle/page";
 import Input from "@/shared/components/form/input";
@@ -11,23 +12,92 @@ import SelectBox from "@/shared/components/form/select";
 import Label from "@/shared/components/form/label";
 import Button from "@/shared/components/button";
 import SuccessNotice from "@/shared/components/successNotice";
+import {
+  registerFormSchema
+} from "@/entities/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSignUp, useCheckLoginId, useCheckEmail } from "@/entities/auth/auth.mutation";
+
 
 const options = [
-  { label: "test", value: "test" },
-  { label: "test2", value: "test2" },
-  { label: "test3", value: "test3" },
+  { label: "Korea", value: "KOR" },
+  { label: "Mongolia", value: "MGL" },
+  { label: "Japan", value: "JPN" },
 ];
 
 function JoinMembershipPage() {
-  const { register, handleSubmit, watch } = useForm();
+  const { register, formState: { errors }, trigger, handleSubmit, watch, setError } = useForm({resolver: zodResolver(registerFormSchema)});
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(true);
+  //const [error, setError] = useState(true);
   const t = useTranslations();
   const router = useRouter();
+  const signupMutation = useSignUp();
+  const checkLoginIdMutation = useCheckLoginId();
 
-  const onSubmit = (data) => {
-    console.log(data);
-    setSubmitted(true);
+  const onSubmit = async (values) => {
+    
+    const fullEmail = `${values.email}@${values.email2}`;
+    const fullDepartment = `${values.department1} - ${values.department2}`;
+    const fullPhone = `${values.phone1}-${values.phone2}`;
+
+    const payload = {
+      ...values,
+      email: fullEmail,
+      phone: fullPhone,
+      department: fullDepartment
+    };
+
+    delete payload.email2;
+    delete payload.department1;
+    delete payload.department2;
+    delete payload.phone1;
+    delete payload.phone2;
+    
+    signupMutation.mutate(payload, {
+      onSuccess: (res) => {
+        
+        const {message, success} = res.data;
+        if (success){
+          toast.success(`${message}`, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+          setSubmitted(true);
+        }
+      },
+      onError: (err) => {
+        toast.warning(`${message}`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      },
+    });
+  };
+
+  const handleCheckLoginId = async () => {
+    const isValid = await trigger(["loginId"]);
+
+    if (!isValid) {
+      return;
+    }
+    const reqData = {
+      loginId: watch("loginId")
+    };
+
+    checkLoginIdMutation.mutate(reqData, {
+      onSuccess: (res) => {
+        toast.success(`${res.data.message} Now set the password please.`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      },
+      onError: (err) => {
+        setError("loginId", {
+          type: "manual",
+          message: err.response.data.message,
+        });
+      },
+    });
   };
 
   return (
@@ -59,16 +129,18 @@ function JoinMembershipPage() {
               <div className="flex gap-2">
                 <Input
                   register={register}
-                  name="id"
-                  showError={false}
+                  name="loginId"
+                  //showError={false}
                   variant="form"
                   placeholder={t("placeholder.id")}
+                  error={errors.loginId}
                 />
                 <Button
                   size="small2"
                   variant="gray3"
-                  type="submit"
+                  type="button"
                   className="min-w-[135px]"
+                  onClick={handleCheckLoginId}
                 >
                   {t("check-redundancy")}
                 </Button>
@@ -81,9 +153,10 @@ function JoinMembershipPage() {
                   register={register}
                   name="password"
                   type="password"
-                  showError={false}
+                  //showError={false}
                   variant="form"
                   placeholder={t("placeholder.password")}
+                  error={errors.password}
                 />
                 <p className="text-color-15 text-[16px] font-normal text-left mt-1">
                   {t("info-msg.password")}
@@ -99,6 +172,7 @@ function JoinMembershipPage() {
                 showError={false}
                 variant="form"
                 placeholder={t("placeholder.password-confirm")}
+                error={errors.passwordConfirm}
               />
             </div>
 
@@ -113,17 +187,18 @@ function JoinMembershipPage() {
               </Label>
               <Input
                 register={register}
-                name="korName"
+                name="nameKr"
                 showError={false}
                 variant="form"
                 placeholder={t("placeholder.kor-name")}
+                error={errors.nameKr}
               />
               <Label color="gray" className="text-right mt-2">
                 {t("form.eng-name")}
               </Label>
               <Input
                 register={register}
-                name="engName"
+                name="nameEn"
                 showError={false}
                 variant="form"
                 placeholder={t("placeholder.eng-name")}
@@ -133,11 +208,12 @@ function JoinMembershipPage() {
               </Label>
               <SelectBox
                 register={register}
-                name="nation"
+                name="country"
                 options={options}
-                showError={false}
+                //showError={false}
                 variant="form"
                 placeholder={t("placeholder.select-country")}
+                error={errors.country}
               />
               <Label color="gray" className="text-right mt-2">
                 {t("form.contact-info")}
@@ -148,14 +224,14 @@ function JoinMembershipPage() {
               >
                 <Input
                   register={register}
-                  name="countryCode"
+                  name="phone1"
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.country-code")}
                 />
                 <Input
                   register={register}
-                  name="contactInfo"
+                  name="phone2"
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.contact-info")}
@@ -167,14 +243,14 @@ function JoinMembershipPage() {
               <div className="flex gap-2">
                 <Input
                   register={register}
-                  name="headquarter"
+                  name="department1"
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.headquarter")}
                 />
                 <Input
                   register={register}
-                  name="department"
+                  name="department2"
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.department")}
@@ -187,15 +263,17 @@ function JoinMembershipPage() {
                 <Input
                   register={register}
                   name="email"
-                  showError={false}
+                  //showError={false}
                   variant="form"
+                  error={errors.email}
                 />
                 @
                 <Input
                   register={register}
                   name="email2"
-                  showError={false}
+                  //showError={false}
                   variant="form"
+                  error={errors.email}
                 />
                 <Button size="small2" variant="gray3" className="min-w-[135px]">
                   {t("check-redundancy")}
@@ -203,7 +281,7 @@ function JoinMembershipPage() {
               </div>
               <div />
               <p className="text-color-86 text-[16px] font-normal">
-                {error && t("error-msg.enter-all-membership-info")}
+                {Object.keys(errors).length > 0 && t("error-msg.enter-all-membership-info")}
               </p>
               <div />
               <Button
