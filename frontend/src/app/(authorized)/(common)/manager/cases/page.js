@@ -54,7 +54,7 @@ function CaseListPage() {
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push(`/manager/cases/${row.recordId}`);
+    router.push(`/manager/cases/${row.caseId}`);
   };
 
   const onClickAdd = () => {
