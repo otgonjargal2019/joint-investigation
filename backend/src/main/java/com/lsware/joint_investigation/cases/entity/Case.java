@@ -6,8 +6,8 @@ import java.time.*;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.dto.CaseDto;
+import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.user.entity.Users;
-import com.lsware.joint_investigation.user.dto.UserDto;
 
 @Entity
 @Table(name = "cases")
@@ -65,6 +65,9 @@ public class Case {
     @Column(name = "etc")
     private String etc;
 
+    @Transient // Not stored in DB
+    private InvestigationRecord latestRecord;
+
     public CaseDto toDto() {
         CaseDto dto = new CaseDto();
         dto.setCaseId(this.caseId);
@@ -77,13 +80,16 @@ public class Case {
         dto.setStatus(this.status);
         dto.setInvestigationDate(this.investigationDate);
         if (this.creator != null) {
-            UserDto creatorDto = new UserDto();
-            creatorDto.fromEntity(this.creator);
-            dto.setCreator(creatorDto);
+            dto.setCreator(this.creator.toDto());
         }
         dto.setCreatedAt(this.createdAt);
         dto.setUpdatedAt(this.updatedAt);
         dto.setEtc(this.etc);
+
+        // Convert latest record if present
+        if (this.latestRecord != null) {
+            dto.setLatestRecord(this.latestRecord.toDto());
+        }
         return dto;
     }
 

@@ -5,6 +5,8 @@ import lombok.*;
 import java.time.*;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.user.dto.UserDto;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -62,6 +64,21 @@ public class Users {
         PENDING,
         ACTIVE,
         INACTIVE
+    }
+
+    public UserDto toDto() {
+        UserDto dto = new UserDto();
+        dto.setUserId(this.userId);
+        dto.setLoginId(this.loginId);
+        dto.setNameKr(this.nameKr);
+        dto.setNameEn(this.nameEn);
+        dto.setEmail(this.email);
+        dto.setPhone(this.phone);
+        dto.setCountry(this.country);
+        dto.setDepartment(this.department);
+        dto.setRole(this.role);
+        dto.setStatus(this.status);
+        return dto;
     }
 
 }

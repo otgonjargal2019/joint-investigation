@@ -3,7 +3,6 @@ package com.lsware.joint_investigation.investigation.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.dto.UserDto;
@@ -34,9 +33,8 @@ public class InvestigationRecord {
     @Column(name = "record_id")
     private UUID recordId;
 
-    @ManyToOne
     @JoinColumn(name="case_id", nullable=false)
-    private Case caseInstance;
+    private UUID caseId;
 
     @Column(name = "record_name", nullable = false)
     private String recordName;
@@ -92,7 +90,7 @@ public class InvestigationRecord {
     public InvestigationRecordDto toDto() {
         InvestigationRecordDto dto = new InvestigationRecordDto();
         dto.setRecordId(this.recordId);
-        dto.setCaseInstance(this.caseInstance != null ? this.caseInstance.toDto() : null);
+        dto.setCaseId(this.caseId);
         dto.setRecordName(this.recordName);
         dto.setContent(this.content);
         dto.setSecurityLevel(this.securityLevel);
@@ -100,14 +98,10 @@ public class InvestigationRecord {
         dto.setReviewStatus(this.reviewStatus);
         dto.setRejectionReason(this.rejectionReason);
         if (this.creator != null) {
-            UserDto creatorDto = new UserDto();
-            creatorDto.fromEntity(this.creator);
-            dto.setCreator(creatorDto);
+            dto.setCreator(this.creator.toDto());
         }
         if (this.reviewer != null) {
-            UserDto reviewerDto = new UserDto();
-            reviewerDto.fromEntity(this.reviewer);
-            dto.setReviewer(reviewerDto);
+            dto.setReviewer(this.reviewer.toDto());
         }
         dto.setReviewedAt(this.reviewedAt);
         dto.setCreatedAt(this.createdAt);

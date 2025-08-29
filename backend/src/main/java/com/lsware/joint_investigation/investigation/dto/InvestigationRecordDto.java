@@ -3,7 +3,6 @@ package com.lsware.joint_investigation.investigation.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
@@ -16,7 +15,7 @@ import lombok.*;
 @NoArgsConstructor
 public class InvestigationRecordDto {
     private UUID recordId;
-    private CaseDto caseInstance;
+    private UUID caseId;
     private String recordName;
     private String content;
     private String securityLevel;
@@ -32,7 +31,7 @@ public class InvestigationRecordDto {
     public InvestigationRecord toEntity() {
         InvestigationRecord entity = new InvestigationRecord();
         entity.setRecordId(this.recordId);
-        entity.setCaseInstance(this.caseInstance != null ? this.caseInstance.toEntity() : null);
+        entity.setCaseId(this.caseId);
         entity.setRecordName(this.recordName);
         entity.setContent(this.content);
         entity.setSecurityLevel(this.securityLevel);

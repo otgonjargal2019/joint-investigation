@@ -74,8 +74,8 @@ public class CaseService {
     }
 
 	@PreAuthorize("hasRole('INV_ADMIN')")
-    public MappingJacksonValue getCaseList(String name, CASE_STATUS status, Pageable pageable) {
-        Map<String, Object> result = caseRepository.getCaseList(name, status, pageable);
+    public MappingJacksonValue getCaseList(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
+        Map<String, Object> result = caseRepository.getCaseList(userId, name, status, pageable);
 
         @SuppressWarnings("unchecked")
         List<Case> records = (List<Case>)result.get("rows");

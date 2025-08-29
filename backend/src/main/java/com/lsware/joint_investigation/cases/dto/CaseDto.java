@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
+import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.Users;
 import lombok.*;
@@ -26,6 +27,8 @@ public class CaseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String etc;
+
+    private InvestigationRecordDto latestRecord;
 
     public Case toEntity() {
         Case caseEntity = new Case();

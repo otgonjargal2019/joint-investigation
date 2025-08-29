@@ -28,17 +28,4 @@ public class UserDto {
     @JsonIgnore
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public void fromEntity(Users entity) {
-        this.userId = entity.getUserId();
-        this.loginId = entity.getLoginId();
-        this.nameEn = entity.getNameEn();
-        this.nameKr = entity.getNameKr();
-        this.email = entity.getEmail();
-        this.phone = entity.getPhone();
-        this.country = entity.getCountry();
-        this.department = entity.getDepartment();
-        this.status = entity.getStatus();
-        this.role = entity.getRole();
-    }
-
 }
