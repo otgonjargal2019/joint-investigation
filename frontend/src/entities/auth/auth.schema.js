@@ -51,7 +51,7 @@ const withPasswordConfirm = (schema) =>
 export const registerFormSchema = withPasswordConfirm(
   z.object({
     loginId: z.string().min(1, "Required"),
-    password: z.string().min(1, "Required"), //passwordField,
+    password: passwordField,
     passwordConfirm: z.string().min(1, "Required"),
     nameKr: z.string().min(3,"Required"),
     nameEn: z.string().optional(),
