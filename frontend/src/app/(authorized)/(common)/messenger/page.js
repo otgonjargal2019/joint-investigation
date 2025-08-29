@@ -1,225 +1,371 @@
-import { useTranslations } from "next-intl";
+"use client";
 
+import io from "socket.io-client";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
+
+import { useAuth } from "@/providers/authProviders";
 import PageTitle from "@/shared/components/pageTitle/page";
+import { useMessenger } from "@/providers/messengerProvider";
 import Circle from "@/shared/components/icons/circle";
 import Ellipse from "@/shared/components/icons/ellipse";
 import PaperPlane from "@/shared/components/icons/paperplane";
 import MagnifyingGlass from "@/shared/components/icons/magnifyingGlass";
 
-export function ChatListItem({ name, message, showEllipse = true, date }) {
-  return (
-    <div className="bg-white p-4 pr-4.5 flex items-center gap-4 hover:bg-color-80">
-      <div className="w-[17px]">
-        {showEllipse ? (
-          <Ellipse color="#564CDF" width={15} height={15} />
-        ) : null}
-      </div>
-      <Circle />
-      <div className="w-full">
-        <div className="flex justify-between items-start">
-          <div className="text-black text-[18px] font-semibold">{name}</div>
-          <div className="text-color-35 text-[16px] font-normal">{date}</div>
-        </div>
+const limit = 10;
 
-        <div className="text-color-35 text-[18px] font-normal">{message}</div>
-      </div>
-    </div>
-  );
-}
+export default function MessengerPage() {
+  const { user } = useAuth();
+  if (!(user && user.token && user.userId)) return null;
 
-export const MessageFromOthers = ({ message, name, time }) => (
-  <div className="flex items-start gap-3.5">
-    <div className="mt-8">
-      <Circle width={48} height={48} />
-    </div>
-    <div className="max-w-[70%]">
-      <div className="flex gap-2 items-center mb-1">
-        <span className="text-black text-[18px] font-normal">{name}</span>
-        <span className="text-color-35 text-[18px] font-normal">{time}</span>
-      </div>
-      <div className="bg-color-1 text-black text-[18px] font-normal rounded-5 px-4 py-3">
-        {message}
-      </div>
-    </div>
-  </div>
-);
-
-export const MessageFromMe = ({ message, time }) => (
-  <div className="flex flex-col items-end">
-    <div className="text-color-35 text-[18px] font-normal">{time}</div>
-    <div className="max-w-[70%] bg-color-61 text-black text-[18px] font-normal rounded-5 px-4 py-3">
-      {message}
-    </div>
-  </div>
-);
-
-const ChatBox = ({ messagesByDate }) => {
-  return (
-    <div className="flex flex-col gap-6 overflow-y-auto h-full">
-      {Object.entries(messagesByDate).map(([date, messages]) => (
-        <div key={date} className="flex flex-col gap-5">
-          <div className="bg-color-83 text-center text-black text-[18px] font-normal py-0.5">
-            {date}
-          </div>
-          {messages.map((msg, index) =>
-            msg.fromMe ? (
-              <MessageFromMe
-                key={index}
-                message={msg.message}
-                time={msg.time}
-              />
-            ) : (
-              <MessageFromOthers
-                key={index}
-                message={msg.message}
-                time={msg.time}
-                name="김철수"
-              />
-            )
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-function Messenger() {
   const t = useTranslations();
+  const currentUserId = user.userId;
+  const { unreadUsers, setUnreadUsers } = useMessenger();
 
-  const data = [
-    {
-      name: "김철수",
-      message: "보고서 검토 부탁드립니다",
-      showEllipse: true,
-      date: "10분전",
-    },
-    {
-      name: "김하윤",
-      message: "나: 증거물 업로드 했습니다.",
-      showEllipse: true,
-      date: "1시간 전",
-    },
-    {
-      name: "이준서",
-      message: "현지 수사기관과 협조 중입니...",
-      showEllipse: false,
-      date: "11시간 전",
-    },
-    {
-      name: "박서연",
-      message: "해당 서버는 해외에 위치해 있...",
-      showEllipse: false,
-      date: "13시간 전",
-    },
-    {
-      name: "Olivia Bennett",
-      message: "This case has been identi...",
-      showEllipse: false,
-      date: "18시간 전",
-    },
-    {
-      name: "정지우",
-      message: "피의자의 해외 접속 기록과",
-      showEllipse: false,
-      date: "3일 전",
-    },
-    {
-      name: "Sophia Reed",
-      message: "he server in question is loc",
-      showEllipse: false,
-      date: "17일 전",
-    },
-    {
-      name: "최민준",
-      message: "공조국 측에서도 유사 사례로",
-      showEllipse: false,
-      date: "53일 전",
-    },
-    {
-      name: "Lucas Anderson",
-      message: "I've already drafted a prelim",
-      showEllipse: false,
-      date: "87일 전",
-    },
-  ];
+  const socketRef = useRef(null);
+  const selectedPeerRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const oldestMessageRef = useRef(null);
 
-  const messageData = {
-    "25.05.02": [
-      {
-        message:
-          "We've got clearer evidence that this copyright infringement case involves an overseas server.",
-        fromMe: false,
-        time: "25.05.02 1:21",
-      },
-      {
-        message: "Which country? Were you still tracing the IPs?",
-        fromMe: true,
-        time: "25.05.02 1:21",
-      },
-    ],
-    "25.05.03": [
-      {
-        message:
-          "Yes, our analysis shows that the content was distributed via a U.S.-based hosting provider. We suspect the domain owner is the same individual.",
-        fromMe: false,
-        time: "25.05.03 17:15",
-      },
-      {
-        message:
-          "Then we should prepare an MLAT request. Let's also consider going through INTERPOL.Then we should prepare an MLAT request. Let's also consider going through INTERPOL.",
-        fromMe: true,
-        time: "25.05.03 17:18",
-      },
-      {
-        message:
-          "I've already drafted a preliminary request. All the details are summarized in the report. Please review the report.",
-        fromMe: false,
-        time: "25.05.03 17:20",
-      },
-    ],
+  const [serverUrl] = useState(
+    process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
+  );
+  const [users, setUsers] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [selectedPeer, setSelectedPeer] = useState(null);
+  const [allMessages, setAllMessages] = useState([]);
+  const [messageContent, setMessageContent] = useState("");
+  const [status, setStatus] = useState("disconnected");
+  const [isFetchingOlder, setIsFetchingOlder] = useState(false);
+
+  const mergeMessages = (prevMessages, newMessages, prepend = false) => {
+    const map = new Map();
+    const combined = prepend
+      ? [...newMessages, ...prevMessages]
+      : [...prevMessages, ...newMessages];
+    combined.forEach((m) => map.set(m.messageId, m));
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
   };
+
+  useEffect(() => {
+    socketRef.current = io(serverUrl, {
+      transports: ["websocket"],
+      auth: { token: user.token },
+      // reconnectionAttempts: 5, // optional: try reconnecting 5 times
+      // reconnectionDelay: 1000, // 1s between attempts
+    });
+
+    socketRef.current.on("connect", () => {
+      setStatus("connected");
+      console.log(
+        `[Messenger] Connected. SocketID=${socketRef.current.id}, UserID=${currentUserId}`
+      );
+    });
+
+    socketRef.current.on("disconnect", (reason) => {
+      setStatus("disconnected");
+      console.log(`[Messenger] Disconnected. Reason: ${reason}`);
+    });
+
+    socketRef.current.on("directMessage", (msg) => {
+      console.log(
+        `[Messenger] Received message from ${msg.senderId} to ${msg.recipientId}: "${msg.content}"`
+      );
+
+      const container = chatContainerRef.current;
+      const isMessageForSelected =
+        selectedPeerRef.current &&
+        (msg.senderId === selectedPeerRef.current.userId ||
+          msg.recipientId === selectedPeerRef.current.userId ||
+          msg.senderId === currentUserId);
+
+      if (isMessageForSelected) {
+        const nearBottom =
+          container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight <
+          50;
+
+        setAllMessages((prev) => mergeMessages(prev, [msg]));
+
+        if (nearBottom) {
+          requestAnimationFrame(() => {
+            container.scrollTop = container.scrollHeight;
+          });
+        }
+      }
+
+      if (
+        msg.senderId !== currentUserId &&
+        msg.senderId !== selectedPeerRef.current?.userId
+      ) {
+        setUnreadUsers((prev) => new Set(prev).add(msg.senderId));
+      }
+    });
+
+    console.log("[Messenger] Fetching initial chat users...");
+    socketRef.current.emit("getChatUsers", (res) => {
+      console.log(`[Messenger] Fetched ${res.length} chat users`);
+      setUsers(res);
+    });
+
+    return () => {
+      console.log("[Messenger] Disconnecting socket...");
+      socketRef.current.disconnect();
+    };
+  }, [serverUrl, currentUserId]);
+
+  useEffect(() => {
+    selectedPeerRef.current = selectedPeer;
+  }, [selectedPeer]);
+
+  const handleSelectPeer = (peer) => {
+    setSelectedPeer(peer);
+
+    setUnreadUsers((prev) => {
+      const updated = new Set(prev);
+      updated.delete(peer.userId);
+      return updated;
+    });
+
+    socketRef.current.emit(
+      "getHistory",
+      { peerId: peer.userId, limit },
+      (res) => {
+        if (!res) return;
+        const sorted = [...res].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        setAllMessages(sorted);
+        if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
+
+        //  emit mark as read
+        socketRef.current.emit("markMessagesAsRead", {
+          peerId: peer.userId,
+        });
+      }
+    );
+  };
+
+  // Scroll to bottom whenever messages change for the selected peer
+  useLayoutEffect(() => {
+    if (!chatContainerRef.current) return;
+    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+  }, [allMessages, selectedPeer]);
+
+  const fetchHistory = (peerId, before = null) => {
+    if (isFetchingOlder) return;
+    setIsFetchingOlder(true);
+
+    const container = chatContainerRef.current;
+    const previousScrollHeight = container.scrollHeight;
+
+    socketRef.current.emit(
+      "getHistory",
+      { peerId: peerId, before, limit },
+      (res) => {
+        setIsFetchingOlder(false);
+        if (!res || res.length === 0) return;
+
+        const sorted = [...res].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+
+        setAllMessages((prev) => mergeMessages(sorted, prev, true));
+        oldestMessageRef.current = sorted[0].createdAt;
+
+        requestAnimationFrame(() => {
+          container.scrollTop = container.scrollHeight - previousScrollHeight;
+        });
+      }
+    );
+  };
+
+  const handleSend = () => {
+    if (!currentUserId || !selectedPeer || !messageContent.trim()) return;
+
+    socketRef.current.emit("sendDirectMessage", {
+      // senderId: currentUserId,
+      recipientId: selectedPeer.userId,
+      content: messageContent,
+    });
+
+    setMessageContent("");
+  };
+
+  const handleSearch = (text) => {
+    setSearchText(text);
+    if (!text.trim()) {
+      socketRef.current.emit("getChatUsers", (res) => setUsers(res));
+      return;
+    }
+    socketRef.current.emit("searchUsers", text, (res) => setUsers(res));
+  };
+
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (container.scrollTop === 0 && selectedPeer) {
+      fetchHistory(selectedPeer.userId, oldestMessageRef.current);
+    }
+  };
+
+  const filteredMessages = selectedPeer
+    ? allMessages.filter(
+        (m) =>
+          (m.senderId === currentUserId &&
+            m.recipientId === selectedPeer.userId) ||
+          (m.senderId === selectedPeer.userId &&
+            m.recipientId === currentUserId)
+      )
+    : [];
+
+  console.log("filteredMessages:", filteredMessages);
 
   return (
     <div className="messenger">
       <PageTitle title={t("header.messenger")} />
-      <div className="flex gap-3">
-        <div className="w-[450px] bg-white border border-color-36 rounded-10 pb-4">
-          <div className="m-5 h-[60px] bg-color-74 rounded-5 flex items-center p-4">
+
+      {/* Container with fixed height */}
+      <div className="flex gap-4 h-[680px]">
+        {/* Left panel: Users list */}
+        <div className="w-[450px] bg-white border border-color-36 rounded-10 pb-4 overflow-auto">
+          {/* Search bar */}
+          <div className="m-5 h-[60px] bg-color-74 rounded-5 flex items-center p-4 gap-3">
             <MagnifyingGlass />
             <input
-              className="px-4 outline-0 text-color-4 text-[18px] font-normal"
+              type="text"
+              className="px-4 outline-none text-color-4 text-[18px] font-normal w-full"
               placeholder={t("placeholder.chat-search")}
+              value={searchText}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
-          {data.map((item, idx) => (
-            <ChatListItem
-              key={idx}
-              name={item.name}
-              message={item.message}
-              showEllipse={item.showEllipse}
-              date={item.date}
-            />
-          ))}
+
+          {/* Users */}
+          {users.length === 0 ? (
+            <div className="text-sm text-gray-500 text-center">
+              No users found
+            </div>
+          ) : (
+            users.map((u) => (
+              <div
+                key={u.userId}
+                className={`p-4 flex items-center gap-4 cursor-pointer hover:bg-color-80 transition-colors ${
+                  selectedPeer?.userId === u.userId ? "bg-color-80" : ""
+                }`}
+                onClick={() => handleSelectPeer(u)}
+              >
+                <div className="w-[17px]">
+                  {unreadUsers.has(u.userId) && (
+                    <Ellipse color="#564CDF" width={15} height={15} />
+                  )}
+                </div>
+                <Circle />
+                <div className="w-full">
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="text-black text-[18px] font-semibold">
+                      {u.displayName}
+                    </div>
+                    <div className="text-color-35 text-[16px] font-normal">
+                      {"date"}
+                    </div>
+                  </div>
+                  <div className="text-color-35 text-[16px] truncate">
+                    {/* last message */}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-        <div className="flex-1 bg-white border border-color-36 rounded-10">
-          <div className="h-[89px] border-b border-color-36 flex items-center px-8">
-            <h3 className="text-black text-[24px] font-semibold">김철수</h3>
+
+        {/* Right panel: Chat box */}
+        <div className="flex-1 flex flex-col bg-white border border-color-36 rounded-10">
+          {/* Header */}
+          <div className="h-[89px] border-b border-color-36 flex items-center px-6">
+            <h3 className="text-black text-[24px] font-semibold">
+              {selectedPeer?.displayName || ""}
+            </h3>
           </div>
-          <div className="p-8  space-y-6 h-screen flex flex-col">
-            <div className="flex-1 overflow-y-auto">
-              <ChatBox messagesByDate={messageData} />
+
+          {/* Messages */}
+          <div className="flex-1 flex flex-col p-4 overflow-hidden">
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-auto space-y-3 px-2"
+              onScroll={handleScroll}
+            >
+              {filteredMessages.length === 0 ? (
+                <div className="text-sm text-gray-500 text-center mt-4">
+                  No messages
+                </div>
+              ) : (
+                filteredMessages.map((m, index) => {
+                  const isMe = m.senderId === currentUserId;
+                  return (
+                    <div
+                      key={
+                        m.messageId || `${m.senderId}-${m.createdAt}-${index}`
+                      }
+                      className={`flex ${
+                        isMe ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {!isMe && <Circle className="mt-1" />}
+                      <div
+                        className={`flex flex-col ${
+                          isMe ? "items-end" : "items-start"
+                        } max-w-[70%]`}
+                      >
+                        <div className="flex gap-2 items-center mb-1">
+                          {!isMe && (
+                            <span className="text-black text-[16px] font-semibold">
+                              {selectedPeer.displayName}
+                            </span>
+                          )}
+                          <span className="text-color-35 text-[14px] font-normal">
+                            {new Date(m.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        <div
+                          className={`px-4 py-3 rounded-5 text-[16px] break-words ${
+                            isMe
+                              ? "bg-color-61 text-black"
+                              : "bg-color-1 text-black"
+                          }`}
+                        >
+                          {m.content}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
-            <div className="h-[62px] flex justify-between items-center gap-4 border border-color-36 bg-white rounded-5 px-4.5">
+            {/* Send message */}
+            <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 h-[60px] items-center bg-white">
               <input
+                type="text"
+                className="flex-1 outline-none placeholder-color-35 text-[16px] text-color-4"
                 placeholder="메시지를 입력하세요."
-                className="placeholder-color-35 text-[18px] font-normal text-color-4 outline-0 w-full"
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
               />
-              <div className="bg-color-20 w-[40px] h-[40px] flex items-center justify-center rounded-5">
-                <button className="cursor-pointer">
-                  <PaperPlane />
-                </button>
-              </div>
+              <button
+                type="button"
+                className="bg-color-20 text-white px-4 py-2 rounded-5 hover:bg-color-30 transition-colors"
+                onClick={handleSend}
+                aria-label="Send message"
+              >
+                <PaperPlane />
+              </button>
             </div>
           </div>
         </div>
@@ -227,5 +373,3 @@ function Messenger() {
     </div>
   );
 }
-
-export default Messenger;
