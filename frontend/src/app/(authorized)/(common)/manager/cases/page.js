@@ -3,7 +3,6 @@ import React, { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
-import Tag from "@/shared/components/tag";
 import Tabs from "@/shared/components/tab";
 import Button from "@/shared/components/button";
 import Plus from "@/shared/components/icons/plus";
@@ -12,7 +11,7 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 
 import { useCase } from "@/entities/case";
-import { PROGRESS_STATUS } from "@/entities/investigation";
+import { CASE_STATUS } from "@/entities/case";
 
 const tabs = ["전체", "진행중인 사건", "종료 사건"];
 
@@ -25,19 +24,19 @@ const getNestedValue = (obj, path) => {
   }, obj);
 };
 
-function IncidentPage() {
+function CaseListPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(0); // React Query uses 0-based pagination
   const t = useTranslations();
 
-  const progressStatus = activeTab === 1 ? PROGRESS_STATUS.INVESTIGATION :
-                        activeTab === 2 ? PROGRESS_STATUS.CLOSED :
+  const caseStatus = activeTab === 1 ? CASE_STATUS.OPEN :
+                        activeTab === 2 ? CASE_STATUS.CLOSED :
                         undefined;
 
   const { data: recordsData, isLoading } = useCase({
     page,
     size: ROWS_PER_PAGE,
-    progressStatus
+    status: caseStatus
   });
 
   // Transform the data to handle nested properties
@@ -46,11 +45,7 @@ function IncidentPage() {
     return recordsData.rows.map(row => ({
       ...row,
       // Pre-compute nested values for table rendering
-      "caseInstance.caseId": getNestedValue(row, "caseInstance.caseId"),
-      "caseInstance.infringementType": getNestedValue(row, "caseInstance.infringementType"),
-      "caseInstance.investigationDate": getNestedValue(row, "caseInstance.investigationDate"),
-      "caseInstance.status": getNestedValue(row, "caseInstance.status"),
-      "reviewer.nameKr": getNestedValue(row, "reviewer.nameKr"),
+      "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country")
     }));
   }, [recordsData?.rows]);
@@ -79,15 +74,15 @@ function IncidentPage() {
       <SimpleDataTable
         columns={[
           {
-            key: "caseInstance.caseId",
+            key: "caseId",
             title: t('incident.case-number')
           },
           {
-            key: "recordName",
+            key: "caseName",
             title: t('incident.title')
           },
           {
-            key: "reviewer.nameKr",
+            key: "creator.nameKr",
             title: t('incident.manager')
           },
           {
@@ -95,20 +90,20 @@ function IncidentPage() {
             title: t('incident.country-of-occurrence')
           },
           {
-            key: "caseInstance.investigationDate",
+            key: "investigationDate",
             title: t('incident.investigation-start-date'),
             render: (value) => new Date(value).toLocaleDateString()
           },
           {
-            key: "caseInstance.infringementType",
+            key: "infringementType",
             title: t('incident.infringement-type')
           },
           {
-            key: "caseInstance.status",
+            key: "status",
             title: t('incident.status'),
-            render: (value) => (
-              <Tag status={value === PROGRESS_STATUS.COMPLETED ? "수사종료" : "진행중"} />
-            )
+            // render: (value) => (
+            //   <Tag status={value === CASE_STATUS.CLOSED ? "수사종료" : "진행중"} />
+            // )
           },
           {
             key: "reviewStatus",
@@ -129,4 +124,4 @@ function IncidentPage() {
   );
 }
 
-export default IncidentPage;
+export default CaseListPage;

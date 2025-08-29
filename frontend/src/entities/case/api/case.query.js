@@ -13,7 +13,7 @@ import { axiosInstance } from "@/shared/api/baseAxiosApi";
  * }>}
  */
 export const useCase = ({
-  sortBy = "caseName",
+  sortBy = "createdAt",
   sortDirection = "asc",
   page = 0,
   size = 10,
