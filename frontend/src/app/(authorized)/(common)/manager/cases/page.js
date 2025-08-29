@@ -11,7 +11,7 @@ import Pagination from "@/shared/components/pagination";
 import PageTitle from "@/shared/components/pageTitle/page";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 
-import { useInvestigationRecords } from "@/entities/investigation";
+import { useCase } from "@/entities/case";
 import { PROGRESS_STATUS } from "@/entities/investigation";
 
 const tabs = ["전체", "진행중인 사건", "종료 사건"];
@@ -34,7 +34,7 @@ function IncidentPage() {
                         activeTab === 2 ? PROGRESS_STATUS.CLOSED :
                         undefined;
 
-  const { data: recordsData, isLoading } = useInvestigationRecords({
+  const { data: recordsData, isLoading } = useCase({
     page,
     size: ROWS_PER_PAGE,
     progressStatus
