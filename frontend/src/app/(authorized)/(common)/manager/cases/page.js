@@ -46,7 +46,8 @@ function CaseListPage() {
       ...row,
       // Pre-compute nested values for table rendering
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
-      "creator.country": getNestedValue(row, "creator.country")
+      "creator.country": getNestedValue(row, "creator.country"),
+      "latestRecord.progressStatus": getNestedValue(row, "latestRecord.progressStatus")
     }));
   }, [recordsData?.rows]);
 
@@ -106,7 +107,7 @@ function CaseListPage() {
             // )
           },
           {
-            key: "reviewStatus",
+            key: "latestRecord.progressStatus",
             title: t('incident.progress-detail'),
             render: (value) => t(`incident.review-status.${value.toLowerCase()}`)
           }
