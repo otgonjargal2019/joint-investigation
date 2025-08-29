@@ -3,6 +3,8 @@ package com.lsware.joint_investigation.cases.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.dto.CaseDto;
@@ -65,8 +67,12 @@ public class Case {
     @Column(name = "etc")
     private String etc;
 
-    @Transient // Not stored in DB
+    @Transient
     private InvestigationRecord latestRecord;
+
+    // One-to-many relationship to InvestigationRecord
+    @OneToMany(mappedBy = "caseInstance", fetch = FetchType.LAZY)
+    private List<InvestigationRecord> investigationRecords = new ArrayList<>();
 
     public CaseDto toDto() {
         CaseDto dto = new CaseDto();

@@ -1,5 +1,7 @@
 package com.lsware.joint_investigation.cases.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.core.Authentication;
@@ -43,5 +45,10 @@ public class CaseController {
 		Pageable pageable = PageRequest.of(page, size, sort);
 
 		return caseService.getCaseList(user.getId(), name, status, pageable);
+    }
+
+    @GetMapping("/{id}")
+    public MappingJacksonValue getCaseById(@PathVariable UUID id) {
+        return caseService.getCaseById(id);
     }
 }

@@ -2,6 +2,7 @@ package com.lsware.joint_investigation.cases.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,13 +64,13 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
         var latestRecordSubquery = queryFactory
             .select(qRecord.createdAt.max())
             .from(qRecord)
-            .where(qRecord.caseId.eq(qCase.caseId));
+            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
 
         List<Tuple> results = queryFactory
             .select(qCase, qRecord)
             .from(qCase)
             .leftJoin(qRecord).on(
-                qRecord.caseId.eq(qCase.caseId)
+                qRecord.caseInstance.caseId.eq(qCase.caseId)
                 .and(qRecord.createdAt.eq(latestRecordSubquery))
             )
             .where(combinedPredicate)
@@ -97,5 +98,21 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
             "rows", cases,
             "total", total
         );
+    }
+
+    public Optional<Case> findById(UUID caseId) {
+        QCase qCase = QCase.case$;
+        QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+
+        Case found = queryFactory
+            .select(qCase)
+            .from(qCase)
+            .leftJoin(qCase.investigationRecords, qRecord) // join list
+            .fetchJoin() // fetch the list eagerly
+            .where(qCase.caseId.eq(caseId))
+            .distinct() // important to avoid duplicates
+            .fetchOne();
+
+        return Optional.of(found);
     }
 }

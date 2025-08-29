@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.lsware.joint_investigation.config.CustomUser;
-
+import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.cases.dto.CreateCaseRequest;
 import com.lsware.joint_investigation.cases.entity.Case;
@@ -85,6 +86,38 @@ public class CaseService {
 			"rows", dtos,
 			"total", result.get("total")
         ));
+
+        SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
+
+        FilterProvider filters = new SimpleFilterProvider()
+                .addFilter("UserFilter", userFilter);
+
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+	public MappingJacksonValue getCaseById(UUID caseId) {
+        // Fetch the case with latest investigation record
+        Case caseEntity = caseRepository.findById(caseId)
+                                        .orElseThrow(() -> new RuntimeException("Case not found"));
+
+        CaseDto dto = caseEntity.toDto();
+
+		if (caseEntity.getInvestigationRecords() != null) {
+			List<InvestigationRecordDto> records = caseEntity.getInvestigationRecords()
+				.stream()
+				.map(r -> {
+					InvestigationRecordDto rdto = r.toDto();
+					rdto.setCaseId(caseEntity.getCaseId()); // avoid recursion
+					return rdto;
+				})
+				.collect(Collectors.toList());
+			dto.setInvestigationRecords(records);
+		}
+
+		MappingJacksonValue mapping = new MappingJacksonValue(dto);
 
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
                 .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");

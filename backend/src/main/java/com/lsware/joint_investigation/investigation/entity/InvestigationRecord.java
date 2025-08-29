@@ -3,9 +3,9 @@ package com.lsware.joint_investigation.investigation.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.entity.Users;
-import com.lsware.joint_investigation.user.dto.UserDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,8 +33,9 @@ public class InvestigationRecord {
     @Column(name = "record_id")
     private UUID recordId;
 
+    @ManyToOne
     @JoinColumn(name="case_id", nullable=false)
-    private UUID caseId;
+    private Case caseInstance;
 
     @Column(name = "record_name", nullable = false)
     private String recordName;
@@ -90,7 +91,13 @@ public class InvestigationRecord {
     public InvestigationRecordDto toDto() {
         InvestigationRecordDto dto = new InvestigationRecordDto();
         dto.setRecordId(this.recordId);
-        dto.setCaseId(this.caseId);
+        if (this.caseInstance != null) {
+            dto.setCaseId(this.caseInstance.getCaseId());
+        }
+        // this makes recurstion of Dto conversion
+        // if (this.caseInstance != null) {
+        //     dto.setCaseInstance(this.caseInstance.toDto());
+        // }
         dto.setRecordName(this.recordName);
         dto.setContent(this.content);
         dto.setSecurityLevel(this.securityLevel);
