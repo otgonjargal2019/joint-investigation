@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import io from "socket.io-client";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 
 import { useAuth } from "@/providers/authProviders";
 import { useMessenger } from "@/providers/messengerProvider";
 
+const limit = 10;
+
 export default function MessengerPage() {
   const { user } = useAuth();
-  if (!(user && user.token)) return null;
+  if (!(user && user.token && user.userId)) return null;
 
+  const t = useTranslations();
   const currentUserId = user.userId;
   const { unreadUsers, setUnreadUsers } = useMessenger();
 
@@ -114,6 +118,7 @@ export default function MessengerPage() {
 
   const handleSelectPeer = (peer) => {
     setSelectedPeer(peer);
+
     setUnreadUsers((prev) => {
       const updated = new Set(prev);
       updated.delete(peer.userId);
@@ -122,7 +127,7 @@ export default function MessengerPage() {
 
     socketRef.current.emit(
       "getHistory",
-      { userA: currentUserId, userB: peer.userId, limit: 10 },
+      { peerId: peer.userId, limit },
       (res) => {
         if (!res) return;
         const sorted = [...res].sort(
@@ -130,6 +135,11 @@ export default function MessengerPage() {
         );
         setAllMessages(sorted);
         if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
+
+        //  emit mark as read
+        socketRef.current.emit("markMessagesAsRead", {
+          peerId: peer.userId,
+        });
       }
     );
   };
@@ -149,7 +159,7 @@ export default function MessengerPage() {
 
     socketRef.current.emit(
       "getHistory",
-      { userA: currentUserId, userB: peerId, before, limit: 10 },
+      { peerId: peerId, before, limit },
       (res) => {
         setIsFetchingOlder(false);
         if (!res || res.length === 0) return;
@@ -172,7 +182,7 @@ export default function MessengerPage() {
     if (!currentUserId || !selectedPeer || !messageContent.trim()) return;
 
     socketRef.current.emit("sendDirectMessage", {
-      senderId: currentUserId,
+      // senderId: currentUserId,
       recipientId: selectedPeer.userId,
       content: messageContent,
     });
@@ -205,6 +215,8 @@ export default function MessengerPage() {
             m.recipientId === currentUserId)
       )
     : [];
+
+  console.log("filteredMessages:", filteredMessages);
 
   return (
     <div className="p-4 space-y-4">

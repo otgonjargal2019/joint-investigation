@@ -113,7 +113,8 @@ io.on("connection", (socket) => {
 
   // Search users
   socket.on("searchUsers", async (searchText, ack) => {
-    if (!socket.userId) return ack?.([]);
+    const userId = socket.userId;
+    if (!userId) return ack?.([]);
 
     const text = String(searchText || "").trim();
     if (!text) return ack([]);
@@ -121,7 +122,7 @@ io.on("connection", (socket) => {
     try {
       const users = await User.findAll({
         where: {
-          userId: { [Op.not]: socket.userId },
+          userId: { [Op.not]: userId },
           [Op.or]: [
             { loginId: { [Op.iLike]: `%${text}%` } },
             { nameEn: { [Op.iLike]: `%${text}%` } },
@@ -146,15 +147,17 @@ io.on("connection", (socket) => {
   });
 
   // Send message
-  socket.on("sendDirectMessage", async ({ senderId, recipientId, content }) => {
-    if (!senderId || !recipientId || !content) return;
+  socket.on("sendDirectMessage", async ({ recipientId, content }) => {
+    const userId = socket.userId;
+    if (!userId || !recipientId || !content) return;
+
     try {
       const message = await Message.create({
-        senderId,
+        senderId: userId,
         recipientId,
         content,
       });
-      io.to(`user:${senderId}`).emit("directMessage", message);
+      io.to(`user:${userId}`).emit("directMessage", message);
       io.to(`user:${recipientId}`).emit("directMessage", message);
     } catch (e) {
       console.error("sendDirectMessage error", e);
@@ -162,13 +165,14 @@ io.on("connection", (socket) => {
   });
 
   // Get history
-  socket.on("getHistory", async ({ userA, userB, before, limit = 50 }, ack) => {
-    if (!userA || !userB) return ack?.([]);
+  socket.on("getHistory", async ({ peerId, before, limit = 50 }, ack) => {
+    const userId = socket.userId;
+    if (!userId || !peerId) return ack?.([]);
 
     const where = {
       [Op.or]: [
-        { senderId: userA, recipientId: userB },
-        { senderId: userB, recipientId: userA },
+        { senderId: userId, recipientId: peerId },
+        { senderId: peerId, recipientId: userId },
       ],
     };
     if (before) {
@@ -187,6 +191,31 @@ io.on("connection", (socket) => {
     } catch (e) {
       console.error("getHistory error", e);
       ack?.([]);
+    }
+  });
+
+  // mark messages as read
+  socket.on("markMessagesAsRead", async ({ peerId }) => {
+    const userId = socket.userId;
+    try {
+      const [updatedCount] = await Message.update(
+        { isRead: true },
+        {
+          where: {
+            senderId: peerId,
+            recipientId: userId,
+            isRead: false,
+          },
+        }
+      );
+
+      if (updatedCount > 0) {
+        console.log(
+          `Marked ${updatedCount} messages as read for user ${userId}`
+        );
+      }
+    } catch (error) {
+      console.error("Failed to mark messages as read:", error);
     }
   });
 
