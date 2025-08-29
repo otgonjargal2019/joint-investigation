@@ -56,7 +56,6 @@ function JoinMembershipPage() {
     
     signupMutation.mutate(payload, {
       onSuccess: (res) => {
-        console.log("res:", res.data);
         const {message, success} = res.data;
         if (success){
           toast.success(`${message}`, {
@@ -73,7 +72,6 @@ function JoinMembershipPage() {
         }
       },
       onError: (err) => {
-        console.log("err:", err.response);
         const {message} = err.response.data;
         toast.warning(`${message}`, {
           autoClose: 3000,
