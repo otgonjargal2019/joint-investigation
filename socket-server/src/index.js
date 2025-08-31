@@ -40,7 +40,7 @@ io.use((socket, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Socket auth payload:", payload);
+    //console.log("Socket auth payload:", payload);
     socket.userId = payload.sub; //daraa solivol solih userId bolgoj
     next();
   } catch (err) {
@@ -83,23 +83,33 @@ io.on("connection", (socket) => {
       // 2. Fetch user details and last message for each peer
       const usersWithLastMessage = await Promise.all(
         Array.from(peerIds).map(async (peerId) => {
-          const lastMsg = await Message.findOne({
-            where: {
-              [Op.or]: [
-                { senderId: userId, recipientId: peerId },
-                { senderId: peerId, recipientId: userId },
-              ],
-            },
-            order: [["createdAt", "DESC"]],
-            raw: true,
-          });
+          const [lastMsg, unreadCount] = await Promise.all([
+            Message.findOne({
+              where: {
+                [Op.or]: [
+                  { senderId: userId, recipientId: peerId },
+                  { senderId: peerId, recipientId: userId },
+                ],
+              },
+              order: [["createdAt", "DESC"]],
+              raw: true,
+            }),
+            Message.count({
+              where: {
+                senderId: peerId,
+                recipientId: userId,
+                isRead: false,
+              },
+            }),
+          ]);
 
           const user = await User.findByPk(peerId, { raw: true });
           return {
             userId: user.userId,
             displayName: user.nameEn || user.nameKr || user.loginId,
-            lastMessage: lastMsg.content || null,
-            lastMessageTime: lastMsg.createdAt || null,
+            lastMessage: lastMsg?.content || null,
+            lastMessageTime: lastMsg?.createdAt || null,
+            hasUnreadMessages: unreadCount > 0,
           };
         })
       );
@@ -147,20 +157,37 @@ io.on("connection", (socket) => {
   });
 
   // Send message
-  socket.on("sendDirectMessage", async ({ recipientId, content }) => {
+  socket.on("sendDirectMessage", async ({ recipientId, content }, callback) => {
     const userId = socket.userId;
-    if (!userId || !recipientId || !content) return;
+    if (!userId || !recipientId || !content) {
+      callback?.({ error: "Invalid message data" });
+      return;
+    }
 
     try {
       const message = await Message.create({
         senderId: userId,
         recipientId,
         content,
+        isRead: false, // explicitly set isRead to false for new messages
       });
-      io.to(`user:${userId}`).emit("directMessage", message);
-      io.to(`user:${recipientId}`).emit("directMessage", message);
+
+      // Emit to sender
+      io.to(`user:${userId}`).emit("directMessage", {
+        ...message.toJSON(),
+        isRead: true, // messages from self are always "read"
+      });
+
+      // Emit to recipient
+      io.to(`user:${recipientId}`).emit("directMessage", {
+        ...message.toJSON(),
+        isRead: false,
+      });
+
+      callback?.(null, message); // success callback
     } catch (e) {
       console.error("sendDirectMessage error", e);
+      callback?.({ error: "Failed to send message" });
     }
   });
 

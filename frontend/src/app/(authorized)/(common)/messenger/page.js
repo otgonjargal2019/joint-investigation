@@ -1,6 +1,6 @@
 "use client";
 
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 
@@ -20,16 +20,13 @@ export default function MessengerPage() {
 
   const t = useTranslations();
   const currentUserId = user.userId;
-  const { unreadUsers, setUnreadUsers } = useMessenger();
+  const { socket, connectionStatus, unreadUsers, markMessagesAsRead } =
+    useMessenger();
 
-  const socketRef = useRef(null);
   const selectedPeerRef = useRef(null);
   const chatContainerRef = useRef(null);
   const oldestMessageRef = useRef(null);
 
-  const [serverUrl] = useState(
-    process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
-  );
   const [users, setUsers] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [selectedPeer, setSelectedPeer] = useState(null);
@@ -50,26 +47,11 @@ export default function MessengerPage() {
   };
 
   useEffect(() => {
-    socketRef.current = io(serverUrl, {
-      transports: ["websocket"],
-      auth: { token: user.token },
-      // reconnectionAttempts: 5, // optional: try reconnecting 5 times
-      // reconnectionDelay: 1000, // 1s between attempts
-    });
+    if (!socket) return;
 
-    socketRef.current.on("connect", () => {
-      setStatus("connected");
-      console.log(
-        `[Messenger] Connected. SocketID=${socketRef.current.id}, UserID=${currentUserId}`
-      );
-    });
+    setStatus(connectionStatus);
 
-    socketRef.current.on("disconnect", (reason) => {
-      setStatus("disconnected");
-      console.log(`[Messenger] Disconnected. Reason: ${reason}`);
-    });
-
-    socketRef.current.on("directMessage", (msg) => {
+    const handleDirectMessage = (msg) => {
       console.log(
         `[Messenger] Received message from ${msg.senderId} to ${msg.recipientId}: "${msg.content}"`
       );
@@ -90,32 +72,64 @@ export default function MessengerPage() {
 
         setAllMessages((prev) => mergeMessages(prev, [msg]));
 
+        // If message is from current peer and chat is open, mark as read
+        if (
+          msg.senderId === selectedPeerRef.current.userId &&
+          msg.recipientId === currentUserId
+        ) {
+          console.log("Marking message as read from:", msg.senderId);
+          markMessagesAsRead(msg.senderId);
+        }
+
         if (nearBottom) {
           requestAnimationFrame(() => {
             container.scrollTop = container.scrollHeight;
           });
         }
-      }
-
-      if (
+      } else if (
         msg.senderId !== currentUserId &&
-        msg.senderId !== selectedPeerRef.current?.userId
+        msg.recipientId === currentUserId
       ) {
-        setUnreadUsers((prev) => new Set(prev).add(msg.senderId));
+        // Message is for current user but from a different peer
+        console.log("Received message from different peer:", msg.senderId);
+
+        // Refresh the user list to include the new sender
+        socket.emit("getChatUsers", (res) => {
+          console.log("Refreshing users after new message:", res);
+          setUsers((prevUsers) => {
+            // Check if the sender is already in the list
+            if (!prevUsers.some((u) => u.userId === msg.senderId)) {
+              // Add the new sender to the list if they're in the response
+              const newSender = res.find((u) => u.userId === msg.senderId);
+              if (newSender) {
+                return [...prevUsers, newSender];
+              }
+            }
+            return res;
+          });
+        });
       }
+    };
+
+    socket.on("directMessage", handleDirectMessage);
+
+    // Handle user list updates
+    socket.on("refreshUserList", (updatedUsers) => {
+      console.log(`[Messenger] Refreshing user list:`, updatedUsers);
+      setUsers(updatedUsers);
     });
 
-    console.log("[Messenger] Fetching initial chat users...");
-    socketRef.current.emit("getChatUsers", (res) => {
+    // Initial user list fetch
+    socket.emit("getChatUsers", (res) => {
       console.log(`[Messenger] Fetched ${res.length} chat users`);
       setUsers(res);
     });
 
     return () => {
-      console.log("[Messenger] Disconnecting socket...");
-      socketRef.current.disconnect();
+      socket.off("directMessage", handleDirectMessage);
+      socket.off("refreshUserList");
     };
-  }, [serverUrl, currentUserId]);
+  }, [socket, connectionStatus, currentUserId]);
 
   useEffect(() => {
     selectedPeerRef.current = selectedPeer;
@@ -124,84 +138,131 @@ export default function MessengerPage() {
   const handleSelectPeer = (peer) => {
     setSelectedPeer(peer);
 
-    setUnreadUsers((prev) => {
-      const updated = new Set(prev);
-      updated.delete(peer.userId);
-      return updated;
+    // Mark messages as read through the provider
+    markMessagesAsRead(peer.userId);
+
+    if (!socket) return;
+
+    socket.emit("getHistory", { peerId: peer.userId, limit }, (res) => {
+      if (!res) return;
+      const sorted = [...res].sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+      setAllMessages(sorted);
+      if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
     });
-
-    socketRef.current.emit(
-      "getHistory",
-      { peerId: peer.userId, limit },
-      (res) => {
-        if (!res) return;
-        const sorted = [...res].sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );
-        setAllMessages(sorted);
-        if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
-
-        //  emit mark as read
-        socketRef.current.emit("markMessagesAsRead", {
-          peerId: peer.userId,
-        });
-      }
-    );
   };
 
-  // Scroll to bottom whenever messages change for the selected peer
   useLayoutEffect(() => {
-    if (!chatContainerRef.current) return;
-    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-  }, [allMessages, selectedPeer]);
+    if (!chatContainerRef.current || !selectedPeer) return;
+
+    const container = chatContainerRef.current;
+
+    // Only auto-scroll if:
+    // 1. User just selected a peer (allMessages length small) OR
+    // 2. User is already near the bottom (new message)
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      50;
+
+    const justSelectedPeer = allMessages.length <= limit;
+
+    if (isNearBottom || justSelectedPeer) {
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Mark messages as read when they become visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const messageId = entry.target.getAttribute("data-message-id");
+            const senderId = entry.target.getAttribute("data-sender-id");
+            if (senderId && senderId !== currentUserId) {
+              markMessagesAsRead(senderId);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    // Observe all unread messages from the selected peer
+    const unreadMessages = container.querySelectorAll(
+      '.message-bubble[data-is-read="false"]'
+    );
+    unreadMessages.forEach((msg) => observer.observe(msg));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [allMessages, selectedPeer, currentUserId, markMessagesAsRead]);
 
   const fetchHistory = (peerId, before = null) => {
-    if (isFetchingOlder) return;
+    if (isFetchingOlder || !socket) return;
     setIsFetchingOlder(true);
 
     const container = chatContainerRef.current;
     const previousScrollHeight = container.scrollHeight;
 
-    socketRef.current.emit(
-      "getHistory",
-      { peerId: peerId, before, limit },
-      (res) => {
-        setIsFetchingOlder(false);
-        if (!res || res.length === 0) return;
+    socket.emit("getHistory", { peerId: peerId, before, limit }, (res) => {
+      setIsFetchingOlder(false);
+      if (!res || res.length === 0) return;
 
-        const sorted = [...res].sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );
+      const sorted = [...res].sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
 
-        setAllMessages((prev) => mergeMessages(sorted, prev, true));
-        oldestMessageRef.current = sorted[0].createdAt;
+      setAllMessages((prev) => mergeMessages(sorted, prev, true));
+      oldestMessageRef.current = sorted[0].createdAt;
 
-        requestAnimationFrame(() => {
-          container.scrollTop = container.scrollHeight - previousScrollHeight;
-        });
-      }
-    );
+      // Maintain scroll position when loading older messages
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight - previousScrollHeight;
+      });
+    });
   };
 
   const handleSend = () => {
-    if (!currentUserId || !selectedPeer || !messageContent.trim()) return;
+    if (!currentUserId || !selectedPeer || !messageContent.trim() || !socket) {
+      return;
+    }
 
-    socketRef.current.emit("sendDirectMessage", {
-      // senderId: currentUserId,
+    const message = {
       recipientId: selectedPeer.userId,
-      content: messageContent,
-    });
+      content: messageContent.trim(),
+    };
 
+    // Clear input immediately for better UX
+    const contentToSend = messageContent;
     setMessageContent("");
+
+    socket.emit("sendDirectMessage", message, (error, result) => {
+      if (error) {
+        console.error("Failed to send message:", error);
+        // Restore the message content if sending failed
+        setMessageContent(contentToSend);
+        // You can add error handling UI here
+        return;
+      }
+      // Message sent successfully, input is already cleared
+      // Optionally scroll to bottom
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop =
+          chatContainerRef.current.scrollHeight;
+      }
+    });
   };
 
   const handleSearch = (text) => {
+    if (!socket) return;
+
     setSearchText(text);
     if (!text.trim()) {
-      socketRef.current.emit("getChatUsers", (res) => setUsers(res));
+      socket.emit("getChatUsers", (res) => setUsers(res));
       return;
     }
-    socketRef.current.emit("searchUsers", text, (res) => setUsers(res));
+    socket.emit("searchUsers", text, (res) => setUsers(res));
   };
 
   const handleScroll = () => {
@@ -262,18 +323,25 @@ export default function MessengerPage() {
                     <Ellipse color="#564CDF" width={15} height={15} />
                   )}
                 </div>
-                <Circle />
+                <div>
+                  <Circle width={60} />
+                </div>
                 <div className="w-full">
-                  <div className="flex justify-between items-center mb-1">
-                    <div className="text-black text-[18px] font-semibold">
-                      {u.displayName}
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="text-black text-[18px] font-semibold">
+                        {u.displayName}
+                      </div>
+                      <div className="text-color-41 font-normal text-[18px] truncate w-[208px]">
+                        {u.lastMessage}
+                      </div>
                     </div>
                     <div className="text-color-35 text-[16px] font-normal">
-                      {"date"}
+                      {new Date(u.lastMessageTime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
-                  </div>
-                  <div className="text-color-35 text-[16px] truncate">
-                    {/* last message */}
                   </div>
                 </div>
               </div>
@@ -309,11 +377,13 @@ export default function MessengerPage() {
                       key={
                         m.messageId || `${m.senderId}-${m.createdAt}-${index}`
                       }
-                      className={`flex ${
+                      className={`flex gap-4 ${
                         isMe ? "justify-end" : "justify-start"
                       }`}
                     >
-                      {!isMe && <Circle className="mt-1" />}
+                      {!isMe && (
+                        <Circle width={50} height={50} className="mt-1" />
+                      )}
                       <div
                         className={`flex flex-col ${
                           isMe ? "items-end" : "items-start"
@@ -321,7 +391,7 @@ export default function MessengerPage() {
                       >
                         <div className="flex gap-2 items-center mb-1">
                           {!isMe && (
-                            <span className="text-black text-[16px] font-semibold">
+                            <span className="text-black text-[18px] font-normal">
                               {selectedPeer.displayName}
                             </span>
                           )}
@@ -333,11 +403,14 @@ export default function MessengerPage() {
                           </span>
                         </div>
                         <div
-                          className={`px-4 py-3 rounded-5 text-[16px] break-words ${
+                          className={`message-bubble px-4 py-3 rounded-5 text-[16px] break-words whitespace-pre-wrap ${
                             isMe
                               ? "bg-color-61 text-black"
                               : "bg-color-1 text-black"
                           }`}
+                          data-message-id={m.messageId}
+                          data-sender-id={m.senderId}
+                          data-is-read={m.isRead || isMe ? "true" : "false"}
                         >
                           {m.content}
                         </div>
@@ -349,18 +422,28 @@ export default function MessengerPage() {
             </div>
 
             {/* Send message */}
-            <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 h-[60px] items-center bg-white">
-              <input
-                type="text"
-                className="flex-1 outline-none placeholder-color-35 text-[16px] text-color-4"
+            <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 min-h-[62px] max-h-[62px] items-start py-2 bg-white">
+              <textarea
+                className="flex-1 outline-none placeholder-color-35 text-[16px] text-color-4 resize-none py-2 h-[50px] overflow-y-auto"
                 placeholder="메시지를 입력하세요."
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (e.shiftKey) {
+                      // Allow new line with Shift+Enter
+                      return;
+                    } else {
+                      // Prevent default Enter behavior and send message
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }
+                }}
               />
               <button
                 type="button"
-                className="bg-color-20 text-white px-4 py-2 rounded-5 hover:bg-color-30 transition-colors"
+                className="bg-color-20 text-white px-4 py-2 rounded-5 hover:bg-color-30 transition-colors mt-1"
                 onClick={handleSend}
                 aria-label="Send message"
               >
