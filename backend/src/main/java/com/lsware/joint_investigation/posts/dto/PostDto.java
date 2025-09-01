@@ -22,19 +22,13 @@ public class PostDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Post toEntity() {
+    public Post toEntity(Users creator) {
         Post postEntity = new Post();
         postEntity.setPostId(this.postId);
         postEntity.setBoardType(this.boardType);
         postEntity.setTitle(this.title);
         postEntity.setContent(this.content);
-        if (this.creator != null) {
-            Users creatorEntity = new Users();
-            creatorEntity.setUserId(this.creator.getUserId());
-            postEntity.setCreator(creatorEntity);
-        }
-        postEntity.setCreatedAt(this.createdAt);
-        postEntity.setUpdatedAt(this.updatedAt);
+        postEntity.setCreator(creator);
         return postEntity;
     }
 
