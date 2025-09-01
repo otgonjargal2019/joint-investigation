@@ -141,7 +141,7 @@ public class AuthController {
             user.setPhone(userDto.getPhone());
             user.setCountry(userDto.getCountry());
             user.setDepartment(userDto.getDepartment());
-            user.setRole(Role.RESEARCHER);
+            user.setRole(Role.INVESTIGATOR);
             user.setStatus(Users.USER_STATUS.PENDING);
             String passwordString = userDto.getPassword();
             user.setPasswordHash(passwordEncoder.encode(passwordString));

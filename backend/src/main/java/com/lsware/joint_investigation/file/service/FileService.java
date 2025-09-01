@@ -1,0 +1,122 @@
+package com.lsware.joint_investigation.file.service;
+
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.GroupGrantee;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.Permission;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import com.lsware.joint_investigation.common.util.CustomResponseException;
+import com.lsware.joint_investigation.common.util.FileStorageException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import com.lsware.joint_investigation.common.util.TextUtil;
+import com.lsware.joint_investigation.common.s3.S3Buckets;
+
+@Service
+@Transactional("transactionManager")
+public class FileService {
+    private static final Logger logger = LoggerFactory.getLogger(FileService.class);
+
+    private final Path fileStorageLocation;
+
+    @Value("${aws.s3.endpoint}")
+    private String s3Endpoint;
+    @Value("${aws.s3.path-style.enabled}")
+    private Boolean pathStyleAccessEnabled;
+    @Value("${aws.s3.region}")
+    private String s3Region;
+    @Value("${aws.credentials.access-key}")
+    private String s3AccessKey;
+    @Value("${aws.credentials.secret-key}")
+    private String s3SecretKey;
+
+    private final S3Buckets s3Buckets;
+
+    //@Autowired
+    //private FileRepository fileRepository;
+
+    public FileService(@Value("${upload.path}") String path, S3Buckets s3Buckets) {
+        this.s3Buckets = s3Buckets;
+        // String path = "/home/upload";
+        this.fileStorageLocation = Paths.get(path).toAbsolutePath().normalize();
+
+        try {
+            Files.createDirectories(this.fileStorageLocation);
+        } catch (Exception ex) {
+            throw new FileStorageException("Could not create the directory where the uploaded files will be stored.", ex);
+        }
+    }
+
+    public String storeProfileImage(MultipartFile file) throws CustomResponseException {
+        String fileUrl = "";
+        String fileName = TextUtil.appendSuffix(file.getOriginalFilename().replaceAll("\\s+", "_"),
+                "_" + new Date().getTime());
+        try {
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(s3Endpoint, s3Region))
+                    .withPathStyleAccessEnabled(pathStyleAccessEnabled)
+                    .withCredentials(
+                            new AWSStaticCredentialsProvider(new BasicAWSCredentials(s3AccessKey, s3SecretKey)))
+                    .build();
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(file.getContentType());
+            metadata.setContentLength(file.getBytes().length);
+            metadata.addUserMetadata("name", "profile");
+            metadata.setContentEncoding("UTF-8");
+
+            PutObjectRequest request = new PutObjectRequest(s3Buckets.getProfileImages(), fileName, file.getInputStream(), metadata);
+            AccessControlList acl = new AccessControlList();
+            acl.grantPermission(GroupGrantee.AllUsers, Permission.Read);
+            request.setAccessControlList(acl);
+            PutObjectResult s3result = s3Client.putObject(request);
+            URL downloadUrl = s3Client.getUrl(s3Buckets.getProfileImages(), fileName);
+            fileUrl = URLDecoder.decode(downloadUrl.toString(), StandardCharsets.UTF_8);
+
+            if (s3result != null) {
+                return fileUrl;
+            } else {
+                logger.error("===> failed s3result != null && downloadUrl != null : ");
+            }
+        } catch (AmazonServiceException e) {
+            e.printStackTrace();
+            logger.error("===> !AmazonServiceException ");
+            throw new CustomResponseException("error uploading to aws s3", e);
+        } catch (SdkClientException e) {
+            e.printStackTrace();
+            logger.error("===> !SdkClientException ");
+            throw new CustomResponseException("error connecting to aws s3", e);
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.error("===> !IOException ");
+            throw new CustomResponseException("error reading uploaded file", e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("===> !Exception ");
+            logger.error("Error occured during s3 upload", e);
+            throw new CustomResponseException("Error occured during s3 upload", e);
+        }
+        return fileUrl;
+    }
+
+}
