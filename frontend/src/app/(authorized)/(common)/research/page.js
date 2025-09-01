@@ -14,7 +14,7 @@ import {
 } from "@/shared/widgets/mockData/investgationInfo";
 import Button from "@/shared/components/button";
 
-function InvestigationInfoList() {
+function ResearchList() {
   const [data, setData] = useState(tableData);
   const [page, setPage] = useState(1);
 
@@ -22,15 +22,15 @@ function InvestigationInfoList() {
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push("/investigation-information/detail");
+    router.push("/research/detail");
   };
   const onCreate = () => {
-    router.push("/investigation-information/create");
+    router.push("/research/create");
   };
 
   return (
     <div>
-      <PageTitle title={t("header.investigation-information")} />
+      <PageTitle title={t("header.research")} />
       <div className="flex justify-end mb-4">
         <Button onClick={onCreate}>{t("create")}</Button>
       </div>
@@ -46,4 +46,4 @@ function InvestigationInfoList() {
   );
 }
 
-export default InvestigationInfoList;
+export default ResearchList;

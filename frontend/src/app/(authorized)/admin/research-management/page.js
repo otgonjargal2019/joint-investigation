@@ -109,7 +109,7 @@ function SurveyInfoManagementPage() {
   }, [list]);
   return (
     <div>
-      <PageTitle title={t("header.investigation-info-mgnt")} />
+      <PageTitle title={t("header.research-mgnt")} />
       <div className="mt-10">
         <SimpleDataTable
           columns={tableColumns}

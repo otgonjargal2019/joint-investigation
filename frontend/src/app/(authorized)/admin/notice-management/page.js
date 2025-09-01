@@ -61,11 +61,11 @@ function AnnouncementManagementPage() {
   };
 
   const onCreate = () => {
-    router.push("/admin/announcement-management/create");
+    router.push("/admin/notice-management/create");
   };
 
   const onClickRow = (row) => {
-    router.push("/admin/announcement-management/detail");
+    router.push("/admin/notice-management/detail");
   };
 
   useEffect(() => {

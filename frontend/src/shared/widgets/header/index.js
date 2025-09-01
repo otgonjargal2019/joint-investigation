@@ -38,7 +38,7 @@ const Header = () => {
   console.log("header dotroos role:", user.role);
 
   const incidentLink = useMemo(() => {
-    if (user?.role === "admin" || user?.role === roles.INV_ADMIN) {
+    if (user?.role === roles.PLATFORM_ADMIN || user?.role === roles.INV_ADMIN) {
       return "/manager/cases";
     } else if (user?.role === "investigator") {
       return "/investigator/incident";
@@ -87,7 +87,7 @@ const Header = () => {
           <Indent color="currentColor" />
           {t("header.status-edition-summary")}
         </button>
-        {user.role === "admin" ? (
+        {user.role === roles.PLATFORM_ADMIN ? (
           <>
             <button
               className={`header-btn ${
@@ -112,13 +112,11 @@ const Header = () => {
         ) : (
           <>
             <button
-              className={`header-btn ${
-                isActive("/investigation-information") ? "active" : ""
-              }`}
-              onClick={() => router.push("/investigation-information")}
+              className={`header-btn ${isActive("/research") ? "active" : ""}`}
+              onClick={() => router.push("/research")}
             >
               <Openbook color="currentColor" />
-              {t("header.investigation-information")}
+              {t("header.research")}
             </button>
             <button
               className={`header-btn ${isActive("/notice") ? "active" : ""}`}
@@ -257,7 +255,7 @@ const Header = () => {
                 {t("header.status-edition-summary")}
               </button>
 
-              {user.role === "admin" ? (
+              {user.role === roles.PLATFORM_ADMIN ? (
                 <>
                   <button
                     className={`header-btn mobile-btn ${
@@ -295,30 +293,26 @@ const Header = () => {
 
                   <button
                     className={`header-btn mobile-btn ${
-                      isActive("/admin/investigation-info-management")
-                        ? "active"
-                        : ""
+                      isActive("/admin/research-management") ? "active" : ""
                     }`}
                     onClick={() =>
-                      handleNavigation("/admin/investigation-info-management")
+                      handleNavigation("/admin/research-management")
                     }
                   >
                     <Openbook color="currentColor" />
-                    {t("header.investigation-info-mgnt")}
+                    {t("header.research-mgnt")}
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     className={`header-btn mobile-btn ${
-                      isActive("/investigation-information") ? "active" : ""
+                      isActive("/research") ? "active" : ""
                     }`}
-                    onClick={() =>
-                      handleNavigation("/investigation-information")
-                    }
+                    onClick={() => handleNavigation("/research")}
                   >
                     <Openbook color="currentColor" />
-                    {t("header.investigation-information")}
+                    {t("header.research")}
                   </button>
                   <button
                     className={`header-btn mobile-btn ${

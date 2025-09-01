@@ -8,15 +8,15 @@ import Button from "@/shared/components/button";
 import InvestigationInfoDetail from "@/shared/widgets/investigationInfoDetail";
 import PageTitle from "@/shared/components/pageTitle/page";
 
-function InvestigationInfoDetailPage() {
+function ResearchDetailPage() {
   const t = useTranslations();
   const router = useRouter();
 
-  const onClickList = () => router.push("/investigation-information");
+  const onClickList = () => router.push("/research");
 
   return (
     <div>
-      <PageTitle title={t("header.investigation-information")} />
+      <PageTitle title={t("header.research")} />
 
       <div className="flex justify-center mt-4">
         <div className="max-w-[1200px] w-full">
@@ -31,4 +31,4 @@ function InvestigationInfoDetailPage() {
   );
 }
 
-export default InvestigationInfoDetailPage;
+export default ResearchDetailPage;

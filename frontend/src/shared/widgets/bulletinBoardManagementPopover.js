@@ -51,11 +51,11 @@ const BulletinBoardManagementPopover = () => {
                 selected === "survey" ? "active" : "popover"
               }`}
               onClick={() =>
-                handleClick("survey", "/admin/investigation-info-management")
+                handleClick("survey", "/admin/research-management")
               }
             >
               <Openbook color="currentColor" />
-              {t("header.investigation-info-mgnt")}
+              {t("header.research-mgnt")}
             </button>
           </div>
 

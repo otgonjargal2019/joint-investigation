@@ -115,7 +115,7 @@
     "title": "International Cooperation and Investigation Platform",
     "current-state-entire-incident": "current state of entire incident",
     "status-edition-summary": "status edition summary",
-    "investigation-information": "investigation information",
+    "research": "research",
     "notice": "Notice",
     "messenger": "messenger",
     "incident-detail": "case details",
@@ -126,7 +126,7 @@
     "resource-mgnt": "resource management",
     "bulletin-mgnt": "bulletin mgnt",
     "notice-mgnt": "notice management",
-    "investigation-info-mgnt": "investigation info management"
+    "research-mgnt": "research management"
   },
   "subtitle": {
     "recent-investigation": "recent investigation",

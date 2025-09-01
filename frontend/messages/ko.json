@@ -115,7 +115,7 @@
     "title": "국제공조수사플랫폼",
     "current-state-entire-incident": "전체 사건 현황",
     "status-edition-summary": "현황판 요약",
-    "investigation-information": "조사정보",
+    "research": "조사정보",
     "notice": "공지사항",
     "messenger": "메신저",
     "incident-detail": "사건 상세 정보",
@@ -126,7 +126,7 @@
     "resource-mgnt": "리소스 관리",
     "bulletin-mgnt": "게시판 관리",
     "notice-mgnt": "공지사항 관리",
-    "investigation-info-mgnt": "조사정보 관리"
+    "research-mgnt": "조사정보 관리"
   },
   "subtitle": {
     "recent-investigation": "최근 수사한 사건",
