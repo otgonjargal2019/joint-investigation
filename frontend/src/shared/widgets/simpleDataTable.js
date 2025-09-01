@@ -18,11 +18,13 @@ function SimpleDataTable({ columns, data, onClickRow }) {
         {Array.isArray(data) &&
           data.map((row, rowIndex) => (
             <Tr key={rowIndex} hover={true} onClick={() => onClickRow?.(row)}>
-              {columns.map((col) => (
-                <Td key={col.key} textAlign={col.textAlign}>
-                  {row[col.key]}
-                </Td>
-              ))}
+              {columns.map((col) => {
+                return (
+                  <Td key={col.key} textAlign={col.textAlign}>
+                    {col.render ? col.render(row[col.key]) : row[col.key]}
+                  </Td>
+                );
+              })}
             </Tr>
           ))}
       </Tbody>

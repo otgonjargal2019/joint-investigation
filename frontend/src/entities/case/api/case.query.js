@@ -39,3 +39,17 @@ export const useCase = ({
     },
   });
 };
+
+export const useCaseById = ({
+  id,
+} = {}) => {
+  return useQuery({
+    queryKey: ["/api/cases/id", { id }],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(
+        `/api/cases/${id}`
+      );
+      return data;
+    },
+  });
+};

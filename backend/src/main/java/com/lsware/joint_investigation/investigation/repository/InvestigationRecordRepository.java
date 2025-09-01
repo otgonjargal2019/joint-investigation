@@ -2,6 +2,8 @@ package com.lsware.joint_investigation.investigation.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.util.QuerydslHelper;
@@ -27,26 +29,29 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         super(InvestigationRecord.class, entityManager);
     }
 
-    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus) {
+    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId) {
         QInvestigationRecord q = QInvestigationRecord.investigationRecord;
 
-        BooleanExpression recordNamePredicate = recordName != null
-                ? q.recordName.containsIgnoreCase(recordName.trim())
-                : null;
+        BooleanExpression rootPredicate = q.recordId.isNotNull();
 
-        BooleanExpression progressStatusPredicate = progressStatus != null
-                ? q.progressStatus.eq(progressStatus)
-                : null;
-
-        if (recordNamePredicate != null && progressStatusPredicate != null) {
-            return recordNamePredicate.and(progressStatusPredicate);
+        if (recordName != null) {
+            rootPredicate = rootPredicate.and(q.recordName.containsIgnoreCase(recordName.trim()));
         }
-        return recordNamePredicate != null ? recordNamePredicate : progressStatusPredicate;
+
+        if (progressStatus != null) {
+            rootPredicate = rootPredicate.and(q.progressStatus.eq(progressStatus));
+        }
+
+        if (caseId != null) {
+            rootPredicate = rootPredicate.and(q.caseInstance.caseId.eq(UUID.fromString(caseId)));
+        }
+
+        return rootPredicate;
     }
 
-    public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, Pageable pageable) {
+    public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, String caseId, Pageable pageable) {
 
-        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus);
+        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus, caseId);
 
         List<InvestigationRecord> rows = queryFactory
                 .selectFrom(QInvestigationRecord.investigationRecord)
