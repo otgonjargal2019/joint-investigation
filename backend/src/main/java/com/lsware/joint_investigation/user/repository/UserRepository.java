@@ -2,10 +2,14 @@ package com.lsware.joint_investigation.user.repository;
 
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.entity.QUsers;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
+
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,5 +70,17 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
                         .from(users)
                         .where(builder)
                         .fetchFirst());
+    }
+
+    @Transactional(readOnly = false)
+    public Boolean updateProfileByUserId(UUID userId, String avatar, String department) {
+        JPAUpdateClause clause = queryFactory.update(users)
+                .where(users.userId.eq(userId))
+                .set(users.department, department);
+        if (avatar != null) {
+            clause = clause.set(users.profileImageUrl, avatar);
+        }
+        long updatedRows = clause.execute();
+        return updatedRows > 0;
     }
 }
