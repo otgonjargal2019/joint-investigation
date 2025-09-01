@@ -33,7 +33,7 @@ public class InvestigationController {
 			@RequestParam(required = false) PROGRESS_STATUS progressStatus,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
-			@RequestParam(required = false, defaultValue = "caseId") String sortBy,
+			@RequestParam(required = false, defaultValue = "recordName") String sortBy,
 			@RequestParam(required = false, defaultValue = "asc") String sortDirection
 	) {
 		Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
