@@ -17,24 +17,19 @@ import {
   tableData,
 } from "@/shared/widgets/incident/detail/mockData";
 
-const obj = {
-  data1: "156-8156",
-  data2: "2024-01-01 02:59:00",
-  data3: "test 3",
-  data4: "test 4",
-  data5: "test 5",
-  data6:
-    "2. test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6 test6",
-  data7:
-    "1. test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test",
-  data8: "test8 test8 test8 test8 test8 test8 test8 test8",
-};
+import { useCaseById } from "@/entities/case";
 
 function IncidentDetailPage() {
   const [page, setPage] = useState(1);
   const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
+
+  const id = pathname.split("/")[3];
+
+  const { data: recordData, isLoading } = useCaseById({
+      id,
+  });
 
   // const onClickNew = () => {
   //   router.push("/incident/create");
@@ -76,7 +71,7 @@ function IncidentDetailPage() {
         <h3 className="text-[24px] text-color-8 font-medium mb-2">
           {t("subtitle.incident-information")}
         </h3>
-        <CaseDetailGrid item={obj} />
+        <CaseDetailGrid item={recordData} />
       </div>
       <h3 className="text-[24px] text-color-8 font-medium mb-2">
         {t("subtitle.investigation-records")}
