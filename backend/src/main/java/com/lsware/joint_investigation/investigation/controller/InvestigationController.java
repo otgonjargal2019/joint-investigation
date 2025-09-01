@@ -31,6 +31,7 @@ public class InvestigationController {
 	public MappingJacksonValue getInvestigationRecords(
 			@RequestParam(required = false) String recordName,
 			@RequestParam(required = false) PROGRESS_STATUS progressStatus,
+			@RequestParam(required = false) String caseId,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
 			@RequestParam(required = false, defaultValue = "recordName") String sortBy,
@@ -40,7 +41,7 @@ public class InvestigationController {
 		Sort sort = Sort.by(direction, sortBy);
 		Pageable pageable = PageRequest.of(page, size, sort);
 
-		Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, pageable);
+		Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, caseId, pageable);
 		MappingJacksonValue mapping = new MappingJacksonValue(result);
 
 		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter

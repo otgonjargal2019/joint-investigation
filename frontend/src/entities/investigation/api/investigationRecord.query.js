@@ -19,9 +19,10 @@ export const useInvestigationRecords = ({
   size = 10,
   progressStatus,
   recordName,
+  caseId,
 } = {}) => {
   return useQuery({
-    queryKey: ["investigationRecords", { sortBy, sortDirection, page, size, progressStatus, recordName }],
+    queryKey: ["investigationRecords", { sortBy, sortDirection, page, size, progressStatus, recordName, caseId }],
     queryFn: async () => {
       const params = new URLSearchParams({
         sortBy,
@@ -30,6 +31,7 @@ export const useInvestigationRecords = ({
         size: String(size),
         ...(progressStatus && { progressStatus }),
         ...(recordName && { recordName }),
+        ...(caseId && { caseId }),
       });
 
       const { data } = await axiosInstance.get(

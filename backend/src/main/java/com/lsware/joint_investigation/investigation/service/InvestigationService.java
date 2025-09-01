@@ -15,8 +15,8 @@ public class InvestigationService {
 	@Autowired
 	private InvestigationRecordRepository investigationRecordRepository;
 
-	public Map<String, Object> getInvestigationRecords(String recordName, PROGRESS_STATUS progressStatus, Pageable pageable) {
-		Map<String, Object> result = investigationRecordRepository.findInvestigationRecord(recordName, progressStatus, pageable);
+	public Map<String, Object> getInvestigationRecords(String recordName, PROGRESS_STATUS progressStatus, String caseId, Pageable pageable) {
+		Map<String, Object> result = investigationRecordRepository.findInvestigationRecord(recordName, progressStatus, caseId, pageable);
 
 		@SuppressWarnings("unchecked")
 		List<InvestigationRecord> records = (List<InvestigationRecord>) result.get("rows");
