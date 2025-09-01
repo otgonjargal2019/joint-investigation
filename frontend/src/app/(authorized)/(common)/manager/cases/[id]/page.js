@@ -104,10 +104,14 @@ function IncidentDetailPage() {
 					{ key: "no", title: "No." },
 					{ key: "recordName", title: "수사기록" },
 					{ key: "creator.nameKr", title: "작성자" },
-					{ key: "createdAt", title: "작성일", render: (value) => new Date(value).toLocaleDateString() },
+					{
+						key: "createdAt",
+						title: "작성일",
+						render: (value) => new Date(value).toLocaleDateString()
+					},
 					{ key: "evidence", title: "디지털 증거물" },
 					{ key: "investigationReport", title: "수사보고서" },
-					{ key: "progressStatus", title: "진행상태", render: (value) => t(`incident.review-status.${value.toLowerCase()}`) },
+					{ key: "progressStatus", title: "진행상태", render: (value) => t(`incident.progress-status.${value.toLowerCase()}`) },
 				]}
 				data={transformedData}
 				onClickRow={onClickRow}

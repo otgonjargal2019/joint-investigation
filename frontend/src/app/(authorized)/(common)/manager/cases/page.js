@@ -109,7 +109,7 @@ function CaseListPage() {
           {
             key: "latestRecord.progressStatus",
             title: t('incident.progress-detail'),
-            render: (value) => t(`incident.review-status.${value.toLowerCase()}`)
+            render: (value) => value ? t(`incident.progress-status.${value?.toLowerCase()}`) : null
           }
         ]}
         data={transformedData}

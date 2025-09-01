@@ -14,6 +14,13 @@
       "reviewed": "Reviewed",
       "approved": "Approved",
       "rejected": "Rejected"
+    },
+    "progress-status": {
+      "pre_investigation": "pre_investigation",
+      "investigation": "ENGLISH: investigation",
+      "review": "review",
+      "prosecution": "prosecution",
+      "closed": "closed"
     }
   },
   "case": "",
