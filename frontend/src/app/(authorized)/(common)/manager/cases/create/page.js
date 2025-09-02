@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 import Button from "@/shared/components/button";
 import Label from "@/shared/components/form/label";
+import { useCreateCase } from "@/entities/case";
 import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
 import Textarea from "@/shared/components/form/textarea";
@@ -15,13 +17,37 @@ import DatePickerInput from "@/shared/components/form/datepicker";
 import InvestigatorAssign from "@/shared/widgets/manager/investigatorAssign";
 import PageTitle from "@/shared/components/pageTitle/page";
 
-const options = [
-  { label: "test 1", value: 1 },
-  { label: "test 2", value: 2 },
-  { label: "test 3", value: 3 },
+const priorityOptions = [
+  { label: "1 - Highest", value: 1 },
+  { label: "2 - High", value: 2 },
+  { label: "3 - Medium", value: 3 },
+  { label: "4 - Low", value: 4 },
+  { label: "5 - Lowest", value: 5 },
 ];
 
-function CreateNewIncident() {
+const contentTypeOptions = [
+  { label: "Video", value: "Video" },
+  { label: "Audio", value: "Audio" },
+  { label: "Image", value: "Image" },
+  { label: "Text", value: "Text" },
+  { label: "Software", value: "Software" },
+  { label: "Game", value: "Game" },
+  { label: "Mixed Media", value: "Mixed Media" },
+  { label: "Other", value: "Other" }
+];
+
+const infringementTypeOptions = [
+  { label: "Copyright Violation", value: "Copyright Violation" },
+  { label: "Trademark Infringement", value: "Trademark Infringement" },
+  { label: "Patent Infringement", value: "Patent Infringement" },
+  { label: "Trade Secret Theft", value: "Trade Secret Theft" },
+  { label: "Design Right Violation", value: "Design Right Violation" },
+  { label: "Unauthorized Distribution", value: "Unauthorized Distribution" },
+  { label: "Counterfeit Goods", value: "Counterfeit Goods" },
+  { label: "Other IP Violation", value: "Other IP Violation" }
+];
+
+function CreateNewCase() {
   const {
     control,
     register,
@@ -33,17 +59,43 @@ function CreateNewIncident() {
   const tabs = [t("enter-incident-info"), t("assign-investigator")];
   const [activeTab, setActiveTab] = useState(0);
 
-  const onSubmit = (data) => {
-    console.log(data);
-
-    // hadgalah process yavagdana
-
-    setTimeout(() => {
-      setActiveTab(1);
-    }, 1500);
-  };
-
   const router = useRouter();
+  const createCase = useCreateCase();
+
+  const onSubmit = async (data) => {
+    try {
+      await createCase.mutateAsync({
+        caseName: data.caseName,
+        caseOutline: data.caseOutline,
+        contentType: data.contentType,
+        infringementType: data.infringementType,
+        relatedCountries: data.relatedCountries,
+        priority: Number(data.priority),
+        investigationDate: data.investigationDate,
+        etc: data.etc
+      });
+
+      toast.success(t('case-detail.create-success'), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      setActiveTab(1);
+    } catch (error) {
+      toast.error(t('case-detail.create-error'), {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      console.error('Failed to create case:', error);
+    }
+  };
 
   const onGoBack = () => {
     router.push("/manager/incident");
@@ -74,15 +126,17 @@ function CreateNewIncident() {
                     name="caseNumber"
                     error={errors.no}
                     showError={false}
+                    disabled
+                    defaultValue="부여 예정"
                   />
                   <Label color="gray" variant="formBig" className="text-right">
                     {t("case-detail.investigation-commencement-date")}
                   </Label>
                   <DatePickerInput
                     variant="formBig"
-                    name="dateOfOccurence"
+                    name="investigationDate"
                     control={control}
-                    error={errors.dateOfOccurence}
+                    error={errors.investigationDate}
                     placeholder="날짜를 선택하세요"
                     showError={false}
                   />
@@ -92,8 +146,8 @@ function CreateNewIncident() {
                   <Input
                     variant="formBig"
                     register={register}
-                    name="countryOfOrigin"
-                    error={errors.countryOfOrigin}
+                    name="relatedCountries"
+                    error={errors.relatedCountries}
                     showError={false}
                   />
                 </div>
@@ -104,9 +158,9 @@ function CreateNewIncident() {
                   <SelectBox
                     variant="formBig"
                     register={register}
-                    name="rankingOfResponses"
-                    options={options}
-                    error={errors.rankingOfResponses}
+                    name="priority"
+                    options={priorityOptions}
+                    error={errors.priority}
                     showError={false}
                   />
                   <Label color="gray" variant="formBig" className="text-right">
@@ -116,7 +170,7 @@ function CreateNewIncident() {
                     variant="formBig"
                     register={register}
                     name="contentType"
-                    options={options}
+                    options={contentTypeOptions}
                     error={errors.contentType}
                     showError={false}
                   />
@@ -126,9 +180,9 @@ function CreateNewIncident() {
                   <SelectBox
                     variant="formBig"
                     register={register}
-                    name="typesOfInfringement"
-                    options={options}
-                    error={errors.typesOfInfringement}
+                    name="infringementType"
+                    options={infringementTypeOptions}
+                    error={errors.infringementType}
                     showError={false}
                   />
                 </div>
@@ -140,17 +194,17 @@ function CreateNewIncident() {
                 <Input
                   variant="formBig"
                   register={register}
-                  name="nameOfIncident"
-                  error={errors.nameOfIncident}
+                  name="caseName"
+                  error={errors.caseName}
                   showError={false}
                 />
                 <Label color="gray" variant="formBig" className="text-right">
                   {t("case-detail.case-overview")}
                 </Label>
                 <Textarea
-                  name="overview"
+                  name="caseOutline"
                   register={register}
-                  error={errors.overview}
+                  error={errors.caseOutline}
                   placeholder="Enter your message here..."
                   variant="formBig"
                   className="h-[350px]"
@@ -160,9 +214,9 @@ function CreateNewIncident() {
                   {t("case-detail.other-matters")}
                 </Label>
                 <Textarea
-                  name="other"
+                  name="etc"
                   register={register}
-                  error={errors.other}
+                  error={errors.etc}
                   placeholder="Enter your message here..."
                   variant="formBig"
                   className="h-[250px]"
@@ -179,8 +233,13 @@ function CreateNewIncident() {
                 >
                   {t("cancel")}
                 </Button>
-                <Button size="bigForm" type="submit" className="w-[148px]">
-                  {t("next")}
+                <Button
+                  size="bigForm"
+                  type="submit"
+                  className="w-[148px]"
+                  disabled={createCase.isPending}
+                >
+                  {createCase.isPending ? t("submitting") : t("next")}
                 </Button>
               </div>
             </form>
@@ -195,4 +254,4 @@ function CreateNewIncident() {
   );
 }
 
-export default CreateNewIncident;
+export default CreateNewCase;
