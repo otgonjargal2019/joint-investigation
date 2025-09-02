@@ -56,6 +56,22 @@ services:
     networks:
       - net_db
 
+  minio:
+    # context: ../minio/
+    build: ../minio/
+    container_name: nft-eyes-minio
+    ports:
+      - "9000:9000"   # S3 호환 API
+      - "9001:9001"   # MinIO 웹 콘솔
+    volumes:
+      - ../minio/data:/data
+    environment:
+      - MINIO_ROOT_USER=ROOTNAME
+      - MINIO_ROOT_PASSWORD=CHANGEROOTPASSWORD
+    command: server /data --console-address ":9001"
+    networks:
+      - net_investigation
+
   # nginx:
   #   # build: ../nginx
   #   image: nginx:alpine
