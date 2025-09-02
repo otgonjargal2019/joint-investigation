@@ -25,7 +25,7 @@ const Detail = ({ current, prev, next, onClickList, onClickNavigate }) => {
             current?.creator?.nameKr ||
             current?.creator?.nameKr ||
             current?.creator?.loginId,
-          view: "125",
+          view: current?.viewCount,
         }}
       />
 

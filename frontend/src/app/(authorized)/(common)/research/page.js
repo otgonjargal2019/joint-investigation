@@ -15,7 +15,7 @@ export const tableColumns = [
   { key: "no", title: "No.", textAlign: "text-center" },
   { key: "title", title: "제목", textAlign: "text-left" },
   { key: "createdAtStr", title: "날짜", textAlign: "text-center" },
-  { key: "viewers", title: "조회수", textAlign: "text-center" },
+  { key: "viewCount", title: "조회수", textAlign: "text-center" },
   { key: "attachedFile", title: "첨부파일", textAlign: "text-center" },
 ];
 

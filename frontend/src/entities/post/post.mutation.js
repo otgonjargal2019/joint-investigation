@@ -36,3 +36,14 @@ export const useDeletePost = () => {
     },
   });
 };
+
+//add view on post
+export const useAddViewPost = () => {
+  return useMutation({
+    mutationFn: async ({ id }) => {
+      return axiosInstance.post(`/api/posts/${id}/view`, {
+        id,
+      });
+    },
+  });
+};

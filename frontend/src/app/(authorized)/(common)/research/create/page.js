@@ -23,6 +23,7 @@ function CreatePage() {
           autoClose: 3000,
           position: "top-center",
         });
+        router.push("/research");
       },
       onError: (err) => {
         toast.error(err.response.data.message, {

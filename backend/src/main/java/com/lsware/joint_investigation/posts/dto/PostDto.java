@@ -26,6 +26,8 @@ public class PostDto {
     private String createdAtStr;
     private String updatedAtStr;
 
+    private long viewCount;
+
     public Post toEntity(Users creator) {
         Post postEntity = new Post();
         postEntity.setPostId(this.postId);
@@ -37,6 +39,10 @@ public class PostDto {
     }
 
     public static PostDto fromEntity(Post post) {
+        return fromEntity(post, 0L);
+    }
+
+    public static PostDto fromEntity(Post post, long viewCount) {
         PostDto dto = new PostDto();
         dto.setPostId(post.getPostId());
         dto.setBoardType(post.getBoardType());
@@ -65,6 +71,7 @@ public class PostDto {
             dto.setUpdatedAtStr(post.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
         }
 
+        dto.setViewCount(viewCount);
         return dto;
     }
 }

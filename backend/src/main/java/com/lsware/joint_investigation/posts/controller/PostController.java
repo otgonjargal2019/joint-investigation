@@ -28,6 +28,8 @@ import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.posts.dto.PostDto;
 import com.lsware.joint_investigation.posts.entity.Post;
 import com.lsware.joint_investigation.posts.repository.PostRepository;
+import com.lsware.joint_investigation.posts.repository.PostViewRepository;
+import com.lsware.joint_investigation.posts.service.PostViewService;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 
@@ -40,6 +42,8 @@ public class PostController {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostViewRepository postViewRepository;
+    private final PostViewService postViewService;
 
     // GET ALL POSTS (with pagination and optional boardType)
     @GetMapping
@@ -58,7 +62,10 @@ public class PostController {
         }
 
         List<PostDto> dtos = posts.stream()
-                .map(PostDto::fromEntity)
+                .map(post -> {
+                    long viewCount = postViewRepository.countByPost(post); // <-- count views
+                    return PostDto.fromEntity(post, viewCount);
+                })
                 .collect(Collectors.toList());
 
         MappingJacksonValue mapping = new MappingJacksonValue(dtos);
@@ -94,7 +101,10 @@ public class PostController {
                 .orElse(null);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("current", PostDto.fromEntity(post));
+
+        long currentViewCount = postViewRepository.countByPost(post);
+
+        result.put("current", PostDto.fromEntity(post, currentViewCount));
         result.put("prev", prev != null ? Map.of(
                 "postId", prev.getPostId(),
                 "title", prev.getTitle()) : null);
@@ -163,6 +173,17 @@ public class PostController {
 
         postRepository.delete(post);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> viewPost(@PathVariable UUID id) {
+        CustomUser currentUser = (CustomUser) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        UUID currentUserId = currentUser.getId();
+
+        postViewService.addView(id, currentUserId);
+
+        return ResponseEntity.ok().build();
     }
 
     // Utility to provide Jackson filter for creator

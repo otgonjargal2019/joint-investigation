@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "react-toastify";
-import React, { use, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +11,12 @@ import Button from "@/shared/components/button";
 import Detail from "@/shared/widgets/post/detail";
 import PageTitle from "@/shared/components/pageTitle/page";
 
-import { postQuery, BOARD_TYPE, useDeletePost } from "@/entities/post";
+import {
+  postQuery,
+  BOARD_TYPE,
+  useDeletePost,
+  useAddViewPost,
+} from "@/entities/post";
 
 function DetailPage({ params }) {
   const { id } = use(params);
@@ -20,6 +25,9 @@ function DetailPage({ params }) {
 
   const [promptModalOpen, setPromptModalOpen] = useState(false);
 
+  const deleteMutation = useDeletePost();
+  const addViewMutation = useAddViewPost();
+
   const { data, isPending } = useQuery(
     postQuery.getPostWithNeighbors({
       postId: id,
@@ -27,7 +35,11 @@ function DetailPage({ params }) {
     })
   );
 
-  const deleteMutation = useDeletePost();
+  useEffect(() => {
+    if (id !== undefined) {
+      addViewMutation.mutate({ id });
+    }
+  }, [id]);
 
   const onClickList = () => router.push("/research");
 
