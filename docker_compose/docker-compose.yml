@@ -20,6 +20,18 @@ services:
       - net_db
       - net_investigation
 
+  db_flyway:
+    image: flyway/flyway:9.18-alpine
+    volumes:
+      - ../db/db_versioning/flyway_conf:/flyway/conf
+      - ../db/db_versioning/sql:/flyway/sql
+    command: -connectRetries=60 migrate
+    # command: -connectRetries=60 migrate && cp /flyway/report.html /flyway/conf/report.html
+    depends_on:
+      - db
+    networks:
+      - net_db
+
   socket_server:
     image: node:22.15.0-alpine3.21
     # environment:
@@ -43,6 +55,22 @@ services:
       - FRONTEND_URL=http://localhost:3000
     networks:
       - net_db
+
+  minio:
+    # context: ../minio/
+    build: ../minio/
+    container_name: nft-eyes-minio
+    ports:
+      - "9000:9000"   # S3 호환 API
+      - "9001:9001"   # MinIO 웹 콘솔
+    volumes:
+      - ../minio/data:/data
+    environment:
+      - MINIO_ROOT_USER=ROOTNAME
+      - MINIO_ROOT_PASSWORD=CHANGEROOTPASSWORD
+    command: server /data --console-address ":9001"
+    networks:
+      - net_investigation
 
   # nginx:
   #   # build: ../nginx

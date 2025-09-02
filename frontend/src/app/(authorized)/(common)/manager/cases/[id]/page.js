@@ -12,13 +12,11 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import Users from "@/shared/components/icons/users";
 import EditFile from "@/shared/components/icons/editFile";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
-import {
-	tableColumns,
-	tableData,
-} from "@/shared/widgets/incident/detail/mockData";
 
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
+
+const ROWS_PER_PAGE = 10;
 
 // Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
@@ -41,6 +39,7 @@ function IncidentDetailPage() {
 
 	const { data: investigationRecordData, invRecordLoading } = useInvestigationRecords({
 		caseId: id,
+		page: page - 1,
 	});
 
 	const transformedData = useMemo(() => {
@@ -116,7 +115,11 @@ function IncidentDetailPage() {
 				data={transformedData}
 				onClickRow={onClickRow}
 			/>
-			<Pagination currentPage={page} totalPages={2} onPageChange={setPage} />
+			<Pagination
+				currentPage={page}
+				totalPages={Math.ceil((investigationRecordData?.total || 0) / ROWS_PER_PAGE)}
+				onPageChange={setPage}
+			/>
 		</div>
 	);
 }
