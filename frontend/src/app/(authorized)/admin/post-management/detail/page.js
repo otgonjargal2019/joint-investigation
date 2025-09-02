@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 
 import Button from "@/shared/components/button";
 import PageTitle from "@/shared/components/pageTitle/page";
-import InvestigationInfoDetail from "@/shared/widgets/investigationInfoDetail";
+import Detail from "@/shared/widgets/post/detail";
 
 function NoticeDetailPage() {
   const t = useTranslations();
@@ -28,7 +28,7 @@ function NoticeDetailPage() {
               {t("edit")}
             </Button>
           </div>
-          <InvestigationInfoDetail onClickList={onClickList} />
+          <Detail onClickList={onClickList} />
         </div>
       </div>
     </div>

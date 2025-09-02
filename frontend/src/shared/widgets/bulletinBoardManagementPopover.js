@@ -38,9 +38,9 @@ const BulletinBoardManagementPopover = () => {
           <div className="flex flex-col gap-2">
             <button
               className={`header-btn ${
-                selected === "notice" ? "active" : "popover"
+                selected === "post" ? "active" : "popover"
               }`}
-              onClick={() => handleClick("notice", "/admin/notice-management")}
+              onClick={() => handleClick("post", "/admin/post-management")}
             >
               <Case color="currentColor" />
               {t("header.notice-mgnt")}
@@ -48,10 +48,10 @@ const BulletinBoardManagementPopover = () => {
 
             <button
               className={`header-btn ${
-                selected === "survey" ? "active" : "popover"
+                selected === "research" ? "active" : "popover"
               }`}
               onClick={() =>
-                handleClick("survey", "/admin/research-management")
+                handleClick("research", "/admin/research-management")
               }
             >
               <Openbook color="currentColor" />

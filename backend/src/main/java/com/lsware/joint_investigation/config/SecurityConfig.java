@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/cases/**").permitAll()
+                .requestMatchers("/api/posts/**").authenticated()
                 .anyRequest().permitAll());
         return http.build();
     }

@@ -86,9 +86,9 @@ function SurveyInfoManagementPage() {
                 className="rounded-10 bg-white border border-color-36 shadow p-4 py-6 w-[360px] space-y-3 z-50"
               >
                 <div className="text-color-24 text-[20px] font-normal text-center whitespace-nowrap">
-                  해당 게시글을 삭제하시겠습나까?
+                  {t("prompt.are-you-sure-to-delete")}
                   <br />
-                  삭제한 게시글은 복구할 수 없습니다.
+                  {t("prompt.deleted-post-cannot-be-recovered")}
                 </div>
                 <div className="flex gap-2 justify-center mt-4">
                   <Popover.Close asChild>

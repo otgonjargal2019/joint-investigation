@@ -14,22 +14,28 @@ const TiptapEditor = dynamic(() => import("@/shared/components/textEditor"), {
   ssr: false,
 });
 
-const InvestigationInfoForm = ({
+const Form = ({
+  mode = "create",
   defaultValues = {},
   onSubmit,
-  mode = "create",
+  onClickCancel,
 }) => {
   const t = useTranslations();
-  const [selectedFiles, setSelectedFiles] = useState(null);
-  const [content, setContent] = useState(defaultValues.content || "");
   const fileInputRef = useRef(null);
+
+  const [selectedFiles, setSelectedFiles] = useState(null);
+  const [content, setContent] = useState();
+
   const { register, handleSubmit, setValue } = useForm({
     defaultValues,
   });
 
   useEffect(() => {
-    setValue("title", defaultValues.title || "");
-  }, [defaultValues.title, setValue]);
+    if (mode === "edit" && defaultValues) {
+      setValue("title", defaultValues?.title);
+      setContent(defaultValues?.content);
+    }
+  }, [mode, defaultValues, setValue]);
 
   return (
     <div className="border-t-[2px] border-t-color-93 py-4">
@@ -82,7 +88,7 @@ const InvestigationInfoForm = ({
         />
 
         <div className="flex justify-center gap-4 mt-4">
-          <Button variant="grayWithDark" type="button">
+          <Button variant="grayWithDark" type="button" onClick={onClickCancel}>
             {t("cancel")}
           </Button>
           <Button type="submit">{t("register")}</Button>
@@ -92,4 +98,4 @@ const InvestigationInfoForm = ({
   );
 };
 
-export default InvestigationInfoForm;
+export default Form;

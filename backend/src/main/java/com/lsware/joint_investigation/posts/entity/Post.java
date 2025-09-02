@@ -7,7 +7,6 @@ import java.util.UUID;
 import jakarta.persistence.*;
 import lombok.*;
 
-import com.lsware.joint_investigation.posts.dto.PostDto;
 import com.lsware.joint_investigation.user.entity.Users;
 
 @Entity
@@ -57,20 +56,6 @@ public class Post {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public PostDto toDto() {
-        PostDto postDto = new PostDto();
-        postDto.setPostId(this.postId);
-        postDto.setBoardType(this.boardType);
-        postDto.setTitle(this.title);
-        postDto.setContent(this.content);
-        if (this.creator != null) {
-            postDto.setCreator(this.creator.toDto());
-        }
-        postDto.setCreatedAt(this.createdAt);
-        postDto.setUpdatedAt(this.updatedAt);
-        return postDto;
     }
 
 }

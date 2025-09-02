@@ -194,5 +194,9 @@
   "not-found": {
     "title": "Page not found",
     "description": "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+  },
+  "prompt": {
+    "are-you-sure-to-delete": "Do you really want to delete this post?",
+    "deleted-post-cannot-be-recovered": "Deleted posts cannot be recovered."
   }
 }

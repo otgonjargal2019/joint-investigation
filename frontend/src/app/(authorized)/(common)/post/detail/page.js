@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import PageTitle from "@/shared/components/pageTitle/page";
-import InvestigationInfoDetail from "@/shared/widgets/investigationInfoDetail";
+import Detail from "@/shared/widgets/post/detail";
 
 function NoticeDetailPage() {
   const t = useTranslations();
@@ -18,7 +18,7 @@ function NoticeDetailPage() {
       <PageTitle title={t("header.notice")} />
       <div className="flex justify-center mt-16">
         <div className="max-w-[1200px] w-full">
-          <InvestigationInfoDetail onClickList={onClickList} />
+          <Detail onClickList={onClickList} />
         </div>
       </div>
     </div>

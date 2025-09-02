@@ -3,9 +3,9 @@
 import { useTranslations } from "next-intl";
 
 import PageTitle from "@/shared/components/pageTitle/page";
-import InvestigationInfoForm from "@/shared/widgets/investigationInfoForm";
+import Form from "@/shared/widgets/post/form";
 
-const EditAnnoncementPage = () => {
+function CreateAnnouncementPage() {
   const t = useTranslations();
 
   const onSubmit = (formValues) => {
@@ -15,13 +15,13 @@ const EditAnnoncementPage = () => {
   return (
     <div>
       <PageTitle title={t("create-announcement")} />
-      <div className="mt-16 flex justify-center">
+      <div className=" mt-16 flex justify-center">
         <div className="max-w-[1200px] w-full">
-          <InvestigationInfoForm onSubmit={onSubmit} />
+          <Form onSubmit={onSubmit} />
         </div>
       </div>
     </div>
   );
-};
+}
 
-export default EditAnnoncementPage;
+export default CreateAnnouncementPage;
