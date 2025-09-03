@@ -119,8 +119,8 @@ const Header = () => {
               {t("header.research")}
             </button>
             <button
-              className={`header-btn ${isActive("/post") ? "active" : ""}`}
-              onClick={() => router.push("/post")}
+              className={`header-btn ${isActive("/notice") ? "active" : ""}`}
+              onClick={() => router.push("/notice")}
             >
               <Case color="currentColor" />
               {t("header.notice")}
@@ -283,9 +283,9 @@ const Header = () => {
 
                   <button
                     className={`header-btn mobile-btn ${
-                      isActive("/admin/post-management") ? "active" : ""
+                      isActive("/admin/notice-management") ? "active" : ""
                     }`}
-                    onClick={() => handleNavigation("/admin/post-management")}
+                    onClick={() => handleNavigation("/admin/notice-management")}
                   >
                     <Case color="currentColor" />
                     {t("header.notice-mgnt")}
@@ -316,9 +316,9 @@ const Header = () => {
                   </button>
                   <button
                     className={`header-btn mobile-btn ${
-                      isActive("/post") ? "active" : ""
+                      isActive("/notice") ? "active" : ""
                     }`}
-                    onClick={() => handleNavigation("/post")}
+                    onClick={() => handleNavigation("/notice")}
                   >
                     <Case color="currentColor" />
                     {t("header.notice")}

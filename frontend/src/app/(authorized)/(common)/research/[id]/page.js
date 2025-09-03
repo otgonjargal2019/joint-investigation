@@ -1,10 +1,10 @@
 "use client";
 
 import { toast } from "react-toastify";
-import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import React, { use, useEffect, useState } from "react";
 
 import Modal from "@/shared/components/modal";
 import Button from "@/shared/components/button";

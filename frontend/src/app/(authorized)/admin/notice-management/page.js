@@ -1,15 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 
-import PageTitle from "@/shared/components/pageTitle/page";
+import Button from "@/shared/components/button";
 import Pagination from "@/shared/components/pagination";
+import PageTitle from "@/shared/components/pageTitle/page";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import TrashBin from "@/shared/components/icons/trashBin";
-import Button from "@/shared/components/button";
 import { postQuery, BOARD_TYPE } from "@/entities/post";
 
 const tableColumns = [
@@ -29,15 +30,16 @@ const tableColumns = [
   },
 ];
 
-function ResearchManagementPage() {
+function NoticeManagementPage() {
   const t = useTranslations();
+  const router = useRouter();
 
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
   const { data, isPending } = useQuery(
     postQuery.getPosts({
-      boardType: BOARD_TYPE.RESEARCH,
+      boardType: BOARD_TYPE.NOTICE,
       size: pageSize,
       page: !isNaN(page) && page > 0 ? page - 1 : 0,
     })
@@ -47,8 +49,20 @@ function ResearchManagementPage() {
     console.log(item, idx);
   };
 
+  const onCreate = () => {
+    router.push("/admin/notice-management/create");
+  };
+
+  const onClickRow = (row) => {
+    if (row && row?.postId) {
+      router.push(`/admin/notice-management/${row.postId}`);
+    }
+  };
+
   const totalPages = data?.meta?.totalPages || 1;
-  const updatedData = (data?.data || []).map((item, index) => ({
+
+  const notices = (data?.data || []).map((item, index) => ({
+    postId: item.postId,
     title: item.title,
     content: item.content,
     updatedAt: item.updatedAtStr,
@@ -96,21 +110,22 @@ function ResearchManagementPage() {
 
   return (
     <div>
-      <PageTitle title={t("header.research-mgnt")} />
-      <div className="mt-10">
-        <SimpleDataTable
-          columns={tableColumns}
-          data={updatedData}
-          // onClickRow={onClickRow}
-        />
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
+      <PageTitle title={t("header.notice-mgnt")} />
+      <div className="flex justify-end mb-4">
+        <Button onClick={onCreate}>{t("create")}</Button>
       </div>
+      <SimpleDataTable
+        columns={tableColumns}
+        data={notices}
+        onClickRow={onClickRow}
+      />
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
 
-export default ResearchManagementPage;
+export default NoticeManagementPage;
