@@ -38,7 +38,8 @@ services:
     #   - VAR1=5000
     #   - VAR2=/models/tfjs_model
     working_dir: /home
-    command: ["npm", "run", "dev"]
+    # command: ["npm", "run", "dev"]
+    command: tail -f /dev/null
     depends_on:
       - db
     volumes:
@@ -59,7 +60,7 @@ services:
   minio:
     # context: ../minio/
     build: ../minio/
-    container_name: nft-eyes-minio
+    container_name: joint_investigation_minio
     ports:
       - "9000:9000"   # S3 호환 API
       - "9001:9001"   # MinIO 웹 콘솔
