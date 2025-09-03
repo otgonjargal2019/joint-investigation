@@ -54,10 +54,10 @@ public class AuthController {
             Map<String, Object> payload = new HashMap<>();
             // Remove ROLE_ prefix when storing in JWT
             String role = userDetail.getAuthorities().stream()
-                .findFirst()
-                .get()
-                .getAuthority()
-                .replace("ROLE_", "");
+                    .findFirst()
+                    .get()
+                    .getAuthority()
+                    .replace("ROLE_", "");
             payload.put("role", role);
             String jwtToken = jwtHelper.generateToken(payload, userDetail.getId(), false);
 
@@ -166,10 +166,8 @@ public class AuthController {
         }
     }
 
-
     @PostMapping("/create")
-    public ResponseEntity<HashMap<String, Object>> create(@RequestBody HashMap<String, String> payload,
-            Authentication authentication) {
+    public ResponseEntity<HashMap<String, Object>> create() {
 
         String email = "user1@gmail.com";
         String password = "password";
@@ -211,9 +209,6 @@ public class AuthController {
         testUser.setHeadquarterId(Long.valueOf(1));
         userRepository.save(testUser);
 
-
         return ResponseEntity.status(HttpStatusCode.valueOf(200)).build();
     }
-
-    
 }
