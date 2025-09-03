@@ -119,6 +119,28 @@ public class FileService {
         return fileUrl;
     }
 
+    public void deleteFile(String fileUrl) {
+        try {
+            // Extract bucket name and file name from URL
+            String[] urlParts = fileUrl.split("/");
+            String fileName = urlParts[urlParts.length - 1]; // Get last part after /
+            String bucketName = urlParts[urlParts.length - 2]; // Get second to last part
+
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(s3Endpoint, s3Region))
+                    .withPathStyleAccessEnabled(pathStyleAccessEnabled)
+                    .withCredentials(
+                            new AWSStaticCredentialsProvider(new BasicAWSCredentials(s3AccessKey, s3SecretKey)))
+                    .build();
+
+            s3Client.deleteObject(bucketName, fileName);
+            logger.info("Successfully deleted file: {} from bucket: {}", fileName, bucketName);
+        } catch (Exception e) {
+            logger.error("Error deleting file from S3", e);
+            throw new CustomResponseException("Error deleting file from S3", e);
+        }
+    }
+
     public String storeProfileImage(MultipartFile file) throws CustomResponseException {
         String fileUrl = "";
         String fileName = TextUtil.appendSuffix(file.getOriginalFilename().replaceAll("\\s+", "_"),

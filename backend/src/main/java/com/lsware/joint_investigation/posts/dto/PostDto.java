@@ -85,10 +85,10 @@ public class PostDto {
         }
 
         dto.setViewCount(viewCount);
+        dto.setAttachmentCount(attachmentCount);
 
         if (post.getAttachments() != null) {
             dto.setAttachments(post.getAttachments().stream()
-                    .limit(attachmentCount)
                     .map(PostAttachmentDto::fromEntity)
                     .collect(Collectors.toList()));
         }

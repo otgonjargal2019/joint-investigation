@@ -34,9 +34,7 @@ const Detail = ({ current, prev, next, onClickList, onClickNavigate }) => {
         dangerouslySetInnerHTML={{ __html: current?.content }}
       ></div>
 
-      <FileAttachment
-        files={[{ name: "2025 국제 공조수사 워크샵 계획안.docx" }]}
-      />
+      <FileAttachment files={current?.attachments || []} />
 
       <div className="flex justify-center p-1.5">
         <Button onClick={onClickList}>{t("list")}</Button>

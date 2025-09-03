@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.lsware.joint_investigation.common.dto.ApiResponse;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.file.service.FileService;
-import com.lsware.joint_investigation.posts.dto.PostAttachmentDto;
 import com.lsware.joint_investigation.posts.dto.PostDto;
 import com.lsware.joint_investigation.posts.entity.Post;
 import com.lsware.joint_investigation.posts.entity.PostAttachment;
@@ -218,6 +217,13 @@ public class PostController {
                         ApiResponse<Void> errorResponse = new ApiResponse<>(false,
                                         "Forbidden: only creator can delete", null, null);
                         return ResponseEntity.status(403).body(errorResponse);
+                }
+
+                // Delete files from MinIO first
+                if (post.getAttachments() != null && !post.getAttachments().isEmpty()) {
+                        for (PostAttachment attachment : post.getAttachments()) {
+                                fileService.deleteFile(attachment.getFileUrl());
+                        }
                 }
 
                 // Delete related post views first to avoid foreign key constraint error

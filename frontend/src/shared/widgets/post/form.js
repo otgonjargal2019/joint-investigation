@@ -32,9 +32,26 @@ const Form = ({
     if (mode === "edit" && defaultValues) {
       setValue("title", defaultValues?.title);
       setContent(defaultValues?.content);
-      setSelectedFiles(defaultValues?.files);
+      setSelectedFiles(defaultValues?.attachments);
     }
   }, [mode, defaultValues, setValue]);
+
+  const handleFileDownload = (file) => {
+    if (mode === "edit" && file.fileUrl) {
+      // For existing files that have URLs
+      window.open(file.fileUrl, "_blank");
+    } else if (file instanceof File) {
+      // For newly selected files
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
 
   return (
     <div className="border-t-[2px] border-t-color-93 py-4">
@@ -69,9 +86,17 @@ const Form = ({
           >
             {t("select-file")}
           </Button>
-          {selectedFiles.length > 0 ? (
+          {selectedFiles && selectedFiles.length > 0 ? (
             <div className="text-color-20 text-[20px] font-normal">
-              {selectedFiles.map((file) => file.name).join(", ")}
+              {selectedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="cursor-pointer hover:underline"
+                  onClick={() => handleFileDownload(file)}
+                >
+                  {file.name || file.fileName}
+                </div>
+              ))}
             </div>
           ) : (
             <span className="text-color-40 text-[20px] font-normal">

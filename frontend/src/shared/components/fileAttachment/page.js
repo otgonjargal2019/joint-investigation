@@ -15,7 +15,7 @@ const FileAttachment = ({ files }) => {
               {t("attached-file")}
             </span>
             <span className="text-color-20 text-[20px] font-normal">
-              {file.name}
+              {file.fileName}
             </span>
           </li>
         ))}
