@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -20,14 +21,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.lsware.joint_investigation.common.dto.ApiResponse;
 import com.lsware.joint_investigation.config.CustomUser;
+import com.lsware.joint_investigation.file.service.FileService;
+import com.lsware.joint_investigation.posts.dto.PostAttachmentDto;
 import com.lsware.joint_investigation.posts.dto.PostDto;
 import com.lsware.joint_investigation.posts.entity.Post;
+import com.lsware.joint_investigation.posts.entity.PostAttachment;
 import com.lsware.joint_investigation.posts.repository.PostRepository;
 import com.lsware.joint_investigation.posts.repository.PostViewRepository;
 import com.lsware.joint_investigation.posts.service.PostViewService;
@@ -45,6 +50,7 @@ public class PostController {
         private final UserRepository userRepository;
         private final PostViewRepository postViewRepository;
         private final PostViewService postViewService;
+        private final FileService fileService;
 
         @GetMapping
         public ResponseEntity<MappingJacksonValue> getPosts(
@@ -64,7 +70,10 @@ public class PostController {
                 List<PostDto> dtos = postPage.getContent().stream()
                                 .map(post -> {
                                         long viewCount = postViewRepository.countByPost(post);
-                                        return PostDto.fromEntity(post, viewCount);
+                                        int attachmentCount = post.getAttachments() != null
+                                                        ? post.getAttachments().size()
+                                                        : 0;
+                                        return PostDto.fromEntity(post, viewCount, attachmentCount);
                                 })
                                 .toList();
 
@@ -123,8 +132,9 @@ public class PostController {
 
                 Map<String, Object> result = new HashMap<>();
                 long currentViewCount = postViewRepository.countByPost(post);
+                int attachmentCount = post.getAttachments() != null ? post.getAttachments().size() : 0;
 
-                result.put("current", PostDto.fromEntity(post, currentViewCount));
+                result.put("current", PostDto.fromEntity(post, currentViewCount, attachmentCount));
                 result.put("prev", prev != null ? Map.of("postId", prev.getPostId(), "title", prev.getTitle()) : null);
                 result.put("next", next != null ? Map.of("postId", next.getPostId(), "title", next.getTitle()) : null);
 
@@ -136,21 +146,36 @@ public class PostController {
         }
 
         // ---------------- CREATE POST ----------------
-        @PostMapping
-        public ResponseEntity<MappingJacksonValue> createPost(@RequestBody PostDto postDto) {
+        @PostMapping(consumes = { "multipart/form-data" })
+        public ResponseEntity<MappingJacksonValue> createPost(@RequestPart("post") PostDto postDto,
+                        @RequestPart(value = "attachments", required = false) MultipartFile[] attachments) {
                 CustomUser currentUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication()
                                 .getPrincipal();
                 UUID currentUserId = currentUser.getId();
                 Users creator = userRepository.findByUserId(currentUserId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                Post savedPost = postRepository.save(postDto.toEntity(creator));
+                Post postEntity = postDto.toEntity(creator);
+
+                if (attachments != null && attachments.length > 0) {
+                        for (MultipartFile file : attachments) {
+                                String fileUrl = fileService.storeFile(file, postDto.getBoardType().name());
+                                PostAttachment attachment = new PostAttachment();
+                                attachment.setFileName(file.getOriginalFilename());
+                                attachment.setFileUrl(fileUrl);
+                                attachment.setPost(postEntity);
+                                postEntity.getAttachments().add(attachment);
+                        }
+                }
+
+                Post savedPost = postRepository.save(postEntity);
 
                 ApiResponse<PostDto> response = new ApiResponse<>(true, "Post created successfully",
                                 PostDto.fromEntity(savedPost), null);
                 MappingJacksonValue mapping = new MappingJacksonValue(response);
                 mapping.setFilters(getUserFilter());
                 return ResponseEntity.ok(mapping);
+
         }
 
         // ---------------- UPDATE POST ----------------

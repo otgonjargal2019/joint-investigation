@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.lsware.joint_investigation.common.util.TextUtil;
 import com.lsware.joint_investigation.common.s3.S3Buckets;
+import com.lsware.joint_investigation.posts.entity.Post;
 
 @Service
 @Transactional("transactionManager")
@@ -52,8 +53,8 @@ public class FileService {
 
     private final S3Buckets s3Buckets;
 
-    //@Autowired
-    //private FileRepository fileRepository;
+    // @Autowired
+    // private FileRepository fileRepository;
 
     public FileService(@Value("${upload.path}") String path, S3Buckets s3Buckets) {
         this.s3Buckets = s3Buckets;
@@ -63,8 +64,59 @@ public class FileService {
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
-            throw new FileStorageException("Could not create the directory where the uploaded files will be stored.", ex);
+            throw new FileStorageException("Could not create the directory where the uploaded files will be stored.",
+                    ex);
         }
+    }
+
+    public String storeFile(MultipartFile file, String boardTypeStr) throws CustomResponseException {
+        Post.BOARD_TYPE boardType;
+        try {
+            boardType = Post.BOARD_TYPE.valueOf(boardTypeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new CustomResponseException("Invalid board type for file upload: " + boardTypeStr);
+        }
+
+        String bucketName;
+        switch (boardType) {
+            case Post.BOARD_TYPE.RESEARCH:
+                bucketName = s3Buckets.getResearch();
+                break;
+            case Post.BOARD_TYPE.NOTICE:
+                bucketName = s3Buckets.getNotice();
+                break;
+            default:
+                throw new CustomResponseException("Unsupported board type: " + boardTypeStr);
+        }
+
+        String fileUrl = "";
+        String fileName = TextUtil.appendSuffix(
+                file.getOriginalFilename().replaceAll("\\s+", "_"),
+                "_" + new Date().getTime());
+
+        try {
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(s3Endpoint, s3Region))
+                    .withPathStyleAccessEnabled(pathStyleAccessEnabled)
+                    .withCredentials(
+                            new AWSStaticCredentialsProvider(new BasicAWSCredentials(s3AccessKey, s3SecretKey)))
+                    .build();
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(file.getContentType());
+            metadata.setContentLength(file.getBytes().length);
+            metadata.setContentEncoding("UTF-8");
+
+            PutObjectRequest request = new PutObjectRequest(bucketName, fileName, file.getInputStream(), metadata);
+            s3Client.putObject(request);
+
+            URL downloadUrl = s3Client.getUrl(bucketName, fileName);
+            fileUrl = URLDecoder.decode(downloadUrl.toString(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new CustomResponseException("Error uploading file to S3", e);
+        }
+
+        return fileUrl;
     }
 
     public String storeProfileImage(MultipartFile file) throws CustomResponseException {
@@ -85,7 +137,8 @@ public class FileService {
             metadata.addUserMetadata("name", "profile");
             metadata.setContentEncoding("UTF-8");
 
-            PutObjectRequest request = new PutObjectRequest(s3Buckets.getProfileImages(), fileName, file.getInputStream(), metadata);
+            PutObjectRequest request = new PutObjectRequest(s3Buckets.getProfileImages(), fileName,
+                    file.getInputStream(), metadata);
             AccessControlList acl = new AccessControlList();
             acl.grantPermission(GroupGrantee.AllUsers, Permission.Read);
             request.setAccessControlList(acl);

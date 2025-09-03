@@ -13,4 +13,6 @@ import lombok.Setter;
 public class S3Buckets {
 
     private String profileImages;
+    private String notice;
+    private String research;
 }

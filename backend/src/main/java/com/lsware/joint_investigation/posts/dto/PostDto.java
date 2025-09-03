@@ -2,11 +2,14 @@ package com.lsware.joint_investigation.posts.dto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.posts.entity.Post;
 import com.lsware.joint_investigation.posts.entity.Post.BOARD_TYPE;
+import com.lsware.joint_investigation.posts.entity.PostAttachment;
 import com.lsware.joint_investigation.user.dto.UserDto;
 
 import lombok.Data;
@@ -27,6 +30,8 @@ public class PostDto {
     private String updatedAtStr;
 
     private long viewCount;
+    private int attachmentCount;
+    private List<PostAttachmentDto> attachments;
 
     public Post toEntity(Users creator) {
         Post postEntity = new Post();
@@ -35,14 +40,22 @@ public class PostDto {
         postEntity.setTitle(this.title);
         postEntity.setContent(this.content);
         postEntity.setCreator(creator);
+
+        if (attachments != null) {
+            postEntity.setAttachments(
+                    attachments.stream()
+                            .map(att -> att.toEntity(postEntity))
+                            .collect(Collectors.toList()));
+        }
+
         return postEntity;
     }
 
     public static PostDto fromEntity(Post post) {
-        return fromEntity(post, 0L);
+        return fromEntity(post, 0L, 0);
     }
 
-    public static PostDto fromEntity(Post post, long viewCount) {
+    public static PostDto fromEntity(Post post, long viewCount, int attachmentCount) {
         PostDto dto = new PostDto();
         dto.setPostId(post.getPostId());
         dto.setBoardType(post.getBoardType());
@@ -72,6 +85,14 @@ public class PostDto {
         }
 
         dto.setViewCount(viewCount);
+
+        if (post.getAttachments() != null) {
+            dto.setAttachments(post.getAttachments().stream()
+                    .limit(attachmentCount)
+                    .map(PostAttachmentDto::fromEntity)
+                    .collect(Collectors.toList()));
+        }
+
         return dto;
     }
 }

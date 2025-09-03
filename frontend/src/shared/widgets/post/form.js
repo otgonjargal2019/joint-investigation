@@ -23,25 +23,24 @@ const Form = ({
   const t = useTranslations();
   const fileInputRef = useRef(null);
 
-  const [selectedFiles, setSelectedFiles] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [content, setContent] = useState();
 
-  const { register, handleSubmit, setValue } = useForm({
-    defaultValues,
-  });
+  const { register, handleSubmit, setValue } = useForm();
 
   useEffect(() => {
     if (mode === "edit" && defaultValues) {
       setValue("title", defaultValues?.title);
       setContent(defaultValues?.content);
+      setSelectedFiles(defaultValues?.files);
     }
   }, [mode, defaultValues, setValue]);
 
   return (
     <div className="border-t-[2px] border-t-color-93 py-4">
       <form
-        onSubmit={handleSubmit((data) =>
-          onSubmit({ ...data, content, file: selectedFiles })
+        onSubmit={handleSubmit((formData) =>
+          onSubmit({ ...formData, content, files: selectedFiles })
         )}
       >
         <FormField>
@@ -59,7 +58,8 @@ const Form = ({
             type="file"
             ref={fileInputRef}
             className="hidden"
-            onChange={(e) => setSelectedFiles(e.target.files[0])}
+            multiple
+            onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
           />
           <Button
             variant="grayWithWhite"
@@ -69,13 +69,13 @@ const Form = ({
           >
             {t("select-file")}
           </Button>
-          {selectedFiles ? (
+          {selectedFiles.length > 0 ? (
             <div className="text-color-20 text-[20px] font-normal">
-              {selectedFiles.name}
+              {selectedFiles.map((file) => file.name).join(", ")}
             </div>
           ) : (
             <span className="text-color-40 text-[20px] font-normal">
-              {defaultValues.fileName || t("no-files-selected")}
+              {t("no-files-selected")}
             </span>
           )}
         </FormField>
