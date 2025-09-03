@@ -28,12 +28,14 @@ function DetailPage({ params }) {
   const deleteMutation = useDeletePost();
   const addViewMutation = useAddViewPost();
 
-  const { data, isPending } = useQuery(
+  const { data: response, isPending } = useQuery(
     postQuery.getPostWithNeighbors({
       postId: id,
       boardType: BOARD_TYPE.RESEARCH,
     })
   );
+
+  const data = response?.data;
 
   useEffect(() => {
     if (id !== undefined) {
@@ -60,7 +62,6 @@ function DetailPage({ params }) {
   };
 
   const onDelete = () => {
-    console.log(data);
     deleteMutation.mutate(
       { id },
       {
@@ -112,7 +113,9 @@ function DetailPage({ params }) {
           {t("prompt.deleted-post-cannot-be-recovered")}
         </div>
         <div className="flex gap-2 justify-center mt-4">
-          <Button variant="gray2">{t("cancel")}</Button>
+          <Button variant="gray2" onClick={() => setPromptModalOpen(false)}>
+            {t("cancel")}
+          </Button>
           <Button onClick={onDelete}>{t("remove")}</Button>
         </div>
       </Modal>
