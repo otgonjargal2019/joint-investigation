@@ -16,11 +16,13 @@ function EditPage() {
   const router = useRouter();
   const updateMutation = useUpdatePost();
 
-  const { data: post, isPending } = useQuery(
+  const { data: response, isPending } = useQuery(
     postQuery.getPost({
       postId: id,
     })
   );
+
+  const post = response?.data;
 
   const onSubmit = (formValues) => {
     const reqData = { id, ...formValues };

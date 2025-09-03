@@ -24,11 +24,12 @@ function ResearchList() {
   const router = useRouter();
 
   const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const { data, isPending } = useQuery(
     postQuery.getPosts({
       boardType: BOARD_TYPE.RESEARCH,
-      size: 10,
+      size: pageSize,
       page: !isNaN(page) && page > 0 ? page - 1 : 0,
     })
   );
@@ -43,6 +44,13 @@ function ResearchList() {
     router.push("/research/create");
   };
 
+  const posts = (data?.data || []).map((post, index) => ({
+    ...post,
+    no: (page - 1) * pageSize + index + 1,
+  }));
+
+  const totalPages = data?.meta?.totalPages || 1;
+
   return (
     <div>
       <PageTitle title={t("header.research")} />
@@ -52,10 +60,14 @@ function ResearchList() {
       <div className="space-y-12">
         <SimpleDataTable
           columns={tableColumns}
-          data={data}
+          data={posts}
           onClickRow={onClickRow}
         />
-        <Pagination currentPage={page} totalPages={2} onPageChange={setPage} />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );
