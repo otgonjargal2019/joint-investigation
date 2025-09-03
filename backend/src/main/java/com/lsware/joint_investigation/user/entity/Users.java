@@ -60,6 +60,15 @@ public class Users {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "country_id", nullable = false)
+    private Long countryId;
+
+    @Column(name = "headquarter_id", nullable = false)
+    private Long headquarterId;
+
+    @Column(name = "department_id", nullable = false)
+    private Long departmentId;
+
     public enum USER_STATUS {
         PENDING,
         ACTIVE,

@@ -187,6 +187,9 @@ public class AuthController {
         testUser.setStatus(USER_STATUS.ACTIVE);
         testUser.setCreatedAt(LocalDateTime.now());
         testUser.setUpdatedAt(LocalDateTime.now());
+        testUser.setCountryId(Long.valueOf(1));
+        testUser.setDepartmentId(Long.valueOf(1));
+        testUser.setHeadquarterId(Long.valueOf(1));
         userRepository.save(testUser);
 
         email = "user2@gmail.com";
@@ -203,6 +206,9 @@ public class AuthController {
         testUser.setStatus(USER_STATUS.ACTIVE);
         testUser.setCreatedAt(LocalDateTime.now());
         testUser.setUpdatedAt(LocalDateTime.now());
+        testUser.setCountryId(Long.valueOf(1));
+        testUser.setDepartmentId(Long.valueOf(1));
+        testUser.setHeadquarterId(Long.valueOf(1));
         userRepository.save(testUser);
 
 
