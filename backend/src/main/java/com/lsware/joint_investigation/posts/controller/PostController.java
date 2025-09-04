@@ -242,10 +242,13 @@ public class PostController {
                 Post post = postRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-                // Only creator can delete
-                if (!post.getCreator().getUserId().equals(currentUserId)) {
+                boolean isCreator = post.getCreator().getUserId().equals(currentUserId);
+                boolean isAdmin = currentUser.getAuthorities().stream()
+                                .anyMatch(auth -> auth.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
+
+                if (!isCreator && !isAdmin) {
                         ApiResponse<Void> errorResponse = new ApiResponse<>(false,
-                                        "Forbidden: only creator can delete", null, null);
+                                        "Forbidden: only creator or admin can delete", null, null);
                         return ResponseEntity.status(403).body(errorResponse);
                 }
 

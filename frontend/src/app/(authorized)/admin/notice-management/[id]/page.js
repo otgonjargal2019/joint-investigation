@@ -1,15 +1,14 @@
 "use client";
 
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import React, { use, useEffect, useState } from "react";
+import React, { use } from "react";
 
 import Button from "@/shared/components/button";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Detail from "@/shared/widgets/post/detail";
-import { postQuery, BOARD_TYPE, useDeletePost } from "@/entities/post";
+import { postQuery, BOARD_TYPE } from "@/entities/post";
 
 function NoticeDetailPage({ params }) {
   const { id } = use(params);
