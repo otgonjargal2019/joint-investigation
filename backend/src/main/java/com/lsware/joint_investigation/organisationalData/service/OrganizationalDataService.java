@@ -93,7 +93,7 @@ public class OrganizationalDataService {
 
         // Group departments by headquarter ID
         Map<Long, List<Department>> departmentsByHeadquarter = departments.stream()
-                .collect(Collectors.groupingBy(Department::getHeadquarterId));
+                .collect(Collectors.groupingBy(dept -> dept.getHeadquarter().getId()));
 
         // Group investigators by department ID
         Map<Long, List<Users>> investigatorsByDepartment = investigators.stream()

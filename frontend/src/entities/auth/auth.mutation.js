@@ -11,7 +11,7 @@ export const useSignIn = () => {
 
 export const useSignUp = () => {
   return useMutation({
-    mutationFn: async ({ loginId, password, nameKr, nameEn, country, phone, department, email, passwordConfirm }) => {
+    mutationFn: async ({ loginId, password, nameKr, nameEn, country, phone, countryId, headquarterId, departmentId, email, passwordConfirm }) => {
       return axiosInstance.post(`/api/auth/signup`, {
         loginId,
         password,
@@ -20,7 +20,9 @@ export const useSignUp = () => {
         nameEn,
         country,
         phone,
-        department,
+        countryId,
+        headquarterId,
+        departmentId,
         email
       });
     },

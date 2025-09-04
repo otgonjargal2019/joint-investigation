@@ -55,13 +55,13 @@ public class Users {
     @Column(name = "updated_at", nullable = false)
     private String updatedAt;
 
-    @Column(name = "id", nullable = false)
-    private String id;
+    @Column(name = "country_id", nullable = false)
+    private Long countryId;
 
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Column(name = "headquarter_id", nullable = false)
+    private String headquarterId;
 
-    @Column(name = "username", nullable = false)
-    private String username;
+    @Column(name = "department_id", nullable = false)
+    private String departmentId;
 
 }

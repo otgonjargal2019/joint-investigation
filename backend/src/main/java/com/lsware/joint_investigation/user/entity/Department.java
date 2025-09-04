@@ -24,8 +24,9 @@ public class Department {
     @JoinColumn(name = "country_id", nullable = false)
     private Country country;
 
-    @Column(name = "headquarter_id", nullable = false)
-    private Long headquarterId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "headquarter_id", nullable = false)
+    private Headquarter headquarter;
 
     @Column(name = "name", length = 100, nullable = false)
     private String name;
