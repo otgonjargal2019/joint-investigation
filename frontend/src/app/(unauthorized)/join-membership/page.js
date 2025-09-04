@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-
+import { useQuery } from "@tanstack/react-query";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
@@ -17,40 +17,90 @@ import {
 } from "@/entities/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSignUp, useCheckLoginId, useCheckEmail } from "@/entities/auth/auth.mutation";
+import { signupQuery } from "@/entities/auth/auth.query";
 
-
-const options = [
-  { label: "Korea", value: "KOR" },
-  { label: "Mongolia", value: "MGL" },
-  { label: "Japan", value: "JPN" },
-];
 
 function JoinMembershipPage() {
-  const { register, formState: { errors }, trigger, handleSubmit, watch, setError } = useForm({resolver: zodResolver(registerFormSchema)});
+
+  const { register, formState: { errors }, trigger, handleSubmit, watch, setError, setValue } = useForm({resolver: zodResolver(registerFormSchema)});
   const [submitted, setSubmitted] = useState(false);
-  //const [error, setError] = useState(true);
   const t = useTranslations();
   const router = useRouter();
   const signupMutation = useSignUp();
   const checkLoginIdMutation = useCheckLoginId();
   const checkEmailMutation = useCheckEmail();
+  const {data} = useQuery(signupQuery.getSignup());
+  
+  // Watch selected country
+  const selectedCountryCode = watch("countryId");
+  const selectedQuarterCode = watch("headquarterId");
+  
+  // Filter headquarters by selected country using state/effect
+  const [headquarterOptions, setHeadquarterOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+
+  // Convert API country data to SelectBox options
+  const countryOptions = data?.listCountry?.map(country => ({
+    label: country.name,
+    value: country.id
+  })) || [];
+  
+  //Filter headquarters by selected country using state/effect
+  useEffect(() => {
+    if (!data?.listHeadquarter) {
+      setHeadquarterOptions([]);
+      return;
+    }
+    const filtered = data.listHeadquarter
+      .filter(hq => hq.country?.id == selectedCountryCode)
+      .map(hq => ({
+        label: hq.name,
+        value: hq.id
+      }));
+    setHeadquarterOptions(filtered);
+    
+    if(filtered.length) {
+      setValue("headquarterId", String(filtered[0].value));
+    }
+  }, [selectedCountryCode]);
+
+  // Filter departments by selected headquarter using state/effect
+  useEffect(() => {
+    if (!data?.listDepartments) {
+      setDepartmentOptions([]);
+      return;
+    }
+
+    const filteredDept = data.listDepartments
+      .filter(dp => dp.headquarter?.id == selectedQuarterCode)
+      .map(dp => ({
+        label: dp.name,
+        value: dp.id
+      }));
+    setDepartmentOptions(filteredDept);
+    if(filteredDept.length) {
+      setValue("departmentId", String(filteredDept[0].value));
+    }
+  }, [selectedQuarterCode]);
+
+  useEffect(() => {
+    if (countryOptions.length  && !watch("countryId")) {
+      setValue("countryId", String(countryOptions[0].value));
+    }
+  }, [data]);
 
   const onSubmit = async (values) => {
-    
     const fullEmail = `${values.email}@${values.email2}`;
-    const fullDepartment = `${values.department1} - ${values.department2}`;
     const fullPhone = `${values.phone1}-${values.phone2}`;
 
     const payload = {
       ...values,
       email: fullEmail,
       phone: fullPhone,
-      department: fullDepartment
+      country: ''
     };
 
     delete payload.email2;
-    delete payload.department1;
-    delete payload.department2;
     delete payload.phone1;
     delete payload.phone2;
     
@@ -241,16 +291,40 @@ function JoinMembershipPage() {
               </Label>
               <SelectBox
                 register={register}
-                name="country"
-                options={options}
+                name="countryId"
+                options={countryOptions}
                 showError={false}
                 variant="form"
                 placeholder={t("placeholder.select-country")}
-                error={errors.country}
+                error={errors.countryId}
               />
+              <Label color="gray" className="text-right mt-2">
+                {t("form.affiliation")}
+              </Label>
+              <div className="flex gap-2">
+                <SelectBox
+                  register={register}
+                  name="headquarterId"
+                  options={headquarterOptions}
+                  showError={false}
+                  variant="form"
+                  placeholder={t("placeholder.headquarter")}
+                  error={errors.headquarterId}
+                />
+                <SelectBox
+                  register={register}
+                  name="departmentId"
+                  options={departmentOptions}
+                  showError={false}
+                  variant="form"
+                  placeholder={t("placeholder.department")}
+                  error={errors.departmentId}
+                />
+              </div>
               <Label color="gray" className="text-right mt-2">
                 {t("form.contact-info")}
               </Label>
+              
               <div
                 className="grid gap-2"
                 style={{ gridTemplateColumns: "120px 1fr" }}
@@ -268,25 +342,6 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.contact-info")}
-                />
-              </div>
-              <Label color="gray" className="text-right mt-2">
-                {t("form.affiliation")}
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  register={register}
-                  name="department1"
-                  showError={false}
-                  variant="form"
-                  placeholder={t("placeholder.headquarter")}
-                />
-                <Input
-                  register={register}
-                  name="department2"
-                  showError={false}
-                  variant="form"
-                  placeholder={t("placeholder.department")}
                 />
               </div>
               <Label color="gray" className="text-right mt-2">

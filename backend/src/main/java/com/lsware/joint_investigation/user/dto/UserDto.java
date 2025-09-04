@@ -24,6 +24,10 @@ public class UserDto {
     private String department;
     private Users.USER_STATUS status;
     private Role role;
+    private String countryId;
+    private String headquarterId;
+    private String departmentId;
+    
 
     @JsonIgnore
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

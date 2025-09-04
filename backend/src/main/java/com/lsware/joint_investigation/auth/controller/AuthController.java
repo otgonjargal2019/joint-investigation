@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,14 +17,21 @@ import org.springframework.web.bind.annotation.RestController;
 import com.lsware.joint_investigation.auth.service.AuthService;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.user.dto.UserDto;
+import com.lsware.joint_investigation.user.entity.Country;
+import com.lsware.joint_investigation.user.entity.Department;
+import com.lsware.joint_investigation.user.entity.Headquarter;
 import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.entity.Users.USER_STATUS;
+import com.lsware.joint_investigation.user.repository.CountryRepository;
+import com.lsware.joint_investigation.user.repository.DepartmentRepository;
+import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.lsware.joint_investigation.util.JwtHelper;
 import java.util.Map;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,6 +50,15 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    CountryRepository countryRepository;
+
+    @Autowired
+    HeadquarterRepository headquarterRepository;
+
+    @Autowired
+    DepartmentRepository departmentRepository;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto) {
@@ -117,6 +134,20 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/signup")
+    public ResponseEntity<Map<String, Object>> getSignup() {
+        Map<String, Object> response = new HashMap<>();
+
+        List<Country> listCountry = countryRepository.findAll();
+        List<Headquarter> listHeadquarter = headquarterRepository.findAll();
+        List<Department> listDepartments = departmentRepository.findAll();
+
+        response.put("listCountry",     listCountry);
+        response.put("listHeadquarter", listHeadquarter);
+        response.put("listDepartments", listDepartments);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody UserDto userDto) {
         Map<String, Object> response = new HashMap<>();
@@ -147,6 +178,9 @@ public class AuthController {
             user.setPasswordHash(passwordEncoder.encode(passwordString));
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());
+            user.setCountryId(Long.valueOf(userDto.getCountryId()));
+            user.setHeadquarterId(Long.valueOf(userDto.getHeadquarterId()));
+            user.setDepartmentId(Long.valueOf(userDto.getDepartmentId()));
             userRepository.save(user);
 
             response.put("success", true);

@@ -55,11 +55,11 @@ export const registerFormSchema = withPasswordConfirm(
     passwordConfirm: z.string().min(1, "Required"),
     nameKr: z.string().min(3,"Required"),
     nameEn: z.string().optional(),
-    country: z.string().min(3,"Required"),
+    countryId: z.string().min(1, "Required"),
+    headquarterId: z.string().min(1, "Required"),
+    departmentId: z.string().min(1, "Required"),
     phone1: z.string().optional(),
     phone2: z.string().optional(),
-    department1: z.string().optional(),
-    department2: z.string().optional(),
     email: z.string().min(1,"Required"),
     email2: z.string().min(1,"Required")
   })

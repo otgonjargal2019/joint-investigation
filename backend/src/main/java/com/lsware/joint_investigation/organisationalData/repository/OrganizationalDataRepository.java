@@ -75,7 +75,7 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         return queryFactory
                 .selectFrom(department)
                 .where(department.country.id.eq(countryId))
-                .orderBy(department.headquarterId.asc(), department.name.asc())
+                .orderBy(department.headquarter.id.asc(), department.name.asc())
                 .fetch();
     }
 
