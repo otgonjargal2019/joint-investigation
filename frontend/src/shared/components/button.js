@@ -15,7 +15,7 @@ const Button = forwardRef(
     ref
   ) => {
     const baseStyles =
-      "flex items-center justify-center transition duration-200 focus:outline-none whitespace-nowrap";
+      "flex items-center justify-center transition duration-200 focus:outline-none whitespace-nowrap hover:brightness-90";
 
     const variants = {
       neon: "bg-color-61 text-color-4",

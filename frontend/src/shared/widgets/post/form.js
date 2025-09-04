@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 
 import Button from "@/shared/components/button";
 import Label from "@/shared/components/form/label";
@@ -29,7 +29,7 @@ const Form = ({
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState([]);
   const [content, setContent] = useState();
 
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, watch } = useForm();
 
   useEffect(() => {
     if (mode === "edit" && defaultValues) {
@@ -68,6 +68,28 @@ const Form = ({
       URL.revokeObjectURL(url);
     }
   };
+
+  const title = watch("title");
+
+  const isDisabled = useMemo(() => {
+    const titleEmpty = !title?.trim();
+    const contentEmpty = !content?.trim();
+    const noNewFiles = newFiles.length === 0;
+
+    if (mode === "create") {
+      return titleEmpty && contentEmpty && noNewFiles;
+    } else if (mode === "edit") {
+      const titleUnchanged = title === defaultValues?.title;
+      const contentUnchanged = content === defaultValues?.content;
+      const filesUnchanged =
+        newFiles.length === 0 &&
+        existingFiles.length === (defaultValues.attachments?.length || 0);
+
+      return titleUnchanged && contentUnchanged && filesUnchanged;
+    }
+
+    return false;
+  }, [mode, title, content, newFiles, existingFiles, defaultValues]);
 
   return (
     <div className="border-t-[2px] border-t-color-93 py-4">
@@ -165,7 +187,9 @@ const Form = ({
           <Button variant="grayWithDark" type="button" onClick={onClickCancel}>
             {t("cancel")}
           </Button>
-          <Button type="submit">{t("register")}</Button>
+          <Button type="submit" disabled={isDisabled}>
+            {t("register")}
+          </Button>
         </div>
       </form>
     </div>
