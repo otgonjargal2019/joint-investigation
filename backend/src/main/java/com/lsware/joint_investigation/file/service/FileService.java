@@ -16,6 +16,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GroupGrantee;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Permission;
@@ -89,10 +90,9 @@ public class FileService {
                 throw new CustomResponseException("Unsupported board type: " + boardTypeStr);
         }
 
-        String fileUrl = "";
         String fileName = TextUtil.appendSuffix(
                 file.getOriginalFilename().replaceAll("\\s+", "_"),
-                "_" + new Date().getTime());
+                "_" + System.currentTimeMillis());
 
         try {
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
@@ -101,6 +101,15 @@ public class FileService {
                     .withCredentials(
                             new AWSStaticCredentialsProvider(new BasicAWSCredentials(s3AccessKey, s3SecretKey)))
                     .build();
+
+            // Check and create bucket if it doesn't exist
+            if (!s3Client.doesBucketExistV2(bucketName)) {
+                try {
+                    s3Client.createBucket(bucketName);
+                } catch (AmazonS3Exception e) {
+                    throw new CustomResponseException("Failed to create bucket: " + bucketName, e);
+                }
+            }
 
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentType(file.getContentType());
@@ -111,12 +120,18 @@ public class FileService {
             s3Client.putObject(request);
 
             URL downloadUrl = s3Client.getUrl(bucketName, fileName);
-            fileUrl = URLDecoder.decode(downloadUrl.toString(), StandardCharsets.UTF_8);
+            return URLDecoder.decode(downloadUrl.toString(), StandardCharsets.UTF_8);
+
+        } catch (AmazonS3Exception e) {
+            throw new CustomResponseException("S3 error during file upload: " + e.getErrorMessage(), e);
+        } catch (SdkClientException e) {
+            throw new CustomResponseException("S3 client error (network or credentials issue).", e);
+        } catch (IOException e) {
+            throw new CustomResponseException("Error reading file for upload.", e);
         } catch (Exception e) {
-            throw new CustomResponseException("Error uploading file to S3", e);
+            throw new CustomResponseException("Unexpected error uploading file to S3/MinIO.", e);
         }
 
-        return fileUrl;
     }
 
     public void deleteFile(String fileUrl) {

@@ -33,6 +33,8 @@ public class PostDto {
     private int attachmentCount;
     private List<PostAttachmentDto> attachments;
 
+    private List<UUID> removedAttachmentIds;
+
     public Post toEntity(Users creator) {
         Post postEntity = new Post();
         postEntity.setPostId(this.postId);

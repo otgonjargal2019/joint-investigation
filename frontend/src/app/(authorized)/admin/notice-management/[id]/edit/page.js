@@ -9,7 +9,7 @@ import { postQuery, useUpdatePost, BOARD_TYPE } from "@/entities/post";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Form from "@/shared/widgets/post/form";
 
-function ResearchEditPage() {
+const NoticeEditPage = () => {
   const { id } = useParams();
 
   const t = useTranslations();
@@ -25,7 +25,7 @@ function ResearchEditPage() {
   const post = response?.data;
 
   const onSubmit = (formValues) => {
-    const reqData = { id, boardType: BOARD_TYPE.RESEARCH, ...formValues };
+    const reqData = { id, boardType: BOARD_TYPE.NOTICE, ...formValues };
 
     updateMutation.mutate(reqData, {
       onSuccess: (res) => {
@@ -33,7 +33,7 @@ function ResearchEditPage() {
           autoClose: 3000,
           position: "top-center",
         });
-        router.push("/research");
+        router.push(`/admin/notice-management/${id}`);
       },
       onError: (err) => {
         toast.error(err.response.data.message, {
@@ -45,12 +45,12 @@ function ResearchEditPage() {
   };
 
   const onClickCancel = () => {
-    router.push(`/research/${id}`);
+    router.push(`/admin/notice-management/${id}`);
   };
 
   return (
     <div>
-      <PageTitle title={t("investigation-info-create")} />
+      <PageTitle title={t("create-announcement")} />
       <div className="mt-16 flex justify-center">
         <div className="max-w-[1200px] w-full">
           <Form
@@ -63,6 +63,6 @@ function ResearchEditPage() {
       </div>
     </div>
   );
-}
+};
 
-export default ResearchEditPage;
+export default NoticeEditPage;

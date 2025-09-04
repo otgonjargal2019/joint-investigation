@@ -20,7 +20,15 @@ function SimpleDataTable({ columns, data, onClickRow }) {
             <Tr key={rowIndex} hover={true} onClick={() => onClickRow?.(row)}>
               {columns.map((col) => {
                 return (
-                  <Td key={col.key} textAlign={col.textAlign}>
+                  <Td
+                    key={col.key}
+                    textAlign={col.textAlign}
+                    onClick={
+                      col.key === "action"
+                        ? (e) => e.stopPropagation()
+                        : undefined
+                    }
+                  >
                     {col.render ? col.render(row[col.key]) : row[col.key]}
                   </Td>
                 );

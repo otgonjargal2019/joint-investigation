@@ -1,13 +1,11 @@
 "use client";
 
+import React from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
-import React, { use, useEffect, useState } from "react";
 
-import { BOARD_TYPE } from "@/entities/post";
-import { useCreatePost } from "@/entities/post";
+import { BOARD_TYPE, useCreatePost } from "@/entities/post";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Form from "@/shared/widgets/post/form";
 

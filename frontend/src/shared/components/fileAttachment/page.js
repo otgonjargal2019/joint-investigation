@@ -10,8 +10,10 @@ const FileAttachment = ({ files }) => {
       <ul role="list" className="space-y-2">
         {files.map((file, index) => (
           <li key={index} className="flex items-center gap-2">
-            <AttachedFile />
-            <span className="text-black text-[20px] font-normal">
+            <div>
+              <AttachedFile />
+            </div>
+            <span className="text-black text-[20px] font-normal whitespace-nowrap">
               {t("attached-file")}
             </span>
             <span className="text-color-20 text-[20px] font-normal">

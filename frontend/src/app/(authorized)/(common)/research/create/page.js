@@ -9,7 +9,7 @@ import { useCreatePost } from "@/entities/post";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Form from "@/shared/widgets/post/form";
 
-function CreatePage() {
+function ResearchCreatePage() {
   const t = useTranslations();
   const router = useRouter();
   const createMutation = useCreatePost();
@@ -50,4 +50,4 @@ function CreatePage() {
   );
 }
 
-export default CreatePage;
+export default ResearchCreatePage;

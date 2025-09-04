@@ -10,7 +10,6 @@ import Modal from "@/shared/components/modal";
 import Button from "@/shared/components/button";
 import Detail from "@/shared/widgets/post/detail";
 import PageTitle from "@/shared/components/pageTitle/page";
-
 import {
   postQuery,
   BOARD_TYPE,
@@ -18,7 +17,7 @@ import {
   useAddViewPost,
 } from "@/entities/post";
 
-function DetailPage({ params }) {
+function ResearchDetailPage({ params }) {
   const { id } = use(params);
   const t = useTranslations();
   const router = useRouter();
@@ -123,4 +122,4 @@ function DetailPage({ params }) {
   );
 }
 
-export default DetailPage;
+export default ResearchDetailPage;

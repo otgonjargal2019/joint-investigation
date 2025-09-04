@@ -5,10 +5,9 @@ import { axiosInstance } from "@/shared/api/baseAxiosApi";
 export const useCreatePost = () => {
   return useMutation({
     mutationFn: async ({ boardType, title, content, files }) => {
-      const formData = new FormData();
-
       const post = { boardType, title, content };
 
+      const formData = new FormData();
       formData.append(
         "post",
         new Blob([JSON.stringify(post)], { type: "application/json" })
@@ -28,17 +27,23 @@ export const useCreatePost = () => {
 //update
 export const useUpdatePost = () => {
   return useMutation({
-    mutationFn: async ({ id, title, content, files }) => {
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("content", content);
+    mutationFn: async ({
+      id,
+      boardType,
+      title,
+      content,
+      files,
+      removedAttachmentIds,
+    }) => {
+      const post = { boardType, title, content, removedAttachmentIds };
 
-      if (files && files.length > 0) {
-        files.forEach((file, idx) => {
-          formData.append(`attachments[${idx}].file`, file);
-          formData.append(`attachments[${idx}].fileName`, file.name);
-        });
-      }
+      const formData = new FormData();
+      formData.append(
+        "post",
+        new Blob([JSON.stringify(post)], { type: "application/json" })
+      );
+
+      files.forEach((file) => formData.append("attachments", file));
 
       return axiosInstance.put(`/api/posts/${id}`, formData, {
         headers: {

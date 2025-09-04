@@ -178,8 +178,11 @@ public class PostController {
         }
 
         // ---------------- UPDATE POST ----------------
-        @PutMapping("/{id}")
-        public ResponseEntity<MappingJacksonValue> updatePost(@PathVariable UUID id, @RequestBody PostDto postDto) {
+        @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
+        public ResponseEntity<MappingJacksonValue> updatePost(@PathVariable UUID id,
+                        @RequestPart("post") PostDto postDto,
+                        @RequestPart(value = "attachments", required = false) MultipartFile[] attachments) {
+
                 CustomUser currentUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication()
                                 .getPrincipal();
                 UUID currentUserId = currentUser.getId();
@@ -193,6 +196,33 @@ public class PostController {
 
                 post.setTitle(postDto.getTitle());
                 post.setContent(postDto.getContent());
+
+                if (attachments != null && attachments.length > 0) {
+                        for (MultipartFile file : attachments) {
+                                String fileUrl = fileService.storeFile(file, postDto.getBoardType().name());
+
+                                PostAttachment attachment = new PostAttachment();
+                                attachment.setFileName(file.getOriginalFilename());
+                                attachment.setFileUrl(fileUrl);
+                                attachment.setPost(post);
+                                post.getAttachments().add(attachment);
+                        }
+                }
+
+                if (postDto.getRemovedAttachmentIds() != null) {
+                        List<UUID> idsToRemove = postDto.getRemovedAttachmentIds();
+                        List<PostAttachment> toDelete = post.getAttachments().stream()
+                                        .filter(att -> idsToRemove.contains(att.getAttachmentId()))
+                                        .toList();
+
+                        for (PostAttachment att : toDelete) {
+                                fileService.deleteFile(att.getFileUrl());
+                        }
+
+                        post.getAttachments().removeIf(att -> idsToRemove.contains(att.getAttachmentId()));
+
+                }
+
                 Post updated = postRepository.save(post);
 
                 ApiResponse<PostDto> response = new ApiResponse<>(true, "Post updated successfully",

@@ -6,9 +6,10 @@ import { useTranslations } from "next-intl";
 import { useState, useRef, useEffect } from "react";
 
 import Button from "@/shared/components/button";
+import Label from "@/shared/components/form/label";
 import Input from "@/shared/components/form/input";
 import FormField from "@/shared/components/form/formField";
-import Label from "@/shared/components/form/label";
+import CancelCircle from "@/shared/components/icons/cancelCircle";
 
 const TiptapEditor = dynamic(() => import("@/shared/components/textEditor"), {
   ssr: false,
@@ -23,7 +24,9 @@ const Form = ({
   const t = useTranslations();
   const fileInputRef = useRef(null);
 
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [newFiles, setNewFiles] = useState([]);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState([]);
   const [content, setContent] = useState();
 
   const { register, handleSubmit, setValue } = useForm();
@@ -32,16 +35,29 @@ const Form = ({
     if (mode === "edit" && defaultValues) {
       setValue("title", defaultValues?.title);
       setContent(defaultValues?.content);
-      setSelectedFiles(defaultValues?.attachments);
+      setExistingFiles(defaultValues.attachments || []);
     }
   }, [mode, defaultValues, setValue]);
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setNewFiles((prev) => [...prev, ...files]);
+    e.target.value = "";
+  };
+
+  const handleRemoveExistingFile = (id) => {
+    setExistingFiles((prev) => prev.filter((f) => f.attachmentId !== id));
+    setRemovedAttachmentIds((prev) => [...prev, id]);
+  };
+
+  const handleRemoveNewFile = (index) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleFileDownload = (file) => {
-    if (mode === "edit" && file.fileUrl) {
-      // For existing files that have URLs
+    if (file.fileUrl) {
       window.open(file.fileUrl, "_blank");
     } else if (file instanceof File) {
-      // For newly selected files
       const url = URL.createObjectURL(file);
       const a = document.createElement("a");
       a.href = url;
@@ -57,7 +73,12 @@ const Form = ({
     <div className="border-t-[2px] border-t-color-93 py-4">
       <form
         onSubmit={handleSubmit((formData) =>
-          onSubmit({ ...formData, content, files: selectedFiles })
+          onSubmit({
+            ...formData,
+            content,
+            files: newFiles,
+            removedAttachmentIds,
+          })
         )}
       >
         <FormField>
@@ -76,7 +97,7 @@ const Form = ({
             ref={fileInputRef}
             className="hidden"
             multiple
-            onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+            onChange={handleFileChange}
           />
           <Button
             variant="grayWithWhite"
@@ -86,15 +107,46 @@ const Form = ({
           >
             {t("select-file")}
           </Button>
-          {selectedFiles && selectedFiles.length > 0 ? (
-            <div className="text-color-20 text-[20px] font-normal">
-              {selectedFiles.map((file, index) => (
+          {existingFiles.length + newFiles.length > 0 ? (
+            <div className="text-color-20 text-[20px] font-normal mt-2">
+              {existingFiles.map((file) => (
+                <div
+                  key={file.attachmentId}
+                  className="flex items-center justify-between py-1"
+                >
+                  <span
+                    className="hover:underline"
+                    onClick={() => handleFileDownload(file)}
+                  >
+                    {file.fileName}
+                  </span>
+                  <button
+                    type="button"
+                    className="ml-4 text-red-500 hover:underline"
+                    onClick={() => handleRemoveExistingFile(file.attachmentId)}
+                  >
+                    <CancelCircle />
+                  </button>
+                </div>
+              ))}
+              {newFiles.map((file, index) => (
                 <div
                   key={index}
-                  className="cursor-pointer hover:underline"
-                  onClick={() => handleFileDownload(file)}
+                  className="flex items-center justify-between py-1"
                 >
-                  {file.name || file.fileName}
+                  <span
+                    className="hover:underline"
+                    onClick={() => handleFileDownload(file)}
+                  >
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="ml-4 text-red-500 hover:underline"
+                    onClick={() => handleRemoveNewFile(index)}
+                  >
+                    <CancelCircle />
+                  </button>
                 </div>
               ))}
             </div>
@@ -107,10 +159,7 @@ const Form = ({
 
         <div className="w-full h-[1px] bg-color-97 my-6" />
 
-        <TiptapEditor
-          onChange={(newContent) => setContent(newContent)}
-          content={content}
-        />
+        <TiptapEditor onChange={setContent} content={content} />
 
         <div className="flex justify-center gap-4 mt-4">
           <Button variant="grayWithDark" type="button" onClick={onClickCancel}>

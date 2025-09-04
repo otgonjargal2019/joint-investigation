@@ -19,7 +19,7 @@ export const tableColumns = [
   { key: "attachmentCount", title: "첨부파일", textAlign: "text-center" },
 ];
 
-function ResearchList() {
+function ResearchListPage() {
   const t = useTranslations();
   const router = useRouter();
 
@@ -73,4 +73,4 @@ function ResearchList() {
   );
 }
 
-export default ResearchList;
+export default ResearchListPage;
