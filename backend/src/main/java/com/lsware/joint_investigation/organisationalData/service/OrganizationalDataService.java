@@ -143,4 +143,18 @@ public class OrganizationalDataService {
                 user.getRole().name(),
                 user.getStatus().name());
     }
+
+    /**
+     * Combined API: Get both current country organizational tree and foreign INV_ADMINs
+     * Returns complete organizational data for INV_ADMIN users
+     */
+    public CombinedOrganizationalDataDto getCombinedOrganizationalData(Long currentUserCountryId) {
+        // Get current country organizational tree
+        CountryOrganizationTreeDto currentCountryOrganization = getCurrentCountryOrganizationTree(currentUserCountryId);
+        
+        // Get foreign INV_ADMIN tree
+        List<ForeignInvAdminTreeDto> foreignInvAdmins = getForeignInvAdminsTree(currentUserCountryId);
+        
+        return new CombinedOrganizationalDataDto(currentCountryOrganization, foreignInvAdmins);
+    }
 }
