@@ -15,6 +15,7 @@ const MessengerContext = createContext();
 
 export const MessengerProvider = ({ children }) => {
   const { user } = useAuth();
+
   const socketRef = useRef(null);
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [unreadUsersCount, setUnreadUsersCount] = useState(0);
@@ -29,12 +30,18 @@ export const MessengerProvider = ({ children }) => {
   }, [unreadUsers]);
 
   // Socket connection management
-  const connectSocket = useCallback(() => {
-    if (!user?.token || socketRef.current?.connected) return;
+  const connectSocket = useCallback(async () => {
+    if (socketRef.current?.connected) return;
+
+    const res = await fetch("/api/socket-token", { credentials: "include" });
+    const data = await res.json();
+    const socketToken = data.socketToken;
+
+    //console.log("socketToken yu irev:", socketToken);
 
     const socket = io(serverUrl, {
       transports: ["websocket"],
-      auth: { token: user.token },
+      auth: { token: socketToken },
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
@@ -55,62 +62,58 @@ export const MessengerProvider = ({ children }) => {
     });
 
     socketRef.current = socket;
-  }, [user?.token, serverUrl]);
+  }, [serverUrl]);
 
-  // Initialize socket and handle messages
   useEffect(() => {
-    if (!user?.token) return;
+    if (!user?.userId) return;
 
-    connectSocket();
-    const socket = socketRef.current;
+    let isMounted = true;
 
-    // Handle direct messages to update unread count
-    socket.on("directMessage", async (msg) => {
-      if (msg.recipientId === user.userId) {
-        // Always update unread state for incoming messages
-        if (msg.senderId !== user.userId) {
-          // Only for messages from others
-          console.log(
-            "Received message, updating unread state for:",
-            msg.senderId
-          );
+    const setupSocket = async () => {
+      await connectSocket();
+      if (!isMounted) return;
 
-          // Update unread users
-          setUnreadUsers((prev) => {
-            const updated = new Set(prev);
-            if (!msg.isRead) {
-              updated.add(msg.senderId);
-            }
-            return updated;
-          });
+      const socket = socketRef.current;
+      if (!socket) return;
 
-          // Refresh chat users list to include new sender
-          socket.emit("getChatUsers", (users) => {
-            socket.emit("refreshUserList", users); // Emit event to update user list in MessengerPage
-          });
-        }
-      }
-    });
+      // Attach event listeners
+      socket.on("directMessage", async (msg) => {
+        if (msg.recipientId === user.userId) {
+          if (msg.senderId !== user.userId) {
+            setUnreadUsers((prev) => {
+              const updated = new Set(prev);
+              if (!msg.isRead) updated.add(msg.senderId);
+              return updated;
+            });
 
-    // Get initial unread messages and users
-    socket.emit("getChatUsers", (users) => {
-      const unreadSet = new Set();
-      users.forEach((u) => {
-        if (u.hasUnreadMessages) {
-          unreadSet.add(u.userId);
+            socket.emit("getChatUsers", (users) => {
+              socket.emit("refreshUserList", users);
+            });
+          }
         }
       });
-      setUnreadUsers(unreadSet);
-      socket.emit("refreshUserList", users); // Initial user list broadcast
-    });
+
+      socket.emit("getChatUsers", (users) => {
+        const unreadSet = new Set();
+        users.forEach((u) => {
+          if (u.hasUnreadMessages) unreadSet.add(u.userId);
+        });
+        setUnreadUsers(unreadSet);
+        socket.emit("refreshUserList", users);
+      });
+    };
+
+    setupSocket();
 
     return () => {
+      isMounted = false;
+      const socket = socketRef.current;
       if (socket) {
         socket.off("directMessage");
         socket.disconnect();
       }
     };
-  }, [user?.token, user?.userId, connectSocket]);
+  }, [user?.userId, connectSocket]);
 
   // Handle marking messages as read
   const markMessagesAsRead = useCallback((peerId) => {

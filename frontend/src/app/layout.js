@@ -6,7 +6,6 @@ import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 import ReactQueryProvider from "@/providers/reactQueryProviders";
-
 import ToastProvider from "@/providers/toastProvider";
 
 const notoSansKR = Noto_Sans_KR({
@@ -36,7 +35,7 @@ export default async function RootLayout({ children }) {
         <NextIntlClientProvider>
           <ReactQueryProvider>
             <main>{children}</main>
-            <ToastProvider/>
+            <ToastProvider />
           </ReactQueryProvider>
         </NextIntlClientProvider>
       </body>

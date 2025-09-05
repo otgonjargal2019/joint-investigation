@@ -16,7 +16,7 @@ const limit = 10;
 
 export default function MessengerPage() {
   const { user } = useAuth();
-  if (!(user && user.token && user.userId)) return null;
+  if (!(user && user.userId)) return null;
 
   const t = useTranslations();
   const currentUserId = user.userId;

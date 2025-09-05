@@ -78,7 +78,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     String rolePayload = jwtHelper.extractClaim(jwtToken, roleResolver);
 
-                    // Create authorities collection with the ROLE_ prefix that Spring Security expects
+                    // Create authorities collection with the ROLE_ prefix that Spring Security
+                    // expects
                     Collection<GrantedAuthority> authorities = new ArrayList<>();
                     if (rolePayload != null) {
                         authorities.add(new SimpleGrantedAuthority("ROLE_" + rolePayload));
@@ -119,9 +120,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJWTFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(headerAuthentication);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(tokenPrefix + " ")) {
-            return bearerToken.substring(7, bearerToken.length());
+        // String bearerToken = request.getHeader(headerAuthentication);
+        // if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(tokenPrefix +
+        // " ")) {
+        // return bearerToken.substring(7, bearerToken.length());
+        // }
+        // return null;
+
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }

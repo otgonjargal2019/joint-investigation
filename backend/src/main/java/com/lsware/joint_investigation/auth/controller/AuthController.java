@@ -28,6 +28,10 @@ import com.lsware.joint_investigation.user.repository.DepartmentRepository;
 import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.lsware.joint_investigation.util.JwtHelper;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.Map;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -61,7 +65,8 @@ public class AuthController {
     DepartmentRepository departmentRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto) {
+    public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto,
+            HttpServletResponse response) {
         try {
             Authentication authentication = authenticationService.authenticate(
                     userDto.getLoginId(),
@@ -78,11 +83,19 @@ public class AuthController {
             payload.put("role", role);
             String jwtToken = jwtHelper.generateToken(payload, userDetail.getId(), false);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Login successful");
-            response.put("access_token", jwtToken);
-            return ResponseEntity.ok(response);
+            Cookie cookie = new Cookie("access_token", jwtToken);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(false); // true in production with HTTPS
+            cookie.setPath("/");
+            cookie.setMaxAge(60 * 60); // 1 hour
+            response.addCookie(cookie);
+
+            // Response JSON (no token)
+            Map<String, Object> res = new HashMap<>();
+            res.put("success", true);
+            res.put("message", "Login successful");
+            // res.put("access_token", jwtToken);
+            return ResponseEntity.ok(res);
         } catch (AuthenticationException ex) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -142,7 +155,7 @@ public class AuthController {
         List<Headquarter> listHeadquarter = headquarterRepository.findAll();
         List<Department> listDepartments = departmentRepository.findAll();
 
-        response.put("listCountry",     listCountry);
+        response.put("listCountry", listCountry);
         response.put("listHeadquarter", listHeadquarter);
         response.put("listDepartments", listDepartments);
         return ResponseEntity.ok(response);

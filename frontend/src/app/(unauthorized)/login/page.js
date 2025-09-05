@@ -1,6 +1,5 @@
 "use client";
 
-import Cookies from "js-cookie";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
@@ -8,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-import { setTokenCookie } from "@/app/actions/auth";
 import FormField from "@/shared/components/form/formField";
 import Label from "@/shared/components/form/label";
 import Input from "@/shared/components/form/input";
@@ -21,7 +19,13 @@ import { loginFormSchema } from "@/entities/auth";
 
 function LoginPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const { register, formState: { errors }, watch, setValue, handleSubmit } = useForm({ resolver: zodResolver(loginFormSchema)});
+  const {
+    register,
+    formState: { errors },
+    watch,
+    setValue,
+    handleSubmit,
+  } = useForm({ resolver: zodResolver(loginFormSchema) });
   const [error, setError] = useState(true);
 
   const t = useTranslations();
@@ -31,21 +35,14 @@ function LoginPage() {
   const onSubmit = async (values) => {
     loginMutation.mutate(values, {
       onSuccess: (res) => {
-        console.log("res:", res.data);
-        const { message, success, access_token } = res.data;
+        const { message, success } = res.data;
         if (success) {
-          // setTokenCookie(access_token);
-          Cookies.set("access_token", access_token, {
-            path: "/",
-            sameSite: "lax",
-            // secure: true,
-          });
           toast.success(`${message}`, {
             autoClose: 3000,
             position: "top-center",
           });
+
           window.location.href = "/";
-          // setTokenCookie(access_token);
         }
       },
       onError: (err) => {

@@ -35,7 +35,7 @@ const Header = () => {
 
   const isActive = (path) => pathname.startsWith(path);
 
-  console.log("header dotroos role:", user.role);
+  // console.log("header dotroos role:", user.role);
 
   const incidentLink = useMemo(() => {
     if (user?.role === roles.PLATFORM_ADMIN || user?.role === roles.INV_ADMIN) {
