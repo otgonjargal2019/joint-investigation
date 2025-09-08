@@ -40,7 +40,7 @@ export const MessengerProvider = ({ children }) => {
     //console.log("socketToken yu irev:", socketToken);
 
     const socket = io(serverUrl, {
-      transports: ["websocket"],
+      // transports: ["websocket"],
       auth: { token: socketToken },
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
