@@ -40,7 +40,11 @@ const Header = () => {
   const incidentLink = useMemo(() => {
     if (user?.role === roles.PLATFORM_ADMIN || user?.role === roles.INV_ADMIN) {
       return "/manager/cases";
-    } else if (user?.role === "investigator") {
+    } else if (
+      user?.role === roles.INVESTIGATOR ||
+      user?.role === roles.RESEARCHER ||
+      user?.role === roles.COPYRIGHT_HOLDER
+    ) {
       return "/investigator/incident";
     }
     return "/";
