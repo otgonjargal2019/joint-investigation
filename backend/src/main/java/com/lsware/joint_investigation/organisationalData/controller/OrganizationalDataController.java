@@ -117,11 +117,15 @@ public class OrganizationalDataController {
     /**
      * Get foreign INV_ADMIN users tree for INV_ADMIN
      * Returns list of foreign INV_ADMIN users grouped by country
+     * Supports search by country name and INV_ADMIN name
      * Only accessible by INV_ADMIN role
      */
     @GetMapping("/foreign-inv-admins-tree")
     @PreAuthorize("hasRole('INV_ADMIN')")
-    public ResponseEntity<List<ForeignInvAdminTreeDto>> getForeignInvAdminsTree(Authentication authentication) {
+    public ResponseEntity<List<ForeignInvAdminTreeDto>> getForeignInvAdminsTree(
+            Authentication authentication,
+            @RequestParam(required = false) String countryName,
+            @RequestParam(required = false) String invAdminName) {
         try {
             CustomUser customUser = (CustomUser) authentication.getPrincipal();
 
@@ -144,7 +148,7 @@ public class OrganizationalDataController {
             }
 
             List<ForeignInvAdminTreeDto> result = organizationalDataService
-                    .getForeignInvAdminsTree(currentUserCountryId);
+                    .getForeignInvAdminsTree(currentUserCountryId, countryName, invAdminName);
             return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {

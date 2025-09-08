@@ -82,18 +82,27 @@ public class OrganizationalDataService {
      * Returns tree structure grouped by country
      */
     public List<ForeignInvAdminTreeDto> getForeignInvAdminsTree(Long currentUserCountryId) {
-        // Get all INV_ADMIN users from other countries
-        List<Users> foreignInvAdmins = organizationalDataRepository
-                .findInvAdminsFromOtherCountries(currentUserCountryId);
+        return getForeignInvAdminsTree(currentUserCountryId, null, null);
+    }
 
-        // Get all other countries
-        List<Country> otherCountries = organizationalDataRepository.findOtherCountries(currentUserCountryId);
+    /**
+     * API 2: Get INV_ADMIN users from other countries with search filters
+     * Returns tree structure grouped by country
+     * Supports filtering by country name and INV_ADMIN name
+     */
+    public List<ForeignInvAdminTreeDto> getForeignInvAdminsTree(Long currentUserCountryId, String countryName, String invAdminName) {
+        // Get filtered INV_ADMIN users from other countries
+        List<Users> foreignInvAdmins = organizationalDataRepository
+                .findInvAdminsFromOtherCountriesWithSearch(currentUserCountryId, countryName, invAdminName);
+
+        // Get filtered other countries
+        List<Country> otherCountries = organizationalDataRepository.findOtherCountriesWithSearch(currentUserCountryId, countryName);
 
         // Group INV_ADMIN users by country
         Map<Long, List<Users>> invAdminsByCountry = foreignInvAdmins.stream()
                 .collect(Collectors.groupingBy(Users::getCountryId));
 
-        // Build tree structure
+        // Build tree structure with filtering
         return otherCountries.stream()
                 .map(country -> {
                     List<Users> countryInvAdmins = invAdminsByCountry.getOrDefault(country.getId(), new ArrayList<>());
@@ -107,6 +116,10 @@ public class OrganizationalDataService {
                             country.getName(),
                             country.getCode(),
                             invAdminNodes);
+                })
+                .filter(country -> {
+                    // Include country only if it has INV_ADMIN users or if no invAdminName filter is applied
+                    return country.getInvAdmins().size() > 0 || invAdminName == null || invAdminName.trim().isEmpty();
                 })
                 .collect(Collectors.toList());
     }

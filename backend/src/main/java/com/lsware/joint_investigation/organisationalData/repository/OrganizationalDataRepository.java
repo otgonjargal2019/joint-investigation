@@ -179,4 +179,56 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                     .fetch();
         }
     }
+
+    /**
+     * Get INV_ADMIN users from countries other than the specified country with search filters
+     */
+    public List<Users> findInvAdminsFromOtherCountriesWithSearch(Long excludeCountryId, String countryName, String invAdminName) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(users.countryId.ne(excludeCountryId));
+        builder.and(users.role.eq(Role.INV_ADMIN));
+        builder.and(users.status.eq(Users.USER_STATUS.ACTIVE));
+        
+        // Filter by INV_ADMIN name if provided
+        if (invAdminName != null && !invAdminName.trim().isEmpty()) {
+            BooleanBuilder nameBuilder = new BooleanBuilder();
+            nameBuilder.or(users.nameKr.containsIgnoreCase(invAdminName.trim()));
+            nameBuilder.or(users.nameEn.containsIgnoreCase(invAdminName.trim()));
+            builder.and(nameBuilder);
+        }
+
+        // Join with country for country name filtering
+        if (countryName != null && !countryName.trim().isEmpty()) {
+            return queryFactory
+                    .selectFrom(users)
+                    .join(country).on(users.countryId.eq(country.id))
+                    .where(builder.and(country.name.containsIgnoreCase(countryName.trim())))
+                    .orderBy(country.name.asc(), users.nameKr.asc())
+                    .fetch();
+        } else {
+            return queryFactory
+                    .selectFrom(users)
+                    .where(builder)
+                    .orderBy(users.nameKr.asc())
+                    .fetch();
+        }
+    }
+
+    /**
+     * Get all countries except the specified one with optional name search
+     */
+    public List<Country> findOtherCountriesWithSearch(Long excludeCountryId, String countryName) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(country.id.ne(excludeCountryId));
+        
+        if (countryName != null && !countryName.trim().isEmpty()) {
+            builder.and(country.name.containsIgnoreCase(countryName.trim()));
+        }
+
+        return queryFactory
+                .selectFrom(country)
+                .where(builder)
+                .orderBy(country.name.asc())
+                .fetch();
+    }
 }
