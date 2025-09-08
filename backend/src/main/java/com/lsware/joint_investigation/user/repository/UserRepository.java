@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lsware.joint_investigation.user.entity.Users;
+import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.QUsers;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -75,13 +76,27 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     }
 
     @Transactional(readOnly = false)
-    public Boolean updateProfileByUserId(UUID userId, String avatar, String department) {
+    public Boolean updateProfileByUserId(UUID userId, UserDto userDto, String avatar) {
         JPAUpdateClause clause = queryFactory.update(users)
                 .where(users.userId.eq(userId))
-                .set(users.department, department);
+                .set(users.countryId, Long.valueOf(userDto.getCountryId()))
+                .set(users.headquarterId, Long.valueOf(userDto.getHeadquarterId()))
+                .set(users.departmentId, Long.valueOf(userDto.getDepartmentId()))
+                .set(users.phone, userDto.getPhone())
+                .set(users.email, userDto.getEmail());
         if (avatar != null) {
             clause = clause.set(users.profileImageUrl, avatar);
         }
+        long updatedRows = clause.execute();
+        return updatedRows > 0;
+    }
+
+    @Transactional(readOnly = false)
+    public Boolean deleteProfileImgByUserId(UUID userId) {
+        JPAUpdateClause clause = queryFactory.update(users)
+                .where(users.userId.eq(userId))
+                .set(users.profileImageUrl, "");
+        
         long updatedRows = clause.execute();
         return updatedRows > 0;
     }

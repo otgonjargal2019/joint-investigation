@@ -65,3 +65,15 @@ export const registerFormSchema = withPasswordConfirm(
   })
 );
 
+export const profileFormSchema = withPasswordConfirm(
+  z.object({
+    phone1: z.string().optional(),
+    phone2: z.string().optional(),
+    email: z.string().min(1,"Required"),
+    email2: z.string().min(1,"Required"),
+    countryId: z.string().min(1, "Required"),
+    headquarterId: z.string().min(1, "Required"),
+    departmentId: z.string().min(1, "Required")
+  })
+);
+

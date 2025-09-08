@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-
-import FormField from "@/shared/components/form/formField";
+import { useQuery } from "@tanstack/react-query";
 import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
 import Label from "@/shared/components/form/label";
@@ -14,44 +13,179 @@ import ProfileImageUploader from "@/shared/components/profileImageUploader";
 import Modal from "@/shared/components/modal";
 import PageTitle from "@/shared/components/pageTitle/page";
 import SuccessNotice from "@/shared/components/successNotice";
+import { profileQuery, useProfile, useDeleteProfileImg } from "@/entities/profile";
+import { toast } from "react-toastify";
+import { useCheckEmail } from "@/entities/auth/auth.mutation";
+import {
+  profileFormSchema
+} from "@/entities/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const options = [
-  { label: "test", value: "test" },
-  { label: "test2", value: "test2" },
-  { label: "test3", value: "test3" },
-  { label: "test4", value: "test4" },
-];
+
 
 function Membership() {
-  const { register, handleSubmit, reset } = useForm();
-
-  const [error, setError] = useState(true);
-  const [profileImg, setProfileImg] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
   const t = useTranslations();
   const router = useRouter();
+  const { register, formState: { errors }, handleSubmit, watch, reset, setValue } = useForm({resolver: zodResolver(profileFormSchema)});
+  const [error, setError] = useState(true);
+  const [profileImg, setProfileImg] = useState(null);
+  const [uploadImg, setUploadImg] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const headquarterSet = useRef(false);
+  const departmentSet = useRef(false);
+  const { data } = useQuery(profileQuery.getProfile());
+  const profileMutation = useProfile();
+  const checkEmailMutation = useCheckEmail();
+  const deleteProfileImgMutation = useDeleteProfileImg();
+  // Watch selected country
+  const selectedCountryCode = watch("countryId");
+  const selectedQuarterCode = watch("headquarterId");
 
-  const onSubmit = (data) => {
-    console.log(data);
-    setSubmitted(true);
-  };
+  // Filter headquarters by selected country using state/effect
+  const [headquarterOptions, setHeadquarterOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
 
-  const obj = {
-    id: "crazy1000",
-    name: "test 1",
-    nation: "test 2",
-  };
+  // Convert API country data to SelectBox options
+  const countryOptions = data?.listCountry?.map(country => ({
+    label: country.name,
+    value: country.id
+  })) || [];
 
   useEffect(() => {
-    reset({
-      affiliation1: options[0].value,
-      affiliation2: options[1].value,
-      group1: options[2].value,
-      group2: options[3].value,
+    if(countryOptions.length)
+      setValue("countryId", String(data?.userData.countryId));
+
+    setValue("phone1", data?.userData.phone?.split("-")[0] || "");
+    setValue("phone2", data?.userData.phone?.split("-").slice(1).join("-") || "");
+    setValue("email", data?.userData.email?.split("@")[0] || "");
+    setValue("email2", data?.userData.email?.split("@")[1] || "");
+    setProfileImg(data?.userData.profileImageUrl || null);
+  }, [data]);
+
+  useEffect(() => {
+    if (headquarterOptions.length > 0) {
+      if(!headquarterSet.current) {
+        setValue("headquarterId", String(data?.userData.headquarterId));
+        headquarterSet.current = true;
+      }else
+        setValue("headquarterId", String(headquarterOptions[0].value));
+    }
+  }, [headquarterOptions]);
+
+  useEffect(() => {
+    if(departmentOptions.length) {
+      if(!departmentSet.current) {
+        setValue("departmentId", String(data?.userData.departmentId));
+        departmentSet.current = true;
+      }else
+        setValue("departmentId", String(departmentOptions[0].value));
+    }
+  }, [departmentOptions]);
+
+  //Filter headquarters by selected country using state/effect
+  useEffect(() => {
+    if (!data?.listHeadquarter) {
+      setHeadquarterOptions([]);
+      return;
+    }
+    const filtered = data.listHeadquarter
+      .filter(hq => hq.country?.id == selectedCountryCode)
+      .map(hq => ({
+        label: hq.name,
+        value: hq.id
+      }));
+    setHeadquarterOptions(filtered);
+  }, [selectedCountryCode]);
+
+  // Filter departments by selected headquarter using state/effect
+  useEffect(() => {
+    if (!data?.listDepartments) {
+      setDepartmentOptions([]);
+      return;
+    }
+
+    const filteredDept = data.listDepartments
+      .filter(dp => dp.headquarter?.id == selectedQuarterCode)
+      .map(dp => ({
+        label: dp.name,
+        value: dp.id
+      }));
+    setDepartmentOptions(filteredDept);
+  }, [selectedQuarterCode]);
+
+  const onSubmit = async (values) => {
+    const payload = {
+      countryId: values.countryId,
+      headquarterId: values.headquarterId,
+      departmentId: values.departmentId,
+      phone: values.phone1 && values.phone2 ? `${values.phone1}-${values.phone2}` : null,
+      email: values.email && values.email2 ? `${values.email}@${values.email2}` : null,
+      profileImg: uploadImg
+    };
+
+    profileMutation.mutate(payload, {
+      onSuccess: (res) => {
+        const {message, success} = res.data;
+        console.log('RETURN DATA => ', res.data);
+        if (success){
+          toast.success(`${message}`, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+          setSubmitted(true);
+        }
+      },
+      onError: (err) => {
+        console.log(err);
+      },
     });
-  }, []);
+  };
+
+  const handleCheckEmail = async () => {
+    const isValid = await trigger(["email"]);
+
+    if (!isValid) {
+      return;
+    }
+    const reqData = {
+      email: watch("email")
+    };
+    
+    checkEmailMutation.mutate(reqData, {
+      onSuccess: (res) => {
+        toast.success(`${res.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      },
+      onError: (err) => {
+        setError("email", {
+          type: "manual",
+          message: err.response.data.message,
+        });
+      },
+    });
+  };
+
+
+  const handleDeleteProfileImg = async () => {
+    deleteProfileImgMutation.mutate(null, {
+      onSuccess: (res) => {
+        setProfileImg(null);
+        toast.success(`${res.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      },
+      onError: (err) => {
+        setError("email", {
+          type: "manual",
+          message: err.response.data.message,
+        });
+      },
+    });
+  };
 
   const onClickChangePwd = () => {
     setModalOpen(true);
@@ -89,7 +223,7 @@ function Membership() {
                   {t("form.id")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
-                  {obj?.id}
+                  {data?.loginId}
                 </div>
                 <Label color="gray" className="text-right ">
                   {t("form.password")}
@@ -117,6 +251,7 @@ function Membership() {
                   <ProfileImageUploader
                     imageUrl={profileImg}
                     onUpload={(file) => {
+                      setUploadImg(file);
                       const imageUrl = URL.createObjectURL(file);
                       setProfileImg(imageUrl);
                     }}
@@ -124,7 +259,7 @@ function Membership() {
                   <Button
                     variant="white2"
                     size="extraSmall"
-                    onClick={() => setProfileImg(null)}
+                    onClick={() => handleDeleteProfileImg()}
                   >
                     {t("remove")}
                   </Button>
@@ -133,31 +268,43 @@ function Membership() {
                   {t("form.name")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
-                  {obj?.name}
+                  {data?.userData?.nameKr}
                 </div>
                 <Label color="gray" className="text-right">
                   {t("form.nation")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
-                  {obj?.nation}
+                  <SelectBox
+                    register={register}
+                    name="countryId"
+                    options={countryOptions}
+                    showError={false}
+                    variant="form"
+                    placeholder={t("placeholder.select-country")}
+                    error={errors.countryId}
+                  />
                 </div>
                 <Label color="gray" className="text-right mt-2">
                   {t("form.affiliation")}
                 </Label>
                 <div className="flex gap-2">
-                  <Input
+                  <SelectBox
                     register={register}
-                    name="headquarter"
+                    name="headquarterId"
+                    options={headquarterOptions}
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.headquarter")}
+                    error={errors.headquarterId}
                   />
-                  <Input
+                  <SelectBox
                     register={register}
-                    name="department"
+                    name="departmentId"
+                    options={departmentOptions}
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.department")}
+                    error={errors.departmentId}
                   />
                 </div>
                 <Label color="gray" className="text-right mt-2">
@@ -169,17 +316,19 @@ function Membership() {
                 >
                   <Input
                     register={register}
-                    name="countryCode"
+                    name="phone1"
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.country-code")}
+                    error={errors.phone1}
                   />
                   <Input
                     register={register}
-                    name="contactInfo"
+                    name="phone2"
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.contact-info")}
+                    error={errors.phone2}
                   />
                 </div>
                 <Label color="gray" className="text-right mt-2">
@@ -191,6 +340,7 @@ function Membership() {
                     name="email"
                     showError={false}
                     variant="form"
+                    error={errors.email}
                   />
                   @
                   <Input
@@ -198,6 +348,7 @@ function Membership() {
                     name="email2"
                     showError={false}
                     variant="form"
+                    error={errors.email2}
                   />
                   <Button
                     size="small2"
@@ -209,7 +360,7 @@ function Membership() {
                 </div>
                 <div />
                 <p className="text-color-86 text-[16px] font-normal">
-                  {error && t("error-msg.enter-all-membership-info")}
+                  {Object.keys(errors).length > 0 && t("error-msg.enter-all-membership-info")}
                 </p>
                 <div />
                 <Button type="submit" size="small3" variant="gray2">
