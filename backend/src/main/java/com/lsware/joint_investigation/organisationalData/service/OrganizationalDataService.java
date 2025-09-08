@@ -23,23 +23,51 @@ public class OrganizationalDataService {
      * country
      */
     public CountryOrganizationTreeDto getCurrentCountryOrganizationTree(Long currentUserCountryId) {
+        return getCurrentCountryOrganizationTree(currentUserCountryId, null, null, null, null);
+    }
+
+    /**
+     * API 1: Get organizational tree structure for current user's country with search filters
+     * Returns headquarters, departments and INVESTIGATOR users from the same country
+     * Supports filtering by country name, headquarter name, department name, and investigator name
+     */
+    public CountryOrganizationTreeDto getCurrentCountryOrganizationTree(
+            Long currentUserCountryId, 
+            String countryName, 
+            String headquarterName, 
+            String departmentName, 
+            String investigatorName) {
+        
         // Get country information
         Country country = organizationalDataRepository.findCountryById(currentUserCountryId);
         if (country == null) {
             throw new IllegalArgumentException("Country not found with ID: " + currentUserCountryId);
         }
 
-        // Get all headquarters for this country
-        List<Headquarter> headquarters = organizationalDataRepository.findHeadquartersByCountryId(currentUserCountryId);
+        // If country name filter is provided and doesn't match, return empty result
+        if (countryName != null && !countryName.trim().isEmpty() && 
+            !country.getName().toLowerCase().contains(countryName.toLowerCase())) {
+            return new CountryOrganizationTreeDto(
+                    country.getId(),
+                    country.getUuid(),
+                    country.getName(),
+                    country.getCode(),
+                    new ArrayList<>());
+        }
 
-        // Get all departments for this country
-        List<Department> departments = organizationalDataRepository.findDepartmentsByCountryId(currentUserCountryId);
+        // Get filtered data from repository
+        List<Headquarter> headquarters = organizationalDataRepository.findHeadquartersByCountryIdWithSearch(
+                currentUserCountryId, headquarterName);
 
-        // Get all investigators for this country
-        List<Users> investigators = organizationalDataRepository.findInvestigatorsByCountryId(currentUserCountryId);
+        List<Department> departments = organizationalDataRepository.findDepartmentsByCountryIdWithSearch(
+                currentUserCountryId, headquarterName, departmentName);
 
-        // Build the tree structure
-        List<HeadquarterTreeNodeDto> headquarterNodes = buildHeadquarterTree(headquarters, departments, investigators);
+        List<Users> investigators = organizationalDataRepository.findInvestigatorsByCountryIdWithSearch(
+                currentUserCountryId, headquarterName, departmentName, investigatorName);
+
+        // Build the tree structure with filtered data
+        List<HeadquarterTreeNodeDto> headquarterNodes = buildFilteredHeadquarterTree(
+                headquarters, departments, investigators, headquarterName, departmentName, investigatorName);
 
         return new CountryOrganizationTreeDto(
                 country.getId(),
@@ -125,6 +153,67 @@ public class OrganizationalDataService {
                             hq.getUuid(),
                             hq.getName(),
                             departmentNodes);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Build filtered headquarter tree with departments and investigators
+     * Applies additional filtering logic for search functionality
+     */
+    private List<HeadquarterTreeNodeDto> buildFilteredHeadquarterTree(
+            List<Headquarter> headquarters,
+            List<Department> departments,
+            List<Users> investigators,
+            String headquarterName,
+            String departmentName,
+            String investigatorName) {
+
+        // Group departments by headquarter ID
+        Map<Long, List<Department>> departmentsByHeadquarter = departments.stream()
+                .collect(Collectors.groupingBy(dept -> dept.getHeadquarter().getId()));
+
+        // Group investigators by department ID
+        Map<Long, List<Users>> investigatorsByDepartment = investigators.stream()
+                .filter(user -> user.getDepartmentId() != null)
+                .collect(Collectors.groupingBy(Users::getDepartmentId));
+
+        return headquarters.stream()
+                .map(hq -> {
+                    List<Department> hqDepartments = departmentsByHeadquarter.getOrDefault(hq.getId(),
+                            new ArrayList<>());
+                    
+                    List<DepartmentTreeNodeDto> departmentNodes = hqDepartments.stream()
+                            .map(dept -> {
+                                List<Users> deptInvestigators = investigatorsByDepartment.getOrDefault(dept.getId(),
+                                        new ArrayList<>());
+                                List<UserTreeNodeDto> investigatorNodes = deptInvestigators.stream()
+                                        .map(this::convertToUserTreeNode)
+                                        .collect(Collectors.toList());
+
+                                return new DepartmentTreeNodeDto(
+                                        dept.getId(),
+                                        dept.getUuid(),
+                                        dept.getName(),
+                                        investigatorNodes);
+                            })
+                            .filter(dept -> {
+                                // Include department if it has investigators or if no investigator filter is applied
+                                return dept.getInvestigators().size() > 0 || investigatorName == null || investigatorName.trim().isEmpty();
+                            })
+                            .collect(Collectors.toList());
+
+                    return new HeadquarterTreeNodeDto(
+                            hq.getId(),
+                            hq.getUuid(),
+                            hq.getName(),
+                            departmentNodes);
+                })
+                .filter(hq -> {
+                    // Include headquarter if it has departments with data or if no specific filters are applied
+                    return hq.getDepartments().size() > 0 || 
+                           (departmentName == null || departmentName.trim().isEmpty()) &&
+                           (investigatorName == null || investigatorName.trim().isEmpty());
                 })
                 .collect(Collectors.toList());
     }
