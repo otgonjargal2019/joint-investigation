@@ -15,7 +15,6 @@ import { useOrganizationalData } from "@/entities/organizationalData";
 import {
   tableColumns,
   tableData,
-  foreignPoliceData,
   tableColumns2,
 } from "@/shared/widgets/manager/mockData";
 
@@ -56,6 +55,28 @@ function InvestigatorAssign({ setActiveTab }) {
           }))
         }));
     };
+
+  const transformForeignInvAdminsToTreeData = (foreignInvAdmins) => {
+    if (!foreignInvAdmins || !Array.isArray(foreignInvAdmins)) return [];
+
+    return foreignInvAdmins.map(country => {
+      return {
+        name: country.countryName,
+        label: country.countryName,
+        type: "headquarter",
+        nation: country.countryName,
+        children: country.invAdmins.map(invAdmin => {
+          return {
+            name: invAdmin.nameKr || invAdmin.nameEn,
+            label: invAdmin.nameKr || invAdmin.nameEn,
+            type: "employee",
+            nation: country.countryName,
+            role: "수사관",
+          };
+        }),
+      };
+    });
+  };
 
   const removeKoInvestigator = (id) => {
     setData((prevData) => prevData.filter((row) => row.id !== id));
@@ -114,21 +135,25 @@ function InvestigatorAssign({ setActiveTab }) {
 
   const chooseForeignInvestigator = (obj) => {
     console.log(obj);
-    setData2((prev) => [
-      ...prev,
-      {
-        ...obj,
-        id: prev?.length + 1,
-        nation: obj.nation,
-        investigator: obj.label,
-        action: (
-          <Trash2
-            size={20}
-            onClick={() => removeForeignInvestgator(prev?.length + 1)}
-          />
-        ),
-      },
-    ]);
+    if (obj.type === "employee") {
+      setData2((prev) => [
+        ...prev,
+        {
+          id: prev?.length + 1,
+          nation: obj.countryName || obj.nation,
+          role: obj.role,
+          investigator: obj.label,
+          affiliation: obj.countryName || obj.nation,
+          department: "-", // Foreign investigators don't have departments in this structure
+          action: (
+            <Trash2
+              size={20}
+              onClick={() => removeForeignInvestgator(prev?.length + 1)}
+            />
+          ),
+        },
+      ]);
+    }
   };
 
   return (
@@ -195,10 +220,20 @@ function InvestigatorAssign({ setActiveTab }) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="이름/소속/부서"
             />
-            <TreeView
-              data={foreignPoliceData}
-              onClick={chooseForeignInvestigator}
-            />
+            {isLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="text-sm text-gray-500">Loading...</div>
+              </div>
+            ) : error ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="text-sm text-red-500">Error loading data</div>
+              </div>
+            ) : (
+              <TreeView
+                data={transformForeignInvAdminsToTreeData(organizationalData?.foreignInvAdmins)}
+                onClick={chooseForeignInvestigator}
+              />
+            )}
           </div>
           <div className={"w-[400px]"}>
             <Table>
