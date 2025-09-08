@@ -88,6 +88,7 @@ public class Users {
         dto.setDepartment(this.department);
         dto.setRole(this.role);
         dto.setStatus(this.status);
+        dto.setCreatedAt(this.createdAt);
         return dto;
     }
 

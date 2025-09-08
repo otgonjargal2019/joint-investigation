@@ -11,6 +11,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 
 import jakarta.persistence.EntityManager;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -82,5 +84,22 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         }
         long updatedRows = clause.execute();
         return updatedRows > 0;
+    }
+
+    public List<Users> findByStatus(Users.USER_STATUS status, int page, int size) {
+        return queryFactory
+                .selectFrom(users)
+                .where(users.status.eq(status))
+                .offset((long) page * size)
+                .limit(size)
+                .fetch();
+    }
+
+    public List<Users> findAll(int page, int size) {
+        return queryFactory
+                .selectFrom(users)
+                .offset((long) page * size)
+                .limit(size)
+                .fetch();
     }
 }

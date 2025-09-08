@@ -13,7 +13,11 @@ import CaseCard from "@/shared/components/caseCard";
 import { tableColumns, tableData } from "@/shared/widgets/incident/mockData";
 import { caseData } from "@/shared/widgets/mockData/homepage";
 
-const tabs = ["전체", "진행중인 사건", "종료 사건"];
+const tabs = [
+  { label: "전체", value: 0 },
+  { label: "진행중인 사건", value: 1 },
+  { label: "종료 사건", value: 2 },
+];
 
 function IncidentPage() {
   const [activeTab, setActiveTab] = useState(0);

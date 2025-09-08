@@ -13,13 +13,17 @@ import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { useCase } from "@/entities/case";
 import { CASE_STATUS } from "@/entities/case";
 
-const tabs = ["전체", "진행중인 사건", "종료 사건"];
+const tabs = [
+  { label: "전체", value: 0 },
+  { label: "진행중인 사건", value: 1 },
+  { label: "종료 사건", value: 2 },
+];
 
 const ROWS_PER_PAGE = 10;
 
 // Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
-  return path.split('.').reduce((current, key) => {
+  return path.split(".").reduce((current, key) => {
     return current ? current[key] : undefined;
   }, obj);
 };
@@ -29,25 +33,31 @@ function CaseListPage() {
   const [page, setPage] = useState(0); // React Query uses 0-based pagination
   const t = useTranslations();
 
-  const caseStatus = activeTab === 1 ? CASE_STATUS.OPEN :
-                        activeTab === 2 ? CASE_STATUS.CLOSED :
-                        undefined;
+  const caseStatus =
+    activeTab === 1
+      ? CASE_STATUS.OPEN
+      : activeTab === 2
+      ? CASE_STATUS.CLOSED
+      : undefined;
 
   const { data: recordsData, isLoading } = useCase({
     page,
     size: ROWS_PER_PAGE,
-    status: caseStatus
+    status: caseStatus,
   });
 
   // Transform the data to handle nested properties
   const transformedData = useMemo(() => {
     if (!recordsData?.rows) return [];
-    return recordsData.rows.map(row => ({
+    return recordsData.rows.map((row) => ({
       ...row,
       // Pre-compute nested values for table rendering
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country"),
-      "latestRecord.progressStatus": getNestedValue(row, "latestRecord.progressStatus")
+      "latestRecord.progressStatus": getNestedValue(
+        row,
+        "latestRecord.progressStatus"
+      ),
     }));
   }, [recordsData?.rows]);
 
@@ -76,41 +86,44 @@ function CaseListPage() {
         columns={[
           {
             key: "caseId",
-            title: t('incident.case-number')
+            title: t("incident.case-number"),
           },
           {
             key: "caseName",
-            title: t('incident.title')
+            title: t("incident.title"),
           },
           {
             key: "creator.nameKr",
-            title: t('incident.manager')
+            title: t("incident.manager"),
           },
           {
             key: "creator.country",
-            title: t('incident.country-of-occurrence')
+            title: t("incident.country-of-occurrence"),
           },
           {
             key: "investigationDate",
-            title: t('incident.investigation-start-date'),
-            render: (value) => new Date(value).toLocaleDateString()
+            title: t("incident.investigation-start-date"),
+            render: (value) => new Date(value).toLocaleDateString(),
           },
           {
             key: "infringementType",
-            title: t('incident.infringement-type')
+            title: t("incident.infringement-type"),
           },
           {
             key: "status",
-            title: t('incident.status'),
+            title: t("incident.status"),
             // render: (value) => (
             //   <Tag status={value === CASE_STATUS.CLOSED ? "수사종료" : "진행중"} />
             // )
           },
           {
             key: "latestRecord.progressStatus",
-            title: t('incident.progress-detail'),
-            render: (value) => value ? t(`incident.progress-status.${value?.toLowerCase()}`) : null
-          }
+            title: t("incident.progress-detail"),
+            render: (value) =>
+              value
+                ? t(`incident.progress-status.${value?.toLowerCase()}`)
+                : null,
+          },
         ]}
         data={transformedData}
         onClickRow={onClickRow}

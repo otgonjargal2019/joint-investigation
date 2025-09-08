@@ -1,5 +1,6 @@
 package com.lsware.joint_investigation.user.dto;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class UserDto {
     private String countryId;
     private String headquarterId;
     private String departmentId;
-    
+    private LocalDateTime createdAt;
 
     @JsonIgnore
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

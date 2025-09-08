@@ -4,15 +4,15 @@ const Tabs = ({ tabs, activeTab, setActiveTab }) => {
       <div className="flex space-x-6">
         {tabs.map((tab, index) => (
           <button
-            key={index}
-            onClick={() => setActiveTab(index)}
+            key={tab.value}
+            onClick={() => setActiveTab(tab.value)}
             className={`text-[24px] font-medium border-b-2 transition-colors duration-200 ${
-              activeTab === index
+              activeTab === tab.value
                 ? "border-color-8 text-color-8"
                 : "border-transparent text-color-49 hover:text-gray-700"
             }`}
           >
-            {tab}
+            {tab.label}
           </button>
         ))}
       </div>
