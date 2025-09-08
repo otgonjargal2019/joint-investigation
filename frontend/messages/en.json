@@ -170,7 +170,8 @@
     "investigation-commencement-date": "investigation commencement date",
     "set-investigator": "set investigator",
     "edit-incident-info": "edit incident info",
-    "inquiry-of-investigation-records": "inquiry of investigation records"
+    "inquiry-of-investigation-records": "inquiry of investigation records",
+    "create-success": "Incident has been created successfully."
   },
   "tag": {
     "ongoing": "ongoing",
@@ -198,5 +199,6 @@
   "prompt": {
     "are-you-sure-to-delete": "Do you really want to delete this post?",
     "deleted-post-cannot-be-recovered": "Deleted posts cannot be recovered."
-  }
+  },
+  "submitting": "Submitting"
 }
