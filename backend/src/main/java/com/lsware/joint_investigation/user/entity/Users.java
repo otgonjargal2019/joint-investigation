@@ -71,8 +71,9 @@ public class Users {
 
     public enum USER_STATUS {
         PENDING,
-        ACTIVE,
-        INACTIVE
+        APPROVED,
+        REJECTED,
+        WAITING_TO_CHANGE
     }
 
     public UserDto toDto() {
