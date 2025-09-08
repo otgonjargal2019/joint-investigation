@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import PageTitle from "@/shared/components/pageTitle/page";
 import Button from "@/shared/components/button";
@@ -14,44 +15,23 @@ import Modal from "@/shared/components/modal";
 import UserDetailTable from "@/shared/widgets/admin/accountManagement/userDetailTable";
 import UserDetailTableWithPermissionChange from "@/shared/widgets/admin/accountManagement/userDetailTableWithPersimission";
 import UserInfoChangeCompare from "@/shared/widgets/admin/accountManagement/userInfoChangeCompare";
-
-const stateOptions = ["WAITINGTOJOIN", "NORMAL", "WAITINGTOCHANGE", "REFUSED"];
-const userObj = {
-  id: "crazy1000",
-  name: "김서진 / Seo jin Kim",
-  nation: "대한민국",
-  unit: "저작권 범죄 수사대",
-  team: "디지털 저작권 침해 수사팀",
-  contactInfo: "+82 1012345678",
-  email: "nncye0585@police.go.kr",
-  accountPermissions: "수사관",
-};
-
-const userObjNew = {
-  id: "crazy1000",
-  name: "김서진",
-  nation: "대한민국",
-  unit: "저작권 범죄 수사대",
-  team: "온라인 플랫폼 모니터링반",
-  contactInfo: "+82 1012345678",
-  email: "Alicya@police.go.kr",
-  accountPermissions: "수사관",
-};
+import { USERSTATUSDIC } from "../page";
+import { userQuery } from "@/entities/user";
 
 const UserDetailPage = () => {
   const t = useTranslations();
-  const [state, setState] = useState(stateOptions[2]);
+
+  const searchParams = useSearchParams();
+  const user = Object.fromEntries(searchParams.entries());
+  console.log("row yu irev?", user);
+
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
 
+  const {} = useQuery(userQuery.getUserById({ userId: user.userId }));
+
   const router = useRouter();
   const { register, setValue } = useForm();
-
-  useEffect(() => {
-    if (state === stateOptions[1]) {
-      setValue("accountPermissions", userObj.accountPermissions);
-    }
-  }, [state, setValue, userObj]);
 
   return (
     <div className="flex justify-center">
@@ -68,7 +48,7 @@ const UserDetailPage = () => {
             {t("go-back")}
           </Button>
           <div className="flex gap-2">
-            {(state === stateOptions[0] || state === stateOptions[2]) && (
+            {user.status === USERSTATUSDIC.PENDING && (
               <>
                 <Button
                   variant="pink"
@@ -92,16 +72,18 @@ const UserDetailPage = () => {
             )}
           </div>
         </div>
-        {state === stateOptions[0] && <UserDetailTable userInfo={userObj} />}
-        {state === stateOptions[1] && (
+        {/* {user.status === USERSTATUSDIC.PENDING && (
+          <UserDetailTable userInfo={userObj} />
+        )} */}
+        {user.status === USERSTATUSDIC.APPROVED && (
           <UserDetailTableWithPermissionChange
-            userInfo={userObj}
+            userInfo={user}
             register={register}
           />
         )}
-        {state === stateOptions[2] && (
+        {/* {user?.status === USERSTATUSDIC.WAITING_TO_CHANGE && (
           <UserInfoChangeCompare userInfo={userObj} newUserInfo={userObjNew} />
-        )}
+        )} */}
       </div>
       <Modal
         isOpen={denyModalOpen}

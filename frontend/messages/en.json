@@ -200,5 +200,11 @@
     "are-you-sure-to-delete": "Do you really want to delete this post?",
     "deleted-post-cannot-be-recovered": "Deleted posts cannot be recovered."
   },
-  "submitting": "Submitting"
+  "submitting": "Submitting",
+  "user-status": {
+    "pending": "Pending Join",
+    "approved": "Active",
+    "waiting-to-change": "Pending Update",
+    "rejected": "Refused"
+  }
 }

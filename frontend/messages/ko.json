@@ -200,5 +200,11 @@
     "are-you-sure-to-delete": "해당 게시글을 삭제하시겠습나까?",
     "deleted-post-cannot-be-recovered": "삭제한 게시글은 복구할 수 없습니다."
   },
-  "submitting": "제출 중"
+  "submitting": "제출 중",
+  "user-status": {
+    "pending": "가입 대기",
+    "approved": "정상",
+    "waiting-to-change": "정보 변경 대기",
+    "rejected": "거절"
+  }
 }

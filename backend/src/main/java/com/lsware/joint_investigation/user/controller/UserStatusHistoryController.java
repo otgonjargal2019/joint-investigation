@@ -3,6 +3,7 @@ package com.lsware.joint_investigation.user.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -64,6 +66,23 @@ public class UserStatusHistoryController {
         mapping.setFilters(getUserFilter());
 
         return ResponseEntity.ok(mapping);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MappingJacksonValue> getUserById(@PathVariable UUID id) {
+        return userRepository.findByUserId(id)
+                .map(user -> {
+                    UserDto dto = user.toDto();
+                    ApiResponse<UserDto> response = new ApiResponse<>(
+                            true,
+                            "User retrieved successfully",
+                            dto,
+                            null);
+                    MappingJacksonValue mapping = new MappingJacksonValue(response);
+                    mapping.setFilters(getUserFilter());
+                    return ResponseEntity.ok(mapping);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     private FilterProvider getUserFilter() {

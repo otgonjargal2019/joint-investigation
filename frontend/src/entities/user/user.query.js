@@ -13,4 +13,14 @@ export const userQuery = {
         return response.data;
       },
     }),
+
+  getUserById: ({ userId }) =>
+    queryOptions({
+      queryKey: [...userQuery.all(), userId],
+      queryFn: async () => {
+        const response = await axiosInstance.get(`/api/users/${userId}`);
+        return response.data;
+      },
+      enabled: !!userId,
+    }),
 };

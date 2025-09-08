@@ -12,7 +12,7 @@ export const postQuery = {
         });
         return response.data;
       },
-      enabled: boardType !== undefined,
+      enabled: !!boardType,
     }),
 
   getPost: ({ postId }) =>

@@ -10,7 +10,7 @@ import Pagination from "@/shared/components/pagination";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { userQuery } from "@/entities/user";
 
-const userStatus = {
+export const USERSTATUSDIC = {
   PENDING: "PENDING",
   APPROVED: "APPROVED",
   REJECTED: "REJECTED",
@@ -19,9 +19,9 @@ const userStatus = {
 
 const tabs = [
   { label: "전체", value: "ALL" },
-  { label: "가입 대기중", value: userStatus.PENDING },
-  { label: "정보 변경 대기중", value: userStatus.WAITING_TO_CHANGE },
-  { label: "승인 완료", value: userStatus.APPROVED },
+  { label: "가입 대기중", value: USERSTATUSDIC.PENDING },
+  { label: "정보 변경 대기중", value: USERSTATUSDIC.WAITING_TO_CHANGE },
+  { label: "승인 완료", value: USERSTATUSDIC.APPROVED },
 ];
 const tableColumns = [
   { key: "no", title: "NO." },
@@ -52,12 +52,41 @@ function AcountManagementPage() {
 
   console.log("response=====>", data);
 
-  const onClickRow = () => {
-    router.push("/admin/account-management/detail");
+  const onClickRow = (row) => {
+    const { status2, ...rowWithoutStatus2 } = row;
+    // console.log(rowWithoutStatus2);
+    const query = new URLSearchParams(rowWithoutStatus2).toString();
+    router.push(`/admin/account-management/detail?${query}`);
+  };
+
+  const getFancyStatusName = (status) => {
+    switch (status) {
+      case USERSTATUSDIC.APPROVED:
+        return (
+          <span className={`text-color-24`}>{t("user-status.approved")}</span>
+        );
+      case USERSTATUSDIC.PENDING:
+        return (
+          <span className={`text-color-103`}>{t("user-status.pending")}</span>
+        );
+      case USERSTATUSDIC.WAITING_TO_CHANGE:
+        return (
+          <span className={`text-color-102`}>
+            {t("user-status.waiting-to-change")}
+          </span>
+        );
+      case USERSTATUSDIC.REJECTED:
+        return (
+          <span className={`text-color-104`}>{t("user-status.rejected")}</span>
+        );
+      default:
+        return <span></span>;
+    }
   };
 
   const users = (data?.data || []).map((user, index) => ({
     ...user,
+    status2: getFancyStatusName(user.status),
     no: (page - 1) * pageSize + index + 1,
   }));
   const totalPages = data?.meta?.totalPages || 1;
