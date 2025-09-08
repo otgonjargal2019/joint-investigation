@@ -44,15 +44,15 @@ public class UserController {
             response.put("userId", userDetail.getId());
             Optional<Users> me = userRepository.findByUserId(userDetail.getId());
             if (me.isPresent()) {
-                response.put("loginId",     me.get().getLoginId());
-                response.put("nameKr",      me.get().getNameKr());
-                response.put("nameEn",      me.get().getNameEn());
-                response.put("country",     me.get().getCountry());
-                response.put("department",  me.get().getDepartment());
-                response.put("phone",       me.get().getPhone());
-                response.put("email",       me.get().getEmail());
-                response.put("avatar",      me.get().getProfileImageUrl());
-                
+                response.put("loginId", me.get().getLoginId());
+                response.put("nameKr", me.get().getNameKr());
+                response.put("nameEn", me.get().getNameEn());
+                response.put("country", me.get().getCountry());
+                response.put("department", me.get().getDepartment());
+                response.put("phone", me.get().getPhone());
+                response.put("email", me.get().getEmail());
+                response.put("avatar", me.get().getProfileImageUrl());
+
             } else {
                 return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
             }

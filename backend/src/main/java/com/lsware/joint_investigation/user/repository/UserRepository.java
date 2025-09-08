@@ -36,7 +36,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         builder.and(users.email.eq(email));
 
         // if (isDeleted != null) {
-        //     builder.and(userEntity.isDeleted.eq(isDeleted));
+        // builder.and(userEntity.isDeleted.eq(isDeleted));
         // }
 
         return Optional.ofNullable(
@@ -50,7 +50,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     public Optional<Users> findByLoginId(String loginId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.loginId.eq(loginId));
-        builder.and(users.status.eq(Users.USER_STATUS.ACTIVE));
+        builder.and(users.status.eq(Users.USER_STATUS.APPROVED));
 
         return Optional.ofNullable(
                 queryFactory

@@ -229,7 +229,7 @@ public class AuthController {
         testUser.setLoginId("user1");
         testUser.setNameKr("nameKr");
         testUser.setRole(Role.PLATFORM_ADMIN);
-        testUser.setStatus(USER_STATUS.ACTIVE);
+        testUser.setStatus(USER_STATUS.APPROVED);
         testUser.setCreatedAt(LocalDateTime.now());
         testUser.setUpdatedAt(LocalDateTime.now());
         testUser.setCountryId(Long.valueOf(1));
@@ -248,7 +248,7 @@ public class AuthController {
         testUser.setLoginId("user2");
         testUser.setNameKr("nameKr2");
         testUser.setRole(Role.PLATFORM_ADMIN);
-        testUser.setStatus(USER_STATUS.ACTIVE);
+        testUser.setStatus(USER_STATUS.APPROVED);
         testUser.setCreatedAt(LocalDateTime.now());
         testUser.setUpdatedAt(LocalDateTime.now());
         testUser.setCountryId(Long.valueOf(1));

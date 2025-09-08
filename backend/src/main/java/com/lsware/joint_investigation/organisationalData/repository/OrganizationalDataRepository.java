@@ -32,7 +32,7 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.eq(countryId));
         builder.and(users.role.eq(Role.INVESTIGATOR));
-        builder.and(users.status.eq(Users.USER_STATUS.ACTIVE));
+        builder.and(users.status.eq(Users.USER_STATUS.APPROVED));
 
         return queryFactory
                 .selectFrom(users)
@@ -48,7 +48,7 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.ne(excludeCountryId));
         builder.and(users.role.eq(Role.INV_ADMIN));
-        builder.and(users.status.eq(Users.USER_STATUS.ACTIVE));
+        builder.and(users.status.eq(Users.USER_STATUS.APPROVED));
 
         return queryFactory
                 .selectFrom(users)
