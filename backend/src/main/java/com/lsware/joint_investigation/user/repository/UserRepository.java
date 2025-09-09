@@ -81,7 +81,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     public Boolean updateProfileByUserId(UUID userId, UserDto userDto, String avatar) {
         JPAUpdateClause clause = queryFactory.update(users)
                 .where(users.userId.eq(userId))
-                .set(users.countryId, Long.valueOf(userDto.getCountryId()))
+                //.set(users.countryId, Long.valueOf(userDto.getCountryId()))
                 .set(users.headquarterId, Long.valueOf(userDto.getHeadquarterId()))
                 .set(users.departmentId, Long.valueOf(userDto.getDepartmentId()))
                 .set(users.phone, userDto.getPhone())
@@ -89,6 +89,16 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         if (avatar != null) {
             clause = clause.set(users.profileImageUrl, avatar);
         }
+        long updatedRows = clause.execute();
+        return updatedRows > 0;
+    }
+
+    @Transactional(readOnly = false)
+    public Boolean updateUserStatusById(UUID userId, String status) {
+        JPAUpdateClause clause = queryFactory.update(users)
+                .where(users.userId.eq(userId))
+                .set(users.status, Users.USER_STATUS.valueOf(status));
+        
         long updatedRows = clause.execute();
         return updatedRows > 0;
     }

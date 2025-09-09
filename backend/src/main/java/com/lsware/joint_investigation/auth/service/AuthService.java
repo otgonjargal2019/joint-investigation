@@ -1,6 +1,8 @@
 package com.lsware.joint_investigation.auth.service;
 
 import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,5 +46,17 @@ public class AuthService {
             throw new IllegalArgumentException("user found with this EMAIL.");
         }
         return false;
+    }
+
+    
+    public Users updateUserPassword(UUID userId, String password) {
+        Optional<Users> userOptional = userRepository.findByUserId(userId);
+        if (!userOptional.isPresent()) {
+            throw new IllegalArgumentException("No user found with this email.");
+        }
+
+        Users user = userOptional.get();
+        user.setPasswordHash(passwordEncoder.encode(password));
+        return userRepository.save(user);
     }
 }
