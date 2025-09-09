@@ -1,8 +1,10 @@
 "use client";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+
+import { toast } from "react-toastify";
 
 import Card from "@/shared/components/card";
 import AssignTable from "./assignTable";
@@ -12,13 +14,14 @@ import TreeView from "@/shared/components/treeView";
 import Modal from "@/shared/components/modal";
 import { Table, Thead2, Tbody, Tr, Th2, Td } from "@/shared/components/table";
 import { useCurrentCountryOrganizationTree, useForeignInvAdminsTree } from "@/entities/organizationalData";
+import { useAssignUsersToCase } from "@/entities/case/api";
 import {
   tableColumns,
-  tableData,
   tableColumns2,
 } from "@/shared/widgets/manager/mockData";
 
 function InvestigatorAssign({ setActiveTab, createdCaseId }) {
+  const router = useRouter();
   const [queryCurrentCountry, setQueryCurrentCountry] = useState("");
   const [queryOtherCountries, setQueryOtherCountries] = useState("");
   const [data, setData] = useState([]);
@@ -32,6 +35,9 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
 
   // Fetch foreign INV_ADMIN data with search functionality
   const { data: foreignInvAdminsData, isLoading: isForeignLoading, error: foreignError } = useForeignInvAdminsTree(queryOtherCountries);
+
+  // Case assignment mutation
+  const assignUsersMutation = useAssignUsersToCase();
 
   const transformToTreeData = (currentCountry) => {
     if (!currentCountry) return [];
@@ -118,28 +124,45 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
     ]);
   };
 
-  // useEffect(() => {
-  //   if (tableData) {
-  //     const updatedData = tableData.map((row) => ({
-  //       ...row,
-  //       action: (
-  //         <Trash2 size={20} onClick={() => removeCurrentCountryInvestigator(row.id)} />
-  //       ),
-  //     }));
-  //     setData(updatedData);
-  //   }
-  // }, [tableData]);
+  const onClickSave = async () => {
+    // Extract user IDs from the data state
+    const userIds = data.map(item => item.id);
 
-  const router = useRouter();
+    if (!createdCaseId) {
+      console.error("No case ID provided");
+      return;
+    }
 
-  const onClickSave = () => {
-    //role shalgaad
-    // go to manager/incident
-    //or /investigtor/incident
-    console.log("Saved investigators:", data);
-    // setTimeout(() => {
-    //   router.push("/manager/incident");
-    // }, 1500);
+    if (userIds.length === 0) {
+      console.warn("No investigators selected");
+      return;
+    }
+
+    try {
+      console.log("Assigning investigators to case:", { caseId: createdCaseId, userIds });
+
+      const result = await assignUsersMutation.mutateAsync({
+        caseId: createdCaseId,
+        userIds: userIds
+      });
+
+      console.log("Successfully assigned investigators:", result);
+
+      toast.success(t('case-detail.create-success'), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+
+      router.push("/manager/cases");
+
+    } catch (error) {
+      console.error("Failed to assign investigators:", error);
+      // TODO: Show error notification to user
+    }
   };
 
   const onGoBack = () => {
@@ -218,8 +241,9 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
           type="submit"
           className="w-[148px]"
           onClick={onClickSave}
+          disabled={assignUsersMutation.isPending}
         >
-          {t("save")}
+          {assignUsersMutation.isPending ? "Saving..." : t("save")}
         </Button>
       </div>
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} size="xxl">
