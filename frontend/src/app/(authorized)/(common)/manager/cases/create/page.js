@@ -251,7 +251,7 @@ function CreateNewCase() {
           )}
 
           {activeTab === 1 && (
-            <InvestigatorAssign setActiveTab={setActiveTab} />
+            <InvestigatorAssign setActiveTab={setActiveTab} createdCaseId={createdCaseId} />
           )}
         </div>
       </div>

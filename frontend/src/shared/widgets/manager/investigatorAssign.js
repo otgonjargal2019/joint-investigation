@@ -18,7 +18,7 @@ import {
   tableColumns2,
 } from "@/shared/widgets/manager/mockData";
 
-function InvestigatorAssign({ setActiveTab }) {
+function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   const [queryCurrentCountry, setQueryCurrentCountry] = useState("");
   const [queryOtherCountries, setQueryOtherCountries] = useState("");
   const [data, setData] = useState([]);
