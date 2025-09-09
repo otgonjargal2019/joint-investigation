@@ -76,7 +76,7 @@ function InvestigatorAssign({ setActiveTab }) {
             label: invAdmin.nameKr || invAdmin.nameEn,
             type: "employee",
             nation: country.countryName,
-            role: "수사관",
+            role: invAdmin.role,
             userId: invAdmin.userId,
             email: invAdmin.email,
             phone: invAdmin.phone
@@ -136,9 +136,10 @@ function InvestigatorAssign({ setActiveTab }) {
     //role shalgaad
     // go to manager/incident
     //or /investigtor/incident
-    setTimeout(() => {
-      router.push("/manager/incident");
-    }, 1500);
+    console.log("Saved investigators:", data);
+    // setTimeout(() => {
+    //   router.push("/manager/incident");
+    // }, 1500);
   };
 
   const onGoBack = () => {
@@ -290,13 +291,12 @@ function InvestigatorAssign({ setActiveTab }) {
             onClick={() => {
               setData((prev) => [
                 ...prev,
-                ...data2.map((item, index) => ({
+                ...data2.filter(item => data.find(existing => existing.id === item.id) === undefined).map((item, index) => ({
                   ...item,
-                  id: item.userId,
                   action: (
                     <Trash2
                       size={20}
-                      onClick={() => removeCurrentCountryInvestigator(item.userId)}
+                      onClick={() => removeCurrentCountryInvestigator(item.id)}
                     />
                   ),
                 })),
