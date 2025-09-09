@@ -117,4 +117,21 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
                 .limit(size)
                 .fetch();
     }
+
+    /**
+     * Find users by multiple user IDs
+     */
+    public List<Users> findByUserIds(List<UUID> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(users.userId.in(userIds));
+
+        return queryFactory
+                .selectFrom(users)
+                .where(builder)
+                .fetch();
+    }
 }

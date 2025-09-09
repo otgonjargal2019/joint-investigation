@@ -3,8 +3,11 @@ package com.lsware.joint_investigation.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.cases.entity.CaseAssignee;
 import com.lsware.joint_investigation.user.dto.UserDto;
 
 @Entity
@@ -62,6 +65,10 @@ public class Users {
 
     @Column(name = "department_id", nullable = false)
     private Long departmentId;
+
+    // Many-to-many relationship with Cases through CaseAssignee
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<CaseAssignee> caseAssignments = new ArrayList<>();
 
     public enum USER_STATUS {
         PENDING,
