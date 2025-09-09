@@ -11,7 +11,7 @@ import Button from "@/shared/components/button";
 import TreeView from "@/shared/components/treeView";
 import Modal from "@/shared/components/modal";
 import { Table, Thead2, Tbody, Tr, Th2, Td } from "@/shared/components/table";
-import { useCurrentCountryOrganizationTree, useOrganizationalData } from "@/entities/organizationalData";
+import { useCurrentCountryOrganizationTree, useForeignInvAdminsTree } from "@/entities/organizationalData";
 import {
   tableColumns,
   tableData,
@@ -29,37 +29,37 @@ function InvestigatorAssign({ setActiveTab }) {
 
   // Fetch organizational data with search functionality
   const { data: currentCountryData, isLoading, error } = useCurrentCountryOrganizationTree(queryCurrentCountry);
-  
-  // Fetch complete organizational data for foreign investigators modal
-  const { data: organizationalData, isLoading: isForeignLoading, error: foreignError } = useOrganizationalData();
+
+  // Fetch foreign INV_ADMIN data with search functionality
+  const { data: foreignInvAdminsData, isLoading: isForeignLoading, error: foreignError } = useForeignInvAdminsTree(queryOtherCountries);
 
   const transformToTreeData = (currentCountry) => {
-      if (!currentCountry) return [];
-      return (currentCountry.headquarters || []).map(hq => ({
-          name: hq.headquarterName,
-          label: hq.headquarterName,
-          type: "headquarter",
+    if (!currentCountry) return [];
+    return (currentCountry.headquarters || []).map(hq => ({
+      name: hq.headquarterName,
+      label: hq.headquarterName,
+      type: "headquarter",
+      nation: currentCountry.countryName,
+      children: (hq.departments || []).map(dept => ({
+        name: dept.departmentName,
+        label: dept.departmentName,
+        type: "department",
+        nation: currentCountry.countryName,
+        children: (dept.investigators || []).map(inv => ({
+          name: inv.nameKr,
+          label: inv.nameKr,
+          type: "employee",
+          role: inv.rank || "Investigator",
           nation: currentCountry.countryName,
-          children: (hq.departments || []).map(dept => ({
-            name: dept.departmentName,
-            label: dept.departmentName,
-            type: "department",
-            nation: currentCountry.countryName,
-            children: (dept.investigators || []).map(inv => ({
-              name: inv.nameKr,
-              label: inv.nameKr,
-              type: "employee",
-              role: inv.rank || "Investigator",
-              nation: currentCountry.countryName,
-              headquarterName: hq.headquarterName,
-              departmentName: dept.departmentName,
-              userId: inv.userId,
-              email: inv.email,
-              phone: inv.phone
-            }))
-          }))
-        }));
-    };
+          headquarterName: hq.headquarterName,
+          departmentName: dept.departmentName,
+          userId: inv.userId,
+          email: inv.email,
+          phone: inv.phone
+        }))
+      }))
+    }));
+  };
 
   const transformForeignInvAdminsToTreeData = (foreignInvAdmins) => {
     if (!foreignInvAdmins || !Array.isArray(foreignInvAdmins)) return [];
@@ -77,6 +77,9 @@ function InvestigatorAssign({ setActiveTab }) {
             type: "employee",
             nation: country.countryName,
             role: "수사관",
+            userId: invAdmin.userId,
+            email: invAdmin.email,
+            phone: invAdmin.phone
           };
         }),
       };
@@ -235,7 +238,7 @@ function InvestigatorAssign({ setActiveTab }) {
               </div>
             ) : (
               <TreeView
-                data={transformForeignInvAdminsToTreeData(organizationalData?.foreignInvAdmins)}
+                data={transformForeignInvAdminsToTreeData(foreignInvAdminsData)}
                 onClick={chooseForeignInvestigator}
               />
             )}
