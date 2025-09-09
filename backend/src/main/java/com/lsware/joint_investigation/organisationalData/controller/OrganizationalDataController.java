@@ -115,7 +115,7 @@ public class OrganizationalDataController {
             }
 
             CountryOrganizationTreeDto result = organizationalDataService
-                    .getCurrentCountryOrganizationTree(currentUserCountryId, searchWord, searchWord, searchWord, searchWord);
+                    .getCurrentCountryOrganizationTree(currentUserCountryId, searchWord);
             log.info("Successfully retrieved current country organizational tree for user {} from country {} with searchWord: '{}'", 
                     customUser.getId(), currentUserCountryId, searchWord);
             return ResponseEntity.ok(result);

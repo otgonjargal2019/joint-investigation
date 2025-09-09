@@ -27,6 +27,50 @@ public class OrganizationalDataService {
     }
 
     /**
+     * API 1: Get organizational tree structure for current user's country with unified search
+     * Returns headquarters, departments and INVESTIGATOR users from the same country
+     * Searches across country name, headquarter name, department name, and investigator name using OR operator
+     */
+    public CountryOrganizationTreeDto getCurrentCountryOrganizationTree(Long currentUserCountryId, String searchWord) {
+        // Get country information
+        Country country = organizationalDataRepository.findCountryById(currentUserCountryId);
+        if (country == null) {
+            throw new IllegalArgumentException("Country not found with ID: " + currentUserCountryId);
+        }
+
+        // If search word is provided, check if country matches, otherwise get all data
+        boolean includeCountry = true;
+        if (searchWord != null && !searchWord.trim().isEmpty()) {
+            includeCountry = country.getName().toLowerCase().contains(searchWord.toLowerCase());
+        }
+
+        List<HeadquarterTreeNodeDto> headquarterNodes = new ArrayList<>();
+        
+        if (includeCountry || (searchWord != null && !searchWord.trim().isEmpty())) {
+            // Get filtered data from repository using unified search
+            List<Headquarter> headquarters = organizationalDataRepository.findHeadquartersByCountryIdWithUnifiedSearch(
+                    currentUserCountryId, searchWord);
+
+            List<Department> departments = organizationalDataRepository.findDepartmentsByCountryIdWithUnifiedSearch(
+                    currentUserCountryId, searchWord);
+
+            List<Users> investigators = organizationalDataRepository.findInvestigatorsByCountryIdWithUnifiedSearch(
+                    currentUserCountryId, searchWord);
+
+            // Build the tree structure with filtered data
+            headquarterNodes = buildFilteredHeadquarterTreeWithUnifiedSearch(
+                    headquarters, departments, investigators, searchWord);
+        }
+
+        return new CountryOrganizationTreeDto(
+                country.getId(),
+                country.getUuid(),
+                country.getName(),
+                country.getCode(),
+                headquarterNodes);
+    }
+
+    /**
      * API 1: Get organizational tree structure for current user's country with search filters
      * Returns headquarters, departments and INVESTIGATOR users from the same country
      * Supports filtering by country name, headquarter name, department name, and investigator name
@@ -143,6 +187,55 @@ public class OrganizationalDataService {
                 .map(hq -> {
                     List<Department> hqDepartments = departmentsByHeadquarter.getOrDefault(hq.getId(),
                             new ArrayList<>());
+                    List<DepartmentTreeNodeDto> departmentNodes = hqDepartments.stream()
+                            .map(dept -> {
+                                List<Users> deptInvestigators = investigatorsByDepartment.getOrDefault(dept.getId(),
+                                        new ArrayList<>());
+                                List<UserTreeNodeDto> investigatorNodes = deptInvestigators.stream()
+                                        .map(this::convertToUserTreeNode)
+                                        .collect(Collectors.toList());
+
+                                return new DepartmentTreeNodeDto(
+                                        dept.getId(),
+                                        dept.getUuid(),
+                                        dept.getName(),
+                                        investigatorNodes);
+                            })
+                            .collect(Collectors.toList());
+
+                    return new HeadquarterTreeNodeDto(
+                            hq.getId(),
+                            hq.getUuid(),
+                            hq.getName(),
+                            departmentNodes);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Build filtered headquarter tree with unified search
+     * Since filtering is done at repository level, this method mainly organizes the data
+     */
+    private List<HeadquarterTreeNodeDto> buildFilteredHeadquarterTreeWithUnifiedSearch(
+            List<Headquarter> headquarters,
+            List<Department> departments,
+            List<Users> investigators,
+            String searchWord) {
+
+        // Group departments by headquarter ID
+        Map<Long, List<Department>> departmentsByHeadquarter = departments.stream()
+                .collect(Collectors.groupingBy(dept -> dept.getHeadquarter().getId()));
+
+        // Group investigators by department ID
+        Map<Long, List<Users>> investigatorsByDepartment = investigators.stream()
+                .filter(user -> user.getDepartmentId() != null)
+                .collect(Collectors.groupingBy(Users::getDepartmentId));
+
+        return headquarters.stream()
+                .map(hq -> {
+                    List<Department> hqDepartments = departmentsByHeadquarter.getOrDefault(hq.getId(),
+                            new ArrayList<>());
+                    
                     List<DepartmentTreeNodeDto> departmentNodes = hqDepartments.stream()
                             .map(dept -> {
                                 List<Users> deptInvestigators = investigatorsByDepartment.getOrDefault(dept.getId(),

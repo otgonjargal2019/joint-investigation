@@ -216,6 +216,101 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
     }
 
     /**
+     * Get investigators for a specific country with unified search across all fields using OR operator
+     * Searches for the searchWord in country name, headquarter name, department name, or user name
+     */
+    public List<Users> findInvestigatorsByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(users.countryId.eq(countryId));
+        builder.and(users.role.eq(Role.INVESTIGATOR));
+        builder.and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
+
+        if (searchWord != null && !searchWord.trim().isEmpty()) {
+            String trimmedSearch = searchWord.trim();
+            BooleanBuilder searchBuilder = new BooleanBuilder();
+            
+            searchBuilder.or(headquarter.name.containsIgnoreCase(searchWord.trim()));
+            searchBuilder.or(department.name.containsIgnoreCase(searchWord.trim()));
+            // Search in user names (Korean or English)
+            searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
+            searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
+            
+            builder.and(searchBuilder);
+        }
+
+        // Always join with department, headquarter, and country for complete data access
+        return queryFactory
+                .selectFrom(users)
+                .join(department).on(users.departmentId.eq(department.id))
+                .join(headquarter).on(department.headquarter.id.eq(headquarter.id))
+                .join(country).on(users.countryId.eq(country.id))
+                .where(builder)
+                .orderBy(headquarter.name.asc(), department.name.asc(), users.nameKr.asc())
+                .fetch();
+    }
+
+    /**
+     * Get headquarters for a specific country with unified search
+     */
+    public List<Headquarter> findHeadquartersByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(headquarter.country.id.eq(countryId));
+
+        if (searchWord != null && !searchWord.trim().isEmpty()) {
+            String trimmedSearch = searchWord.trim();
+            BooleanBuilder searchBuilder = new BooleanBuilder();
+            
+            // Search in country name or headquarter name
+            searchBuilder.or(headquarter.name.containsIgnoreCase(trimmedSearch));
+            
+            // Also search in departments and users associated with this headquarter
+            searchBuilder.or(department.name.containsIgnoreCase(trimmedSearch));
+            searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
+            searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
+            
+            builder.and(searchBuilder);
+        }
+
+        return queryFactory
+                .selectFrom(headquarter)
+                .leftJoin(department).on(department.headquarter.id.eq(headquarter.id))
+                .leftJoin(users).on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR)).and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
+                .where(builder)
+                .distinct()
+                .orderBy(headquarter.name.asc())
+                .fetch();
+    }
+
+    /**
+     * Get departments for a specific country with unified search
+     */
+    public List<Department> findDepartmentsByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(department.headquarter.country.id.eq(countryId));
+
+        if (searchWord != null && !searchWord.trim().isEmpty()) {
+            String trimmedSearch = searchWord.trim();
+            BooleanBuilder searchBuilder = new BooleanBuilder();
+            
+            // Search in headquarter name, department name, or user names
+            searchBuilder.or(department.headquarter.name.containsIgnoreCase(trimmedSearch));
+            searchBuilder.or(department.name.containsIgnoreCase(trimmedSearch));
+            searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
+            searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
+            
+            builder.and(searchBuilder);
+        }
+
+        return queryFactory
+                .selectFrom(department)
+                .leftJoin(users).on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR)).and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
+                .where(builder)
+                .distinct()
+                .orderBy(department.name.asc())
+                .fetch();
+    }
+
+    /**
      * Get all countries except the specified one with optional name search
      */
     public List<Country> findOtherCountriesWithSearch(Long excludeCountryId, List<Long> countryIds, String countryName) {
