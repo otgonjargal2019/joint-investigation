@@ -11,7 +11,7 @@ import Button from "@/shared/components/button";
 import TreeView from "@/shared/components/treeView";
 import Modal from "@/shared/components/modal";
 import { Table, Thead2, Tbody, Tr, Th2, Td } from "@/shared/components/table";
-import { useOrganizationalData } from "@/entities/organizationalData";
+import { useCurrentCountryOrganizationTree, useOrganizationalData } from "@/entities/organizationalData";
 import {
   tableColumns,
   tableData,
@@ -19,17 +19,22 @@ import {
 } from "@/shared/widgets/manager/mockData";
 
 function InvestigatorAssign({ setActiveTab }) {
-  const [query, setQuery] = useState("");
+  const [queryCurrentCountry, setQueryCurrentCountry] = useState("");
+  const [queryOtherCountries, setQueryOtherCountries] = useState("");
   const [data, setData] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [data2, setData2] = useState([]);
   const t = useTranslations();
 
-  // Fetch organizational data
-  const { data: organizationalData, isLoading, error } = useOrganizationalData();
+  // Fetch organizational data with search functionality
+  const { data: currentCountryData, isLoading, error } = useCurrentCountryOrganizationTree(queryCurrentCountry);
+  
+  // Fetch complete organizational data for foreign investigators modal
+  const { data: organizationalData, isLoading: isForeignLoading, error: foreignError } = useOrganizationalData();
 
   const transformToTreeData = (currentCountry) => {
+      if (!currentCountry) return [];
       return (currentCountry.headquarters || []).map(hq => ({
           name: hq.headquarterName,
           label: hq.headquarterName,
@@ -161,8 +166,8 @@ function InvestigatorAssign({ setActiveTab }) {
       <div className="flex justify-center gap-4">
         <Card className={"w-[250px] min-h-[500px]"}>
           <Search
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={queryCurrentCountry}
+            onChange={(e) => setQueryCurrentCountry(e.target.value)}
             placeholder="이름/소속/부서"
           />
           {isLoading ? (
@@ -175,7 +180,7 @@ function InvestigatorAssign({ setActiveTab }) {
             </div>
           ) : (
             <TreeView
-              data={transformToTreeData(organizationalData.currentCountryOrganization)}
+              data={transformToTreeData(currentCountryData)}
               onClick={chooseCurrentCountryInvestigator}
             />
           )}
@@ -216,15 +221,15 @@ function InvestigatorAssign({ setActiveTab }) {
             className={"w-[300px] min-h-[414px] border-r border-color-97 pr-4"}
           >
             <Search
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={queryOtherCountries}
+              onChange={(e) => setQueryOtherCountries(e.target.value)}
               placeholder="이름/소속/부서"
             />
-            {isLoading ? (
+            {isForeignLoading ? (
               <div className="flex justify-center items-center h-32">
                 <div className="text-sm text-gray-500">Loading...</div>
               </div>
-            ) : error ? (
+            ) : foreignError ? (
               <div className="flex justify-center items-center h-32">
                 <div className="text-sm text-red-500">Error loading data</div>
               </div>
