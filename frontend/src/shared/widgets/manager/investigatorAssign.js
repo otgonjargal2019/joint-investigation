@@ -1,6 +1,6 @@
 "use client";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -86,7 +86,7 @@ function InvestigatorAssign({ setActiveTab }) {
     });
   };
 
-  const removeKoInvestigator = (id) => {
+  const removeCurrentCountryInvestigator = (id) => {
     setData((prevData) => prevData.filter((row) => row.id !== id));
   };
 
@@ -95,10 +95,14 @@ function InvestigatorAssign({ setActiveTab }) {
   };
 
   const chooseCurrentCountryInvestigator = (obj) => {
+    // console.log("obj", obj);
+    if (data.find(item => item.id === obj.userId)) {
+      return;
+    }
     setData((prev) => [
       ...prev,
       {
-        id: prev?.length + 1,
+        id: obj.userId,
         nation: obj.nation,
         role: obj.role,
         investigator: obj.label,
@@ -107,24 +111,24 @@ function InvestigatorAssign({ setActiveTab }) {
         action: (
           <Trash2
             size={20}
-            onClick={() => removeKoInvestigator(prev?.length + 1)}
+            onClick={() => removeCurrentCountryInvestigator(obj.userId)}
           />
         ),
       },
     ]);
   };
 
-  useEffect(() => {
-    if (tableData) {
-      const updatedData = tableData.map((row) => ({
-        ...row,
-        action: (
-          <Trash2 size={20} onClick={() => removeKoInvestigator(row.id)} />
-        ),
-      }));
-      setData(updatedData);
-    }
-  }, [tableData]);
+  // useEffect(() => {
+  //   if (tableData) {
+  //     const updatedData = tableData.map((row) => ({
+  //       ...row,
+  //       action: (
+  //         <Trash2 size={20} onClick={() => removeCurrentCountryInvestigator(row.id)} />
+  //       ),
+  //     }));
+  //     setData(updatedData);
+  //   }
+  // }, [tableData]);
 
   const router = useRouter();
 
@@ -142,21 +146,24 @@ function InvestigatorAssign({ setActiveTab }) {
   };
 
   const chooseForeignInvestigator = (obj) => {
-    console.log(obj);
+    // console.log(obj);
+    if (data2.find(item => item.id === obj.userId)) {
+      return;
+    }
     if (obj.type === "employee") {
       setData2((prev) => [
         ...prev,
         {
-          id: prev?.length + 1,
+          id: obj.userId,
           nation: obj.countryName || obj.nation,
           role: obj.role,
           investigator: obj.label,
-          affiliation: obj.countryName || obj.nation,
+          affiliation: "-", // obj.countryName || obj.nation,
           department: "-", // Foreign investigators don't have departments in this structure
           action: (
             <Trash2
               size={20}
-              onClick={() => removeForeignInvestgator(prev?.length + 1)}
+              onClick={() => removeForeignInvestgator(obj.userId)}
             />
           ),
         },
@@ -285,11 +292,11 @@ function InvestigatorAssign({ setActiveTab }) {
                 ...prev,
                 ...data2.map((item, index) => ({
                   ...item,
-                  id: prev.length + index,
+                  id: item.userId,
                   action: (
                     <Trash2
                       size={20}
-                      onClick={() => removeKoInvestigator(prev.length + index)}
+                      onClick={() => removeCurrentCountryInvestigator(item.userId)}
                     />
                   ),
                 })),
