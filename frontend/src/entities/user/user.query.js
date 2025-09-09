@@ -7,7 +7,7 @@ export const userQuery = {
     queryOptions({
       queryKey: [...userQuery.all(), status, page, size],
       queryFn: async () => {
-        const response = await axiosInstance.get(`/api/users`, {
+        const response = await axiosInstance.get(`/api/user/list`, {
           params: { status, page, size },
         });
         return response.data;
@@ -18,7 +18,7 @@ export const userQuery = {
     queryOptions({
       queryKey: [...userQuery.all(), userId],
       queryFn: async () => {
-        const response = await axiosInstance.get(`/api/users/${userId}`);
+        const response = await axiosInstance.get(`/api/user/${userId}`);
         return response.data;
       },
       enabled: !!userId,

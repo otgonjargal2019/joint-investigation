@@ -4,14 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.lsware.joint_investigation.common.dto.ApiResponse;
 import com.lsware.joint_investigation.common.util.CustomResponseException;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.config.customException.FileNotStoredException;
@@ -27,7 +35,10 @@ import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
@@ -62,23 +73,23 @@ public class UserController {
             response.put("userId", userDetail.getId());
             Optional<Users> me = userRepository.findByUserId(userDetail.getId());
             if (me.isPresent()) {
-                List<Country>       listCountry =           countryRepository.findAll();
-                List<Headquarter>   listHeadquarter =       headquarterRepository.findAll();
-                List<Department>    listDepartments =       departmentRepository.findAll();
+                List<Country> listCountry = countryRepository.findAll();
+                List<Headquarter> listHeadquarter = headquarterRepository.findAll();
+                List<Department> listDepartments = departmentRepository.findAll();
 
-                response.put("loginId",     me.get().getLoginId());
-                response.put("nameKr",      me.get().getNameKr());
-                response.put("nameEn",      me.get().getNameEn());
-                response.put("country",     me.get().getCountry());
-                response.put("department",  me.get().getDepartment());
-                response.put("phone",       me.get().getPhone());
-                response.put("email",       me.get().getEmail());
-                response.put("avatar",      me.get().getProfileImageUrl());
+                response.put("loginId", me.get().getLoginId());
+                response.put("nameKr", me.get().getNameKr());
+                response.put("nameEn", me.get().getNameEn());
+                response.put("country", me.get().getCountry());
+                response.put("department", me.get().getDepartment());
+                response.put("phone", me.get().getPhone());
+                response.put("email", me.get().getEmail());
+                response.put("avatar", me.get().getProfileImageUrl());
 
-                response.put("listCountry",     listCountry);
+                response.put("listCountry", listCountry);
                 response.put("listHeadquarter", listHeadquarter);
                 response.put("listDepartments", listDepartments);
-                response.put("userData",        me.get());
+                response.put("userData", me.get());
             } else {
                 return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
             }
@@ -87,7 +98,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
 
-    @PostMapping(path = "/profile", consumes = { "multipart/form-data"})
+    @PostMapping(path = "/profile", consumes = { "multipart/form-data" })
     public ResponseEntity<HashMap<String, Object>> profile(
             @RequestPart(name = "profileImg", required = false) MultipartFile file,
             @RequestPart("profile") UserDto profile,
@@ -113,7 +124,8 @@ public class UserController {
     }
 
     @DeleteMapping("/deleteProfile")
-    public ResponseEntity<HashMap<String, Object>> deleteProfile(Authentication authentication) throws CustomResponseException {
+    public ResponseEntity<HashMap<String, Object>> deleteProfile(Authentication authentication)
+            throws CustomResponseException {
         if (authentication.isAuthenticated()) {
             CustomUser userDetail = (CustomUser) authentication.getPrincipal();
             HashMap<String, Object> response = new HashMap<String, Object>();
@@ -134,6 +146,68 @@ public class UserController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
+    }
+
+    @GetMapping("list")
+    public ResponseEntity<MappingJacksonValue> getUsers(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(value = "status", required = false) Users.USER_STATUS status) {
+
+        List<Users> users;
+
+        if (status != null) {
+            users = userRepository.findByStatus(status, page, size);
+        } else {
+            users = userRepository.findAll(page, size);
+        }
+
+        List<UserDto> dtos = users.stream()
+                .map(Users::toDto)
+                .collect(Collectors.toList());
+
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("currentPage", page);
+        meta.put("pageSize", size);
+        meta.put("totalItems", dtos.size());
+        meta.put("totalPages", (int) Math.ceil((double) dtos.size() / size));
+        meta.put("hasNext", dtos.size() == size);
+        meta.put("hasPrevious", page > 0);
+
+        ApiResponse<List<UserDto>> response = new ApiResponse<>(
+                true,
+                "Users retrieved successfully",
+                dtos,
+                meta);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(response);
+        mapping.setFilters(getUserFilter());
+
+        return ResponseEntity.ok(mapping);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MappingJacksonValue> getUserById(@PathVariable UUID id) {
+        return userRepository.findByUserId(id)
+                .map(user -> {
+                    UserDto dto = user.toDto();
+                    ApiResponse<UserDto> response = new ApiResponse<>(
+                            true,
+                            "User retrieved successfully",
+                            dto,
+                            null);
+                    MappingJacksonValue mapping = new MappingJacksonValue(response);
+                    mapping.setFilters(getUserFilter());
+                    return ResponseEntity.ok(mapping);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private FilterProvider getUserFilter() {
+        SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone",
+                        "country", "department", "status", "createdAt");
+
+        return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }
 
 }

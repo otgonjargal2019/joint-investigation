@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 
 import { getUserFromCookie } from "@/app/actions/auth";
-import { roles } from "@/shared/roleDic";
+import { ROLES } from "@/shared/dictionary";
 
 export default async function InvestigatorLayout({ children }) {
   const user = await getUserFromCookie();
 
-  //only for roles.INVESTIGATOR
-  if (user.role !== roles.INVESTIGATOR) {
+  //only for ROLES.INVESTIGATOR
+  if (user.role !== ROLES.INVESTIGATOR) {
     notFound();
   }
 

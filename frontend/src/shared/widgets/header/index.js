@@ -19,7 +19,7 @@ import Layers from "../../components/icons/layers";
 import { useAuth } from "@/providers/authProviders";
 import { logout } from "@/app/actions/auth";
 import { useMessenger } from "@/providers/messengerProvider";
-import { roles } from "@/shared/roleDic";
+import { ROLES } from "@/shared/dictionary";
 
 const Header = () => {
   const pathname = usePathname();
@@ -38,12 +38,12 @@ const Header = () => {
   // console.log("header dotroos role:", user.role);
 
   const incidentLink = useMemo(() => {
-    if (user?.role === roles.PLATFORM_ADMIN || user?.role === roles.INV_ADMIN) {
+    if (user?.role === ROLES.PLATFORM_ADMIN || user?.role === ROLES.INV_ADMIN) {
       return "/manager/cases";
     } else if (
-      user?.role === roles.INVESTIGATOR ||
-      user?.role === roles.RESEARCHER ||
-      user?.role === roles.COPYRIGHT_HOLDER
+      user?.role === ROLES.INVESTIGATOR ||
+      user?.role === ROLES.RESEARCHER ||
+      user?.role === ROLES.COPYRIGHT_HOLDER
     ) {
       return "/investigator/incident";
     }
@@ -91,7 +91,7 @@ const Header = () => {
           <Indent color="currentColor" />
           {t("header.status-edition-summary")}
         </button>
-        {user.role === roles.PLATFORM_ADMIN ? (
+        {user.role === ROLES.PLATFORM_ADMIN ? (
           <>
             <button
               className={`header-btn ${
@@ -259,7 +259,7 @@ const Header = () => {
                 {t("header.status-edition-summary")}
               </button>
 
-              {user.role === roles.PLATFORM_ADMIN ? (
+              {user.role === ROLES.PLATFORM_ADMIN ? (
                 <>
                   <button
                     className={`header-btn mobile-btn ${
