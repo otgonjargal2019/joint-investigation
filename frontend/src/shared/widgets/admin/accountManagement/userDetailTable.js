@@ -80,7 +80,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.status}
+            {userInfo.role}
           </td>
         </tr>
       </tbody>

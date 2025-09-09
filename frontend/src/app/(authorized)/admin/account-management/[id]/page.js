@@ -15,7 +15,7 @@ import CheckCircle from "@/shared/components/icons/checkCircle";
 import Modal from "@/shared/components/modal";
 import Textarea from "@/shared/components/form/textarea";
 import UserDetailTable from "@/shared/widgets/admin/accountManagement/userDetailTable";
-import UserDetailTableWithPermissionChange from "@/shared/widgets/admin/accountManagement/userDetailTableWithPersimission";
+import UserDetailWithRoleChange from "@/shared/widgets/admin/accountManagement/userDetailWithRoleChange";
 import UserInfoChangeCompare from "@/shared/widgets/admin/accountManagement/userInfoChangeCompare";
 import { USERSTATUS } from "@/shared/dictionary";
 import { userQuery, useUpdateUserStatus } from "@/entities/user";
@@ -37,44 +37,58 @@ const UserDetailPage = ({ params }) => {
   const {
     register,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm();
+
   const [modalOpen, setModalOpen] = useState(false);
+  const [nextStatus, setNextStatus] = useState(null);
 
   const userStatusMutation = useUpdateUserStatus();
 
-  const onApprove = () => {
-    if (user?.status === USERSTATUS.PENDING) {
-      const reason = getValues("reason");
-
-      userStatusMutation.mutate(
-        {
-          userId: user.userId,
-          status: USERSTATUS.APPROVED,
-          reason,
-        },
-        {
-          onSuccess: (res) => {
-            console.log("res:", res);
-            toast.success(res.data.message, {
-              autoClose: 3000,
-              position: "top-center",
-            });
-            setModalOpen(false);
-          },
-
-          onError: (err) => {
-            console.log("err:", err);
-            toast.error(err.response.data.message, {
-              position: "top-center",
-              autoClose: 2000,
-            });
-          },
-        }
-      );
-    } else if (user?.status === USERSTATUS.WAITING_TO_CHANGE) {
+  useEffect(() => {
+    if (setValue && user && user.status === USERSTATUS.APPROVED) {
+      setValue("role", user.role);
     }
-    // setModalOpen(false);
+  }, [user, setValue]);
+
+  const openModal = (status) => {
+    setNextStatus(status);
+    setValue("reason", "");
+    setModalOpen(true);
+  };
+
+  const onConfirmStatusChange = () => {
+    if (!user || !nextStatus) return;
+
+    const reason = getValues("reason");
+
+    console.log(nextStatus, reason);
+
+    userStatusMutation.mutate(
+      { userId: user.userId, status: nextStatus, reason },
+      {
+        onSuccess: (res) => {
+          toast.success(res.data.message, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+          setModalOpen(false);
+          router.push("/admin/account-management");
+        },
+        onError: (err) => {
+          toast.error(err.response.data.message, {
+            position: "top-center",
+            autoClose: 2000,
+          });
+        },
+      }
+    );
+  };
+
+  const onChangeRole = () => {
+    const role = getValues("role");
+    console.log("role:", role);
   };
 
   return (
@@ -99,7 +113,7 @@ const UserDetailPage = ({ params }) => {
                   variant="pink"
                   size="mediumWithShadow"
                   className="gap-3"
-                  onClick={() => setModalOpen(true)}
+                  onClick={() => openModal(USERSTATUS.REJECTED)}
                 >
                   <CancelCircle />
                   {t("refuse")}
@@ -108,7 +122,7 @@ const UserDetailPage = ({ params }) => {
                   variant="yellow"
                   size="mediumWithShadow"
                   className="gap-3"
-                  onClick={() => setModalOpen(true)}
+                  onClick={() => openModal(USERSTATUS.APPROVED)}
                 >
                   <CheckCircle />
                   {t("approve")}
@@ -122,9 +136,10 @@ const UserDetailPage = ({ params }) => {
         )}
 
         {user?.status === USERSTATUS.APPROVED && (
-          <UserDetailTableWithPermissionChange
+          <UserDetailWithRoleChange
             userInfo={user}
             register={register}
+            onSubmit={onChangeRole}
           />
         )}
 
@@ -136,15 +151,14 @@ const UserDetailPage = ({ params }) => {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} size="w568">
         <div className="space-y-8">
           <h3 className="text-color-8 text-[24px] font-medium text-center">
-            회원가입 거절
+            {nextStatus === USERSTATUS.REJECTED
+              ? "회원가입 거절"
+              : "회원가입 승인"}
           </h3>
+
           <div className="bg-color-77 rounded-20 text-color-24 text-[20px] font-normal text-center p-4 py-5">
             거절 사유를 작성해주세요
           </div>
-          {/* <textarea
-            className="w-full h-[200px] border border-color-32 rounded-10 placeholder-color-50 text-[20px] font-medium px-[20px] py-[10px]"
-            placeholder="회원가입 거절 사유 작성"
-          /> */}
           <Textarea
             name="reason"
             register={register}
@@ -164,7 +178,11 @@ const UserDetailPage = ({ params }) => {
             >
               {t("cancel")}
             </Button>
-            <Button size="form" className="w-[148px]" onClick={onApprove}>
+            <Button
+              size="form"
+              className="w-[148px]"
+              onClick={onConfirmStatusChange}
+            >
               {t("check")}
             </Button>
           </div>

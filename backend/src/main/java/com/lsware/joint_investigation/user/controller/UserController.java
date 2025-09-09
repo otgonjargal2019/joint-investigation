@@ -243,7 +243,13 @@ public class UserController {
         history.setCreator(creator);
         history.setFromStatus(oldStatus);
         history.setToStatus(request.getStatus());
-        history.setReason(request.getReason());
+
+        if (request.getReason() == null || request.getReason().isBlank()) {
+            history.setReason(null);
+        } else {
+            history.setReason(request.getReason());
+        }
+
         userStatusHistoryRepository.save(history);
 
         return ResponseEntity.ok(

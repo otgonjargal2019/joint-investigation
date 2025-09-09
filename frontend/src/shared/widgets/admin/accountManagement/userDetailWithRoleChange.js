@@ -2,8 +2,9 @@ import { useTranslations } from "next-intl";
 
 import Button from "@/shared/components/button";
 import SelectBox from "@/shared/components/form/select";
+import { ROLES } from "@/shared/dictionary";
 
-const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
+const UserDetailWithRoleChange = ({ userInfo, register, onSubmit }) => {
   const t = useTranslations();
 
   return (
@@ -17,7 +18,7 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.id}
+            {userInfo.loginId}
           </td>
         </tr>
         <tr>
@@ -28,7 +29,7 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.name}
+            {userInfo.nameKr || userInfo.nameEn}
           </td>
         </tr>
         <tr>
@@ -39,7 +40,7 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.nation}
+            {userInfo.countryName}
           </td>
         </tr>
         <tr>
@@ -47,10 +48,10 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
             {t("form.affiliation")}
           </th>
           <td className="w-[234px] bg-white border border-color-32 text-black font-normal py-3 px-4">
-            {userInfo.unit}
+            {userInfo.headquarterName}
           </td>
           <td className="w-[273px] bg-white border border-color-32 text-black font-normal py-3 px-4">
-            {userInfo.team}
+            {userInfo.departmentName}
           </td>
         </tr>
         <tr>
@@ -61,7 +62,7 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.contactInfo}
+            {userInfo.phone}
           </td>
         </tr>
         <tr>
@@ -87,14 +88,15 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
               <SelectBox
                 variant="adminForm"
                 register={register}
-                name="accountPermissions"
+                name="role"
                 options={[
-                  { label: "수사관", value: "수사관" },
-                  { label: "수사 관리자", value: "수사 관리자" },
+                  { label: "", value: "" },
+                  { label: "수사관", value: ROLES.INVESTIGATOR },
+                  { label: "수사 관리자", value: ROLES.INV_ADMIN },
                 ]}
                 showError={false}
               />
-              <Button variant="gray2" size="adminForm">
+              <Button variant="gray2" size="adminForm" onClick={onSubmit}>
                 {t("change-authority")}
               </Button>
             </div>
@@ -104,4 +106,4 @@ const UserDetailTableWithPermissionChange = ({ userInfo, register }) => {
     </table>
   );
 };
-export default UserDetailTableWithPermissionChange;
+export default UserDetailWithRoleChange;
