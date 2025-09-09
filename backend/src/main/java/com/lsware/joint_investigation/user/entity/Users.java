@@ -37,12 +37,6 @@ public class Users {
     @Column(name = "phone")
     private String phone;
 
-    @Column(name = "country", nullable = false)
-    private String country;
-
-    @Column(name = "department")
-    private String department;
-
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -84,8 +78,9 @@ public class Users {
         dto.setNameEn(this.nameEn);
         dto.setEmail(this.email);
         dto.setPhone(this.phone);
-        dto.setCountry(this.country);
-        dto.setDepartment(this.department);
+        dto.setCountryId(this.countryId);
+        dto.setHeadquarterId(this.headquarterId);
+        dto.setDepartmentId(this.departmentId);
         dto.setRole(this.role);
         dto.setStatus(this.status);
         dto.setCreatedAt(this.createdAt);

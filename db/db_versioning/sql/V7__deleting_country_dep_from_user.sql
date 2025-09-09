@@ -1,0 +1,3 @@
+ALTER TABLE users
+    DROP COLUMN IF EXISTS country,
+    DROP COLUMN IF EXISTS department;
