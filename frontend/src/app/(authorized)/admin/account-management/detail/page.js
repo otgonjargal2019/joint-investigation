@@ -15,7 +15,7 @@ import Modal from "@/shared/components/modal";
 import UserDetailTable from "@/shared/widgets/admin/accountManagement/userDetailTable";
 import UserDetailTableWithPermissionChange from "@/shared/widgets/admin/accountManagement/userDetailTableWithPersimission";
 import UserInfoChangeCompare from "@/shared/widgets/admin/accountManagement/userInfoChangeCompare";
-import { USERSTATUSDIC } from "../page";
+import { USERSTATUS } from "../page";
 import { userQuery } from "@/entities/user";
 
 const UserDetailPage = () => {
@@ -48,7 +48,7 @@ const UserDetailPage = () => {
             {t("go-back")}
           </Button>
           <div className="flex gap-2">
-            {user.status === USERSTATUSDIC.PENDING && (
+            {user.status === USERSTATUS.PENDING && (
               <>
                 <Button
                   variant="pink"
@@ -72,16 +72,16 @@ const UserDetailPage = () => {
             )}
           </div>
         </div>
-        {/* {user.status === USERSTATUSDIC.PENDING && (
+        {/* {user.status === USERSTATUS.PENDING && (
           <UserDetailTable userInfo={userObj} />
         )} */}
-        {user.status === USERSTATUSDIC.APPROVED && (
+        {user.status === USERSTATUS.APPROVED && (
           <UserDetailTableWithPermissionChange
             userInfo={user}
             register={register}
           />
         )}
-        {/* {user?.status === USERSTATUSDIC.WAITING_TO_CHANGE && (
+        {/* {user?.status === USERSTATUS.WAITING_TO_CHANGE && (
           <UserInfoChangeCompare userInfo={userObj} newUserInfo={userObjNew} />
         )} */}
       </div>

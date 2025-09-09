@@ -1,17 +1,17 @@
 import { notFound } from "next/navigation";
 
 import { getUserFromCookie } from "@/app/actions/auth";
-import { roles } from "@/shared/roleDic";
+import { ROLES } from "@/shared/dictionary";
 
 export default async function InvestigationInfoLayout({ children }) {
   const user = await getUserFromCookie();
 
-  //not for roles.PLATFORM_ADMIN
+  //not for ROLES.PLATFORM_ADMIN
   if (
-    user.role !== roles.INVESTIGATOR &&
-    user.role !== roles.INV_ADMIN &&
-    user.role !== roles.COPYRIGHT_HOLDER &&
-    user.role !== roles.RESEARCHER
+    user.role !== ROLES.INVESTIGATOR &&
+    user.role !== ROLES.INV_ADMIN &&
+    user.role !== ROLES.COPYRIGHT_HOLDER &&
+    user.role !== ROLES.RESEARCHER
   ) {
     notFound();
   }

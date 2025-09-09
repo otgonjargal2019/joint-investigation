@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { getUserFromCookie } from "@/app/actions/auth";
 import Header from "@/shared/widgets/header";
-import { roles } from "@/shared/roleDic";
+import { ROLES } from "@/shared/dictionary";
 
 export default async function AdminLayout({ children }) {
   const user = await getUserFromCookie();
 
-  if (user.role !== roles.PLATFORM_ADMIN) {
+  if (user.role !== ROLES.PLATFORM_ADMIN) {
     notFound();
   }
 

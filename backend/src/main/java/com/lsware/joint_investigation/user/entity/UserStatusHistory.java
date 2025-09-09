@@ -40,6 +40,21 @@ public class UserStatusHistory {
     @JoinColumn(name = "created_by", nullable = false)
     private Users creator;
 
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
+    @Column(name = "headquarter_id", nullable = false)
+    private Long headquarterId;
+
+    @Column(name = "department_id", nullable = false)
+    private Long departmentId;
+
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Column(name = "phone")
+    private String phone;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

@@ -19,7 +19,12 @@ CHECK (((status)::text = ANY (
 CREATE TABLE public.user_status_histories (
 	history_id uuid NOT NULL,
 	created_at timestamp(6) NOT NULL,
+	department_id int8 NOT NULL,
+	email varchar(255) NOT NULL,
 	from_status varchar(255) NOT NULL,
+	headquarter_id int8 NOT NULL,
+	phone varchar(255) NULL,
+	profile_image_url varchar(255) NULL,
 	reason varchar(250) NULL,
 	to_status varchar(255) NOT NULL,
 	created_by uuid NOT NULL,
@@ -34,3 +39,5 @@ CREATE TABLE public.user_status_histories (
 
 ALTER TABLE public.user_status_histories ADD CONSTRAINT fkft22n4sg0yfutoq7q1vid0xbo FOREIGN KEY (created_by) REFERENCES public.users(user_id);
 ALTER TABLE public.user_status_histories ADD CONSTRAINT fkrx6tew8i79jpg610qagyg7jw2 FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+ALTER TABLE public.user_status_histories ADD CONSTRAINT fk_user_status_histories_headquarter FOREIGN KEY (headquarter_id) REFERENCES headquarter(id) ON DELETE SET NULL;
+ALTER TABLE public.user_status_histories ADD CONSTRAINT fk_user_status_histories_department FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE SET NULL;
