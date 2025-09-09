@@ -74,6 +74,10 @@ public class Case {
     @OneToMany(mappedBy = "caseInstance", fetch = FetchType.LAZY)
     private List<InvestigationRecord> investigationRecords = new ArrayList<>();
 
+    // Many-to-many relationship with Users through CaseAssignee
+    @OneToMany(mappedBy = "caseInstance", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CaseAssignee> assignees = new ArrayList<>();
+
     public CaseDto toDto() {
         CaseDto dto = new CaseDto();
         dto.setCaseId(this.caseId);

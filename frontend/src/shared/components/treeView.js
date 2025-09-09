@@ -6,7 +6,7 @@ import MinusSmall from "./icons/minusSmall";
 import User from "./icons/user3";
 
 const TreeNode = ({ node, onClick }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children && node.children.length > 0;
 
   return (

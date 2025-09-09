@@ -1,8 +1,10 @@
 "use client";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+
+import { toast } from "react-toastify";
 
 import Card from "@/shared/components/card";
 import AssignTable from "./assignTable";
@@ -11,50 +13,59 @@ import Button from "@/shared/components/button";
 import TreeView from "@/shared/components/treeView";
 import Modal from "@/shared/components/modal";
 import { Table, Thead2, Tbody, Tr, Th2, Td } from "@/shared/components/table";
-import { useOrganizationalData } from "@/entities/organizationalData";
+import { useCurrentCountryOrganizationTree, useForeignInvAdminsTree } from "@/entities/organizationalData";
+import { useAssignUsersToCase } from "@/entities/case/api";
 import {
   tableColumns,
-  tableData,
   tableColumns2,
 } from "@/shared/widgets/manager/mockData";
 
-function InvestigatorAssign({ setActiveTab }) {
-  const [query, setQuery] = useState("");
+function InvestigatorAssign({ setActiveTab, createdCaseId }) {
+  const router = useRouter();
+  const [queryCurrentCountry, setQueryCurrentCountry] = useState("");
+  const [queryOtherCountries, setQueryOtherCountries] = useState("");
   const [data, setData] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [data2, setData2] = useState([]);
   const t = useTranslations();
 
-  // Fetch organizational data
-  const { data: organizationalData, isLoading, error } = useOrganizationalData();
+  // Fetch organizational data with search functionality
+  const { data: currentCountryData, isLoading, error } = useCurrentCountryOrganizationTree(queryCurrentCountry);
+
+  // Fetch foreign INV_ADMIN data with search functionality
+  const { data: foreignInvAdminsData, isLoading: isForeignLoading, error: foreignError } = useForeignInvAdminsTree(queryOtherCountries);
+
+  // Case assignment mutation
+  const assignUsersMutation = useAssignUsersToCase();
 
   const transformToTreeData = (currentCountry) => {
-      return (currentCountry.headquarters || []).map(hq => ({
-          name: hq.headquarterName,
-          label: hq.headquarterName,
-          type: "headquarter",
+    if (!currentCountry) return [];
+    return (currentCountry.headquarters || []).map(hq => ({
+      name: hq.headquarterName,
+      label: hq.headquarterName,
+      type: "headquarter",
+      nation: currentCountry.countryName,
+      children: (hq.departments || []).map(dept => ({
+        name: dept.departmentName,
+        label: dept.departmentName,
+        type: "department",
+        nation: currentCountry.countryName,
+        children: (dept.investigators || []).map(inv => ({
+          name: inv.nameKr,
+          label: inv.nameKr,
+          type: "employee",
+          role: inv.rank || "Investigator",
           nation: currentCountry.countryName,
-          children: (hq.departments || []).map(dept => ({
-            name: dept.departmentName,
-            label: dept.departmentName,
-            type: "department",
-            nation: currentCountry.countryName,
-            children: (dept.investigators || []).map(inv => ({
-              name: inv.nameKr,
-              label: inv.nameKr,
-              type: "employee",
-              role: inv.rank || "Investigator",
-              nation: currentCountry.countryName,
-              headquarterName: hq.headquarterName,
-              departmentName: dept.departmentName,
-              userId: inv.userId,
-              email: inv.email,
-              phone: inv.phone
-            }))
-          }))
-        }));
-    };
+          headquarterName: hq.headquarterName,
+          departmentName: dept.departmentName,
+          userId: inv.userId,
+          email: inv.email,
+          phone: inv.phone
+        }))
+      }))
+    }));
+  };
 
   const transformForeignInvAdminsToTreeData = (foreignInvAdmins) => {
     if (!foreignInvAdmins || !Array.isArray(foreignInvAdmins)) return [];
@@ -71,14 +82,17 @@ function InvestigatorAssign({ setActiveTab }) {
             label: invAdmin.nameKr || invAdmin.nameEn,
             type: "employee",
             nation: country.countryName,
-            role: "수사관",
+            role: invAdmin.role,
+            userId: invAdmin.userId,
+            email: invAdmin.email,
+            phone: invAdmin.phone
           };
         }),
       };
     });
   };
 
-  const removeKoInvestigator = (id) => {
+  const removeCurrentCountryInvestigator = (id) => {
     setData((prevData) => prevData.filter((row) => row.id !== id));
   };
 
@@ -87,10 +101,14 @@ function InvestigatorAssign({ setActiveTab }) {
   };
 
   const chooseCurrentCountryInvestigator = (obj) => {
+    // console.log("obj", obj);
+    if (data.find(item => item.id === obj.userId)) {
+      return;
+    }
     setData((prev) => [
       ...prev,
       {
-        id: prev?.length + 1,
+        id: obj.userId,
         nation: obj.nation,
         role: obj.role,
         investigator: obj.label,
@@ -99,34 +117,52 @@ function InvestigatorAssign({ setActiveTab }) {
         action: (
           <Trash2
             size={20}
-            onClick={() => removeKoInvestigator(prev?.length + 1)}
+            onClick={() => removeCurrentCountryInvestigator(obj.userId)}
           />
         ),
       },
     ]);
   };
 
-  useEffect(() => {
-    if (tableData) {
-      const updatedData = tableData.map((row) => ({
-        ...row,
-        action: (
-          <Trash2 size={20} onClick={() => removeKoInvestigator(row.id)} />
-        ),
-      }));
-      setData(updatedData);
+  const onClickSave = async () => {
+    // Extract user IDs from the data state
+    const userIds = data.map(item => item.id);
+
+    if (!createdCaseId) {
+      console.error("No case ID provided");
+      return;
     }
-  }, [tableData]);
 
-  const router = useRouter();
+    if (userIds.length === 0) {
+      console.warn("No investigators selected");
+      return;
+    }
 
-  const onClickSave = () => {
-    //role shalgaad
-    // go to manager/incident
-    //or /investigtor/incident
-    setTimeout(() => {
-      router.push("/manager/incident");
-    }, 1500);
+    try {
+      console.log("Assigning investigators to case:", { caseId: createdCaseId, userIds });
+
+      const result = await assignUsersMutation.mutateAsync({
+        caseId: createdCaseId,
+        userIds: userIds
+      });
+
+      console.log("Successfully assigned investigators:", result);
+
+      toast.success(t('case-detail.create-success'), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+
+      router.push("/manager/cases");
+
+    } catch (error) {
+      console.error("Failed to assign investigators:", error);
+      // TODO: Show error notification to user
+    }
   };
 
   const onGoBack = () => {
@@ -134,21 +170,24 @@ function InvestigatorAssign({ setActiveTab }) {
   };
 
   const chooseForeignInvestigator = (obj) => {
-    console.log(obj);
+    // console.log(obj);
+    if (data2.find(item => item.id === obj.userId)) {
+      return;
+    }
     if (obj.type === "employee") {
       setData2((prev) => [
         ...prev,
         {
-          id: prev?.length + 1,
+          id: obj.userId,
           nation: obj.countryName || obj.nation,
           role: obj.role,
           investigator: obj.label,
-          affiliation: obj.countryName || obj.nation,
+          affiliation: "-", // obj.countryName || obj.nation,
           department: "-", // Foreign investigators don't have departments in this structure
           action: (
             <Trash2
               size={20}
-              onClick={() => removeForeignInvestgator(prev?.length + 1)}
+              onClick={() => removeForeignInvestgator(obj.userId)}
             />
           ),
         },
@@ -161,8 +200,8 @@ function InvestigatorAssign({ setActiveTab }) {
       <div className="flex justify-center gap-4">
         <Card className={"w-[250px] min-h-[500px]"}>
           <Search
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={queryCurrentCountry}
+            onChange={(e) => setQueryCurrentCountry(e.target.value)}
             placeholder="이름/소속/부서"
           />
           {isLoading ? (
@@ -175,7 +214,7 @@ function InvestigatorAssign({ setActiveTab }) {
             </div>
           ) : (
             <TreeView
-              data={transformToTreeData(organizationalData.currentCountryOrganization)}
+              data={transformToTreeData(currentCountryData)}
               onClick={chooseCurrentCountryInvestigator}
             />
           )}
@@ -202,8 +241,9 @@ function InvestigatorAssign({ setActiveTab }) {
           type="submit"
           className="w-[148px]"
           onClick={onClickSave}
+          disabled={assignUsersMutation.isPending}
         >
-          {t("save")}
+          {assignUsersMutation.isPending ? "Saving..." : t("save")}
         </Button>
       </div>
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} size="xxl">
@@ -216,21 +256,21 @@ function InvestigatorAssign({ setActiveTab }) {
             className={"w-[300px] min-h-[414px] border-r border-color-97 pr-4"}
           >
             <Search
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={queryOtherCountries}
+              onChange={(e) => setQueryOtherCountries(e.target.value)}
               placeholder="이름/소속/부서"
             />
-            {isLoading ? (
+            {isForeignLoading ? (
               <div className="flex justify-center items-center h-32">
                 <div className="text-sm text-gray-500">Loading...</div>
               </div>
-            ) : error ? (
+            ) : foreignError ? (
               <div className="flex justify-center items-center h-32">
                 <div className="text-sm text-red-500">Error loading data</div>
               </div>
             ) : (
               <TreeView
-                data={transformForeignInvAdminsToTreeData(organizationalData?.foreignInvAdmins)}
+                data={transformForeignInvAdminsToTreeData(foreignInvAdminsData)}
                 onClick={chooseForeignInvestigator}
               />
             )}
@@ -275,13 +315,12 @@ function InvestigatorAssign({ setActiveTab }) {
             onClick={() => {
               setData((prev) => [
                 ...prev,
-                ...data2.map((item, index) => ({
+                ...data2.filter(item => data.find(existing => existing.id === item.id) === undefined).map((item, index) => ({
                   ...item,
-                  id: prev.length + index,
                   action: (
                     <Trash2
                       size={20}
-                      onClick={() => removeKoInvestigator(prev.length + index)}
+                      onClick={() => removeCurrentCountryInvestigator(item.id)}
                     />
                   ),
                 })),
