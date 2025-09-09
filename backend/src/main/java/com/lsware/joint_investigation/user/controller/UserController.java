@@ -135,7 +135,22 @@ public class UserController {
                     avatar = fileService.storeProfileImage(file);
                 }
 
-                userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
+                UserStatusHistory history = new UserStatusHistory();
+                history.setUser(me.get());
+                history.setCreator(me.get());
+                history.setFromStatus(Users.USER_STATUS.APPROVED);
+                history.setToStatus(Users.USER_STATUS.WAITING_TO_CHANGE);
+                history.setReason("Profile update request");
+                history.setProfileImageUrl(avatar);
+                history.setHeadquarterId(profile.getHeadquarterId());
+                history.setDepartmentId(profile.getDepartmentId());
+                history.setEmail(profile.getEmail());
+                history.setPhone(profile.getPhone());
+                userStatusHistoryRepository.save(history);
+
+                
+                userRepository.updateUserStatusById(userDetail.getId(), Users.USER_STATUS.WAITING_TO_CHANGE.name());
+                //userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
                 response.put("success", true);
                 response.put("message", "Profile updated successfully");
                 return ResponseEntity.ok(response);
