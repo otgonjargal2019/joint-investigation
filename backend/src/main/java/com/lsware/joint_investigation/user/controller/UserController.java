@@ -6,10 +6,12 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -24,15 +26,19 @@ import com.lsware.joint_investigation.common.util.CustomResponseException;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.config.customException.FileNotStoredException;
 import com.lsware.joint_investigation.file.service.FileService;
+import com.lsware.joint_investigation.user.dto.UpdateUserStatusRequest;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.Country;
 import com.lsware.joint_investigation.user.entity.Department;
 import com.lsware.joint_investigation.user.entity.Headquarter;
+import com.lsware.joint_investigation.user.entity.UserStatusHistory;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.CountryRepository;
 import com.lsware.joint_investigation.user.repository.DepartmentRepository;
 import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
+import com.lsware.joint_investigation.user.repository.UserStatusHistoryRepository;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +70,9 @@ public class UserController {
 
     @Autowired
     DepartmentRepository departmentRepository;
+
+    @Autowired
+    UserStatusHistoryRepository userStatusHistoryRepository;
 
     @GetMapping("/me")
     public ResponseEntity<HashMap<String, Object>> me(Authentication authentication) {
@@ -146,10 +155,26 @@ public class UserController {
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
 
+    private UserDto mapUserWithNames(Users user) {
+        Map<Long, String> countryMap = countryRepository.findAll()
+                .stream().collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
+        Map<Long, String> departmentMap = departmentRepository.findAll()
+                .stream().collect(Collectors.toMap(d -> d.getId(), d -> d.getName()));
+        Map<Long, String> headquarterMap = headquarterRepository.findAll()
+                .stream().collect(Collectors.toMap(h -> h.getId(), h -> h.getName()));
+
+        UserDto dto = user.toDto();
+        dto.setCountryName(countryMap.get(user.getCountryId()));
+        dto.setDepartmentName(departmentMap.get(user.getDepartmentId()));
+        dto.setHeadquarterName(headquarterMap.get(user.getHeadquarterId()));
+
+        return dto;
+    }
+
     @GetMapping("list")
     public ResponseEntity<MappingJacksonValue> getUsers(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(value = "status", required = false) Users.USER_STATUS status) {
+            @RequestParam(required = false) Users.USER_STATUS status) {
 
         List<Users> users;
 
@@ -159,20 +184,9 @@ public class UserController {
             users = userRepository.findAll(page, size);
         }
 
-        // Map<Long, String> countryMap = countryRepository.findAll()
-        // .stream().collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
-        Map<Long, String> departmentMap = departmentRepository.findAll()
-                .stream().collect(Collectors.toMap(d -> d.getId(), d -> d.getName()));
-        Map<Long, String> headquarterMap = headquarterRepository.findAll()
-                .stream().collect(Collectors.toMap(h -> h.getId(), h -> h.getName()));
-
-        List<UserDto> dtos = users.stream().map(user -> {
-            UserDto dto = user.toDto();
-            // dto.setCountryName(countryMap.get(user.getCountryId()));
-            dto.setDepartmentName(departmentMap.get(user.getDepartmentId()));
-            dto.setHeadquarterName(headquarterMap.get(user.getHeadquarterId()));
-            return dto;
-        }).collect(Collectors.toList());
+        List<UserDto> dtos = users.stream()
+                .map(this::mapUserWithNames)
+                .collect(Collectors.toList());
 
         Map<String, Object> meta = new HashMap<>();
         meta.put("currentPage", page);
@@ -198,12 +212,8 @@ public class UserController {
     public ResponseEntity<MappingJacksonValue> getUserById(@PathVariable UUID id) {
         return userRepository.findByUserId(id)
                 .map(user -> {
-                    UserDto dto = user.toDto();
-                    ApiResponse<UserDto> response = new ApiResponse<>(
-                            true,
-                            "User retrieved successfully",
-                            dto,
-                            null);
+                    UserDto dto = mapUserWithNames(user);
+                    ApiResponse<UserDto> response = new ApiResponse<>(true, "User retrieved successfully", dto, null);
                     MappingJacksonValue mapping = new MappingJacksonValue(response);
                     mapping.setFilters(getUserFilter());
                     return ResponseEntity.ok(mapping);
@@ -211,11 +221,41 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/update-status")
+    public ResponseEntity<ApiResponse<UUID>> updateUserStatus(
+            @RequestBody UpdateUserStatusRequest request) {
+
+        CustomUser currentUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID currentUserId = currentUser.getId();
+
+        Users creator = userRepository.findByUserId(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        Users user = userRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        Users.USER_STATUS oldStatus = user.getStatus();
+        user.setStatus(request.getStatus());
+        userRepository.save(user);
+
+        UserStatusHistory history = new UserStatusHistory();
+        history.setUser(user);
+        history.setCreator(creator);
+        history.setFromStatus(oldStatus);
+        history.setToStatus(request.getStatus());
+        history.setReason(request.getReason());
+        userStatusHistoryRepository.save(history);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Status history created successfully", user.getUserId(),
+                        null));
+    }
+
     private FilterProvider getUserFilter() {
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
                 .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone",
-                        "headquarterId", "departmentId", "headquarterName", "departmentName",
-                        "status", "createdAt");
+                        "countryName", "headquarterName", "departmentName",
+                        "status", "createdAtFormatted");
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }

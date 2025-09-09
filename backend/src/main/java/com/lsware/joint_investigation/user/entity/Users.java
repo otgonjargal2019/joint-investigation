@@ -3,6 +3,7 @@ package com.lsware.joint_investigation.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.user.dto.UserDto;
@@ -84,6 +85,10 @@ public class Users {
         dto.setRole(this.role);
         dto.setStatus(this.status);
         dto.setCreatedAt(this.createdAt);
+        if (this.createdAt != null) {
+            dto.setCreatedAtFormatted(this.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+
         return dto;
     }
 

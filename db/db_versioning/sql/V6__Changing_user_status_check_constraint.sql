@@ -19,10 +19,10 @@ CHECK (((status)::text = ANY (
 CREATE TABLE public.user_status_histories (
 	history_id uuid NOT NULL,
 	created_at timestamp(6) NOT NULL,
-	department_id int8 NOT NULL,
-	email varchar(255) NOT NULL,
+	department_id int8 NULL,
+	email varchar(255) NULL,
 	from_status varchar(255) NOT NULL,
-	headquarter_id int8 NOT NULL,
+	headquarter_id int8 NULL,
 	phone varchar(255) NULL,
 	profile_image_url varchar(255) NULL,
 	reason varchar(250) NULL,

@@ -36,7 +36,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.country}
+            {userInfo.countryName}
           </td>
         </tr>
         <tr>
@@ -44,10 +44,10 @@ const UserDetailTable = ({ userInfo }) => {
             {t("form.affiliation")}
           </th>
           <td className="w-[234px] bg-white border border-color-32 text-black font-normal py-3 px-4">
-            {userInfo.headquarter}
+            {userInfo.headquarterName}
           </td>
           <td className="w-[273px] bg-white border border-color-32 text-black font-normal py-3 px-4">
-            {userInfo.department}
+            {userInfo.departmentName}
           </td>
         </tr>
         <tr>

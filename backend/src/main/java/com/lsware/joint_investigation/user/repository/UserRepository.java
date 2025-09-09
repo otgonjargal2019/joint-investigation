@@ -53,7 +53,9 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     public Optional<Users> findByLoginId(String loginId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.loginId.eq(loginId));
-        builder.and(users.status.eq(Users.USER_STATUS.APPROVED));
+        builder.and(
+                users.status.eq(Users.USER_STATUS.APPROVED)
+                        .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
 
         return Optional.ofNullable(
                 queryFactory
@@ -96,7 +98,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         JPAUpdateClause clause = queryFactory.update(users)
                 .where(users.userId.eq(userId))
                 .set(users.profileImageUrl, "");
-        
+
         long updatedRows = clause.execute();
         return updatedRows > 0;
     }

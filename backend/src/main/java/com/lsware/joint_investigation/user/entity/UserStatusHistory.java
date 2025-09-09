@@ -43,13 +43,13 @@ public class UserStatusHistory {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "headquarter_id", nullable = false)
+    @Column(name = "headquarter_id")
     private Long headquarterId;
 
-    @Column(name = "department_id", nullable = false)
+    @Column(name = "department_id")
     private Long departmentId;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email")
     private String email;
 
     @Column(name = "phone")

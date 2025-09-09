@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class UserStatusHistoryDto {
+public class UpdateUserStatusRequest {
     private UUID userId;
-    private USER_STATUS fromStatus;
-    private USER_STATUS toStatus;
+    private USER_STATUS status;
     private String reason;
+
 }

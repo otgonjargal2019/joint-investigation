@@ -32,6 +32,7 @@ public class UserDto {
     private String departmentName;
 
     private LocalDateTime createdAt;
+    private String createdAtFormatted;
 
     @JsonIgnore
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
