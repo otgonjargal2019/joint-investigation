@@ -80,8 +80,6 @@ public class UserController {
                 response.put("loginId", me.get().getLoginId());
                 response.put("nameKr", me.get().getNameKr());
                 response.put("nameEn", me.get().getNameEn());
-                response.put("country", me.get().getCountry());
-                response.put("department", me.get().getDepartment());
                 response.put("phone", me.get().getPhone());
                 response.put("email", me.get().getEmail());
                 response.put("avatar", me.get().getProfileImageUrl());
@@ -161,9 +159,20 @@ public class UserController {
             users = userRepository.findAll(page, size);
         }
 
-        List<UserDto> dtos = users.stream()
-                .map(Users::toDto)
-                .collect(Collectors.toList());
+        // Map<Long, String> countryMap = countryRepository.findAll()
+        // .stream().collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
+        Map<Long, String> departmentMap = departmentRepository.findAll()
+                .stream().collect(Collectors.toMap(d -> d.getId(), d -> d.getName()));
+        Map<Long, String> headquarterMap = headquarterRepository.findAll()
+                .stream().collect(Collectors.toMap(h -> h.getId(), h -> h.getName()));
+
+        List<UserDto> dtos = users.stream().map(user -> {
+            UserDto dto = user.toDto();
+            // dto.setCountryName(countryMap.get(user.getCountryId()));
+            dto.setDepartmentName(departmentMap.get(user.getDepartmentId()));
+            dto.setHeadquarterName(headquarterMap.get(user.getHeadquarterId()));
+            return dto;
+        }).collect(Collectors.toList());
 
         Map<String, Object> meta = new HashMap<>();
         meta.put("currentPage", page);
@@ -205,7 +214,8 @@ public class UserController {
     private FilterProvider getUserFilter() {
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
                 .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone",
-                        "country", "department", "status", "createdAt");
+                        "headquarterId", "departmentId", "headquarterName", "departmentName",
+                        "status", "createdAt");
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }

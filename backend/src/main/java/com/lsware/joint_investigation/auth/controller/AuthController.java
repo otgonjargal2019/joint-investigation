@@ -183,8 +183,8 @@ public class AuthController {
             user.setNameEn(userDto.getNameEn());
             user.setEmail(userDto.getEmail());
             user.setPhone(userDto.getPhone());
-            user.setCountry(userDto.getCountry());
-            user.setDepartment(userDto.getDepartment());
+            // user.setCountry(userDto.getCountry());
+            // user.setDepartment(userDto.getDepartment());
             user.setRole(Role.INVESTIGATOR);
             user.setStatus(Users.USER_STATUS.PENDING);
             String passwordString = userDto.getPassword();
@@ -225,7 +225,7 @@ public class AuthController {
         testUser.setNameEn(nameEn);
         // testUser.setUserId(UUID.randomUUID());
         testUser.setPasswordHash(passwordEncoder.encode(password));
-        testUser.setCountry("MGL");
+        // testUser.setCountry("MGL");
         testUser.setLoginId("user1");
         testUser.setNameKr("nameKr");
         testUser.setRole(Role.PLATFORM_ADMIN);
@@ -244,7 +244,7 @@ public class AuthController {
         testUser.setNameEn(nameEn);
         // testUser.setUserId(UUID.randomUUID());
         testUser.setPasswordHash(passwordEncoder.encode(password));
-        testUser.setCountry("MGL");
+        // testUser.setCountry("MGL");
         testUser.setLoginId("user2");
         testUser.setNameKr("nameKr2");
         testUser.setRole(Role.PLATFORM_ADMIN);

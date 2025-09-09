@@ -21,13 +21,16 @@ public class UserDto {
     private String nameEn;
     private String email;
     private String phone;
-    private String country;
-    private String department;
     private Users.USER_STATUS status;
     private Role role;
-    private String countryId;
-    private String headquarterId;
-    private String departmentId;
+    private Long countryId;
+    private Long headquarterId;
+    private Long departmentId;
+
+    private String countryName;
+    private String headquarterName;
+    private String departmentName;
+
     private LocalDateTime createdAt;
 
     @JsonIgnore
