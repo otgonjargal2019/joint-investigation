@@ -13,33 +13,35 @@ import ProfileImageUploader from "@/shared/components/profileImageUploader";
 import Modal from "@/shared/components/modal";
 import PageTitle from "@/shared/components/pageTitle/page";
 import SuccessNotice from "@/shared/components/successNotice";
-import { profileQuery, useProfile, useDeleteProfileImg } from "@/entities/profile";
+import { profileQuery, useProfile, useDeleteProfileImg, useChangePassword } from "@/entities/profile";
 import { toast } from "react-toastify";
 import { useCheckEmail } from "@/entities/auth/auth.mutation";
 import {
-  profileFormSchema
+  profileFormSchema, changePassFormSchema
 } from "@/entities/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-
 
 function Membership() {
   const t = useTranslations();
   const router = useRouter();
-  const { register, formState: { errors }, handleSubmit, watch, reset, setValue } = useForm({resolver: zodResolver(profileFormSchema)});
+  const { register: registerProfile, formState: { errors: profileErrors }, trigger, handleSubmit: handleSubmitProfile, watch, setValue } = useForm({resolver: zodResolver(profileFormSchema)});
+  const { register: registerChangepass, formState: { errors: changepassErrors }, handleSubmit: handleSubmitChangepass } = useForm({resolver: zodResolver(changePassFormSchema)});
+
   const [error, setError] = useState(true);
   const [profileImg, setProfileImg] = useState(null);
   const [uploadImg, setUploadImg] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [countryName, setCountryName] = useState(null);
   const headquarterSet = useRef(false);
   const departmentSet = useRef(false);
   const { data } = useQuery(profileQuery.getProfile());
   const profileMutation = useProfile();
   const checkEmailMutation = useCheckEmail();
   const deleteProfileImgMutation = useDeleteProfileImg();
+  const changePasswordMutation = useChangePassword();
   // Watch selected country
-  const selectedCountryCode = watch("countryId");
+  //const selectedCountryCode = watch("countryId");
   const selectedQuarterCode = watch("headquarterId");
 
   // Filter headquarters by selected country using state/effect
@@ -47,14 +49,30 @@ function Membership() {
   const [departmentOptions, setDepartmentOptions] = useState([]);
 
   // Convert API country data to SelectBox options
-  const countryOptions = data?.listCountry?.map(country => ({
-    label: country.name,
-    value: country.id
-  })) || [];
+  // const countryOptions = data?.listCountry?.map(country => ({
+  //   label: country.name,
+  //   value: country.id
+  // })) || [];
 
   useEffect(() => {
-    if(countryOptions.length)
-      setValue("countryId", String(data?.userData.countryId));
+    // if(countryOptions.length)
+    //   setValue("countryId", String(data?.userData.countryId));
+    if(data?.listCountry?.length) {
+      const country = data.listCountry.find(c => c.id === data?.userData.countryId);
+      setCountryName(country?.name || null);
+    }
+
+    if (!data?.listHeadquarter) {
+      setHeadquarterOptions([]);
+      return;
+    }
+    const filtered = data.listHeadquarter
+      .filter(hq => hq.country?.id == data?.userData.countryId)
+      .map(hq => ({
+        label: hq.name,
+        value: hq.id
+      }));
+    setHeadquarterOptions(filtered);
 
     setValue("phone1", data?.userData.phone?.split("-")[0] || "");
     setValue("phone2", data?.userData.phone?.split("-").slice(1).join("-") || "");
@@ -84,19 +102,19 @@ function Membership() {
   }, [departmentOptions]);
 
   //Filter headquarters by selected country using state/effect
-  useEffect(() => {
-    if (!data?.listHeadquarter) {
-      setHeadquarterOptions([]);
-      return;
-    }
-    const filtered = data.listHeadquarter
-      .filter(hq => hq.country?.id == selectedCountryCode)
-      .map(hq => ({
-        label: hq.name,
-        value: hq.id
-      }));
-    setHeadquarterOptions(filtered);
-  }, [selectedCountryCode]);
+  // useEffect(() => {
+  //   if (!data?.listHeadquarter) {
+  //     setHeadquarterOptions([]);
+  //     return;
+  //   }
+  //   const filtered = data.listHeadquarter
+  //     .filter(hq => hq.country?.id == selectedCountryCode)
+  //     .map(hq => ({
+  //       label: hq.name,
+  //       value: hq.id
+  //     }));
+  //   setHeadquarterOptions(filtered);
+  // }, [selectedCountryCode]);
 
   // Filter departments by selected headquarter using state/effect
   useEffect(() => {
@@ -116,7 +134,7 @@ function Membership() {
 
   const onSubmit = async (values) => {
     const payload = {
-      countryId: values.countryId,
+      countryId: data?.userData?.countryId,
       headquarterId: values.headquarterId,
       departmentId: values.departmentId,
       phone: values.phone1 && values.phone2 ? `${values.phone1}-${values.phone2}` : null,
@@ -127,7 +145,6 @@ function Membership() {
     profileMutation.mutate(payload, {
       onSuccess: (res) => {
         const {message, success} = res.data;
-        console.log('RETURN DATA => ', res.data);
         if (success){
           toast.success(`${message}`, {
             autoClose: 3000,
@@ -137,21 +154,26 @@ function Membership() {
         }
       },
       onError: (err) => {
+        toast.error(`${err.response.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
         console.log(err);
       },
     });
   };
 
   const handleCheckEmail = async () => {
-    const isValid = await trigger(["email"]);
-
+    const isValid = await trigger(["email", "email2"]);
     if (!isValid) {
       return;
     }
+    const email = watch("email");
+    const email2 = watch("email2");
     const reqData = {
-      email: watch("email")
+      email: `${email}@${email2}`
     };
-    
+
     checkEmailMutation.mutate(reqData, {
       onSuccess: (res) => {
         toast.success(`${res.data.message}`, {
@@ -160,14 +182,13 @@ function Membership() {
         });
       },
       onError: (err) => {
-        setError("email", {
-          type: "manual",
-          message: err.response.data.message,
+        toast.warning(`${err.response.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
         });
       },
     });
   };
-
 
   const handleDeleteProfileImg = async () => {
     deleteProfileImgMutation.mutate(null, {
@@ -191,8 +212,31 @@ function Membership() {
     setModalOpen(true);
   };
 
-  const onChangePwd = (formData) => {
-    console.log(formData);
+  const onChangePwd = async (formData) => {
+    const payload = {
+      currentPassword: formData.password,
+      newPassword: formData.confirmPassword
+    };
+
+    changePasswordMutation.mutate(payload, {
+      onSuccess: (res) => {
+        const {message, success} = res.data;
+        if (success){
+          toast.success(`${message}`, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+          setModalOpen(false);
+        }
+      },
+      onError: (err) => {
+        toast.error(`${err.response.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
+        });
+        // console.log(err);
+      },
+    });
   };
 
   return (
@@ -214,7 +258,7 @@ function Membership() {
               onBtnClick={() => router.push("/")}
             />
           ) : (
-            <form className="space-y-4 mt-12" onSubmit={handleSubmit(onSubmit)}>
+            <form className="space-y-4 mt-12" onSubmit={handleSubmitProfile(onSubmit)}>
               <div
                 className="grid gap-4"
                 style={{ gridTemplateColumns: "120px 600px" }}
@@ -274,37 +318,38 @@ function Membership() {
                   {t("form.nation")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
-                  <SelectBox
-                    register={register}
+                  {countryName}
+                  {/* <SelectBox
+                    register={registerProfile}
                     name="countryId"
                     options={countryOptions}
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.select-country")}
-                    error={errors.countryId}
-                  />
+                    error={profileErrors.countryId}
+                  /> */}
                 </div>
                 <Label color="gray" className="text-right mt-2">
                   {t("form.affiliation")}
                 </Label>
                 <div className="flex gap-2">
                   <SelectBox
-                    register={register}
+                    register={registerProfile}
                     name="headquarterId"
                     options={headquarterOptions}
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.headquarter")}
-                    error={errors.headquarterId}
+                    error={profileErrors.headquarterId}
                   />
                   <SelectBox
-                    register={register}
+                    register={registerProfile}
                     name="departmentId"
                     options={departmentOptions}
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.department")}
-                    error={errors.departmentId}
+                    error={profileErrors.departmentId}
                   />
                 </div>
                 <Label color="gray" className="text-right mt-2">
@@ -315,20 +360,20 @@ function Membership() {
                   style={{ gridTemplateColumns: "120px 1fr" }}
                 >
                   <Input
-                    register={register}
+                    register={registerProfile}
                     name="phone1"
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.country-code")}
-                    error={errors.phone1}
+                    error={profileErrors.phone1}
                   />
                   <Input
-                    register={register}
+                    register={registerProfile}
                     name="phone2"
                     showError={false}
                     variant="form"
                     placeholder={t("placeholder.contact-info")}
-                    error={errors.phone2}
+                    error={profileErrors.phone2}
                   />
                 </div>
                 <Label color="gray" className="text-right mt-2">
@@ -336,31 +381,32 @@ function Membership() {
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
-                    register={register}
+                    register={registerProfile}
                     name="email"
                     showError={false}
                     variant="form"
-                    error={errors.email}
+                    error={profileErrors.email}
                   />
                   @
                   <Input
-                    register={register}
+                    register={registerProfile}
                     name="email2"
                     showError={false}
                     variant="form"
-                    error={errors.email2}
+                    error={profileErrors.email2}
                   />
                   <Button
                     size="small2"
                     variant="gray3"
                     className="min-w-[135px]"
+                    onClick={handleCheckEmail}
                   >
                     {t("check-redundancy")}
                   </Button>
                 </div>
                 <div />
                 <p className="text-color-86 text-[16px] font-normal">
-                  {Object.keys(errors).length > 0 && t("error-msg.enter-all-membership-info")}
+                  {Object.keys(profileErrors).length > 0 && t("error-msg.enter-all-membership-info")}
                 </p>
                 <div />
                 <Button type="submit" size="small3" variant="gray2">
@@ -378,7 +424,7 @@ function Membership() {
             {t("change-password")}
           </h2>
         </div>
-        <form onSubmit={handleSubmit(onChangePwd)} className="space-y-4">
+        <form onSubmit={handleSubmitChangepass(onChangePwd)} className="space-y-4">
           <div
             className="grid gap-4"
             style={{ gridTemplateColumns: "120px 380px" }}
@@ -387,20 +433,26 @@ function Membership() {
               {t("form.current-password")}
             </Label>
             <Input
-              register={register}
-              name="currentPwd"
-              showError={false}
-              variant="form"
-            />
+                register={registerChangepass}
+                name="password"
+                type="password"
+                showError={false}
+                variant="form"
+                placeholder={t("placeholder.password")}
+                error={changepassErrors.password}
+              />
             <Label color="gray" className="text-right mt-2">
               {t("form.new-password")}
             </Label>
             <div className="w-full">
               <Input
-                register={register}
-                name="newPwd"
+                register={registerChangepass}
+                name="newPassword"
+                type="password"
                 showError={false}
                 variant="form"
+                placeholder={t("placeholder.password")}
+                error={changepassErrors.newPassword}
               />
               <p className="text-color-15 text-[16px] font-normal text-left mt-1">
                 {t("info-msg.password")}
@@ -410,14 +462,17 @@ function Membership() {
               {t("form.password-confirm")}
             </Label>
             <Input
-              register={register}
-              name="confirmPwd"
+              register={registerChangepass}
+              name="confirmPassword"
+              type="password"
               showError={false}
               variant="form"
+              placeholder={t("placeholder.password")}
+              error={changepassErrors.confirmPassword}
             />
           </div>
           <div className="flex justify-center">
-            <Button size="medium" type="submit">
+            <Button type="submit" size="medium" >
               {t("change")}
             </Button>
           </div>

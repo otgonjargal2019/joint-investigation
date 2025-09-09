@@ -2,10 +2,12 @@ package com.lsware.joint_investigation.user.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.lsware.joint_investigation.auth.service.AuthService;
 import com.lsware.joint_investigation.common.dto.ApiResponse;
 import com.lsware.joint_investigation.common.util.CustomResponseException;
 import com.lsware.joint_investigation.config.CustomUser;
@@ -74,6 +77,9 @@ public class UserController {
     @Autowired
     UserStatusHistoryRepository userStatusHistoryRepository;
 
+    @Autowired
+    private AuthService authenticationService;
+
     @GetMapping("/me")
     public ResponseEntity<HashMap<String, Object>> me(Authentication authentication) {
         if (authentication.isAuthenticated()) {
@@ -111,21 +117,32 @@ public class UserController {
             @RequestPart("profile") UserDto profile,
             Authentication authentication) throws FileNotStoredException, CustomResponseException {
         if (authentication.isAuthenticated()) {
-            CustomUser userDetail = (CustomUser) authentication.getPrincipal();
             HashMap<String, Object> response = new HashMap<String, Object>();
+            try {
+                CustomUser userDetail = (CustomUser) authentication.getPrincipal();
+                Optional<Users> me = userRepository.findByUserId(userDetail.getId());
+                if(!me.get().getEmail().equals(profile.getEmail())) {
+                    boolean emailExist = authenticationService.checkEmailExist(profile.getEmail());
+                    if (emailExist) {
+                        response.put("message", "Email exist.");
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                    }
+                }
 
-            String avatar = null;
+                String avatar = null;
+                if (file != null) {
+                    // SAVE TO S3
+                    avatar = fileService.storeProfileImage(file);
+                }
 
-            if (file != null) {
-                // SAVE TO S3
-                avatar = fileService.storeProfileImage(file);
+                userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
+                response.put("success", true);
+                response.put("message", "Profile updated successfully");
+                return ResponseEntity.ok(response);
+            } catch (IllegalArgumentException e) {
+                response.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-
-            userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
-
-            response.put("success", true);
-            response.put("message", "Profile updated successfully");
-            return ResponseEntity.ok(response);
         }
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
@@ -258,6 +275,35 @@ public class UserController {
                         "status", "createdAtFormatted");
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
+    }
+
+    @PostMapping("/changePassword")
+    public ResponseEntity<HashMap<String, Object>> changePassword(@RequestBody HashMap<String, String> payload,
+            Authentication authentication) throws CustomResponseException {
+        if (authentication.isAuthenticated()) {
+            CustomUser userDetail = (CustomUser) authentication.getPrincipal();
+            Optional<Users> me = userRepository.findByUserId(userDetail.getId());
+            HashMap<String, Object> response = new HashMap<String, Object>();
+            try {
+
+                authenticationService.authenticate(
+                    me.get().getLoginId(),
+                    payload.get("currentPassword"));
+
+                authenticationService.updateUserPassword(userDetail.getId(), payload.get("newPassword"));
+                response.put("success", true);
+                response.put("message", "Updated password successfully");
+                return ResponseEntity.ok(response);
+
+            } catch (AuthenticationException e) {
+                response.put("message", "Current password is incorrect");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            } catch (Exception e) {
+                response.put("message", "Failed to change password");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        }
+        return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
 
 }

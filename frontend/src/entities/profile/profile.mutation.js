@@ -25,3 +25,15 @@ export const useDeleteProfileImg = () => {
     },
   });
 };
+
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async ({ currentPassword, newPassword }) => {
+      return axiosInstance.post(`/api/user/changePassword`, {
+        currentPassword,
+        newPassword
+      });
+    },
+  });
+};

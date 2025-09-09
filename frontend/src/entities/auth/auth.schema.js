@@ -26,6 +26,27 @@ export const loginFormSchema = z.object({
   password: passwordField
 });
 
+const withChangePassConfirm = (schema) =>
+  schema.superRefine((data, ctx) => {
+    if (data.newPassword !== data.confirmPassword) {
+      ctx.addIssue({
+        path: ["confirmPassword"],
+        message: "Passwords do not match. Please try again.",
+        code: "custom",
+      });
+    }
+  });
+
+export const changePassFormSchema =  withChangePassConfirm(
+    z.object({
+    password: passwordField,
+    newPassword: passwordField,
+    confirmPassword: passwordField
+  })
+);
+
+
+
 const withPasswordConfirm = (schema) =>
   schema.superRefine((data, ctx) => {
     if (data.password !== data.passwordConfirm) {
@@ -71,9 +92,11 @@ export const profileFormSchema = withPasswordConfirm(
     phone2: z.string().optional(),
     email: z.string().min(1,"Required"),
     email2: z.string().min(1,"Required"),
-    countryId: z.string().min(1, "Required"),
+    //countryId: z.string().min(1, "Required"),
     headquarterId: z.string().min(1, "Required"),
     departmentId: z.string().min(1, "Required")
   })
 );
+
+
 

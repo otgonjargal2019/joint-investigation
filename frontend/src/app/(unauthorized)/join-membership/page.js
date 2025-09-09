@@ -158,13 +158,15 @@ function JoinMembershipPage() {
   };
 
   const handleCheckEmail = async () => {
-    const isValid = await trigger(["email"]);
+    const isValid = await trigger(["email", "email2"]);
 
     if (!isValid) {
       return;
     }
+    const email = watch("email");
+    const email2 = watch("email2");
     const reqData = {
-      email: watch("email")
+      email: `${email}@${email2}`
     };
     
     checkEmailMutation.mutate(reqData, {
@@ -175,9 +177,9 @@ function JoinMembershipPage() {
         });
       },
       onError: (err) => {
-        setError("email", {
-          type: "manual",
-          message: err.response.data.message,
+        toast.warning(`${err.response.data.message}`, {
+          autoClose: 3000,
+          position: "top-center",
         });
       },
     });
