@@ -44,21 +44,27 @@ public class CaseService {
         Users creator = userRepository.findByUserId(currentUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Case newCase = new Case();
-        newCase.setCaseName(request.getCaseName());
-        newCase.setCaseOutline(request.getCaseOutline());
-        newCase.setContentType(request.getContentType());
-        newCase.setInfringementType(request.getInfringementType());
-        newCase.setRelatedCountries(request.getRelatedCountries());
-        newCase.setPriority(request.getPriority());
-        newCase.setStatus(CASE_STATUS.OPEN);
-        newCase.setInvestigationDate(request.getInvestigationDate());
-        newCase.setCreator(creator);
-        newCase.setCreatedAt(LocalDateTime.now());
-        newCase.setUpdatedAt(LocalDateTime.now());
-        newCase.setEtc(request.getEtc());
+        Case caseToSave = null;
+        if (request.getCaseId() != null) {
+            caseToSave = caseRepository.findById(UUID.fromString(request.getCaseId()))
+                    .orElseThrow(() -> new RuntimeException("Parent case not found"));
+        } else {
+			caseToSave = new Case();
+        }
+        caseToSave.setCaseName(request.getCaseName());
+        caseToSave.setCaseOutline(request.getCaseOutline());
+        caseToSave.setContentType(request.getContentType());
+        caseToSave.setInfringementType(request.getInfringementType());
+        caseToSave.setRelatedCountries(request.getRelatedCountries());
+        caseToSave.setPriority(request.getPriority());
+        caseToSave.setStatus(CASE_STATUS.OPEN);
+        caseToSave.setInvestigationDate(request.getInvestigationDate());
+        caseToSave.setCreator(creator);
+        caseToSave.setCreatedAt(LocalDateTime.now());
+        caseToSave.setUpdatedAt(LocalDateTime.now());
+        caseToSave.setEtc(request.getEtc());
 
-        Case savedCase = caseRepository.save(newCase);
+        Case savedCase = caseRepository.save(caseToSave);
         CaseDto caseDto = savedCase.toDto();
 
         MappingJacksonValue mapping = new MappingJacksonValue(caseDto);

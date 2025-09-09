@@ -59,12 +59,14 @@ function CreateNewCase() {
   const tabs = [t("enter-incident-info"), t("assign-investigator")];
   const [activeTab, setActiveTab] = useState(0);
 
+  const [createdCaseId, setCreatedCaseId] = useState(null);
+
   const router = useRouter();
   const createCase = useCreateCase();
 
   const onSubmit = async (data) => {
     try {
-      await createCase.mutateAsync({
+      const response = await createCase.mutateAsync({
         caseName: data.caseName,
         caseOutline: data.caseOutline,
         contentType: data.contentType,
@@ -72,8 +74,11 @@ function CreateNewCase() {
         relatedCountries: data.relatedCountries,
         priority: Number(data.priority),
         investigationDate: data.investigationDate,
-        etc: data.etc
+        etc: data.etc,
+        ...(createdCaseId !== null ? { caseId: createdCaseId } : {}),
       });
+
+      setCreatedCaseId(response.caseId);
 
       toast.success(t('case-detail.create-success'), {
         position: "top-right",
@@ -98,7 +103,7 @@ function CreateNewCase() {
   };
 
   const onGoBack = () => {
-    router.push("/manager/incident");
+    router.push("/manager/cases");
   };
 
   return (
