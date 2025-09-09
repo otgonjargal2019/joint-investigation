@@ -14,7 +14,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.id}
+            {userInfo.loginId}
           </td>
         </tr>
         <tr>
@@ -25,7 +25,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.name}
+            {userInfo.nameKr || userInfo.nameEn}
           </td>
         </tr>
         <tr>
@@ -36,7 +36,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.nation}
+            {userInfo.country}
           </td>
         </tr>
         <tr>
@@ -44,10 +44,10 @@ const UserDetailTable = ({ userInfo }) => {
             {t("form.affiliation")}
           </th>
           <td className="w-[234px] bg-white border border-color-32 text-black font-normal py-3 px-4">
-            {userInfo.unit}
+            {userInfo.headquarter}
           </td>
           <td className="w-[273px] bg-white border border-color-32 text-black font-normal py-3 px-4">
-            {userInfo.team}
+            {userInfo.department}
           </td>
         </tr>
         <tr>
@@ -58,7 +58,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.contactInfo}
+            {userInfo.phone}
           </td>
         </tr>
         <tr>
@@ -80,7 +80,7 @@ const UserDetailTable = ({ userInfo }) => {
             colSpan="2"
             className="w-[506px] bg-white border border-color-32 text-black font-normal py-3 px-4"
           >
-            {userInfo.accountPermissions}
+            {userInfo.status}
           </td>
         </tr>
       </tbody>

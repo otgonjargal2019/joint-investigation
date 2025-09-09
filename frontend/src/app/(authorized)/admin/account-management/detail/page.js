@@ -15,7 +15,7 @@ import Modal from "@/shared/components/modal";
 import UserDetailTable from "@/shared/widgets/admin/accountManagement/userDetailTable";
 import UserDetailTableWithPermissionChange from "@/shared/widgets/admin/accountManagement/userDetailTableWithPersimission";
 import UserInfoChangeCompare from "@/shared/widgets/admin/accountManagement/userInfoChangeCompare";
-import { USERSTATUS } from "../page";
+import { USERSTATUS } from "@/shared/dictionary";
 import { userQuery } from "@/entities/user";
 
 const UserDetailPage = () => {
@@ -23,7 +23,6 @@ const UserDetailPage = () => {
 
   const searchParams = useSearchParams();
   const user = Object.fromEntries(searchParams.entries());
-  console.log("row yu irev?", user);
 
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
@@ -48,7 +47,8 @@ const UserDetailPage = () => {
             {t("go-back")}
           </Button>
           <div className="flex gap-2">
-            {user.status === USERSTATUS.PENDING && (
+            {(user.status === USERSTATUS.PENDING ||
+              user.status === USERSTATUS.WAITING_TO_CHANGE) && (
               <>
                 <Button
                   variant="pink"
@@ -72,18 +72,20 @@ const UserDetailPage = () => {
             )}
           </div>
         </div>
-        {/* {user.status === USERSTATUS.PENDING && (
-          <UserDetailTable userInfo={userObj} />
-        )} */}
+        {user.status === USERSTATUS.PENDING && (
+          <UserDetailTable userInfo={user} />
+        )}
+
         {user.status === USERSTATUS.APPROVED && (
           <UserDetailTableWithPermissionChange
             userInfo={user}
             register={register}
           />
         )}
-        {/* {user?.status === USERSTATUS.WAITING_TO_CHANGE && (
-          <UserInfoChangeCompare userInfo={userObj} newUserInfo={userObjNew} />
-        )} */}
+
+        {user?.status === USERSTATUS.WAITING_TO_CHANGE && (
+          <UserInfoChangeCompare userInfo={user} newUserInfo={user} />
+        )}
       </div>
       <Modal
         isOpen={denyModalOpen}
