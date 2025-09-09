@@ -95,12 +95,14 @@ public class OrganizationalDataService {
         List<Users> foreignInvAdmins = organizationalDataRepository
                 .findInvAdminsFromOtherCountriesWithSearch(currentUserCountryId, countryName, invAdminName);
 
-        // Get filtered other countries
-        List<Country> otherCountries = organizationalDataRepository.findOtherCountriesWithSearch(currentUserCountryId, countryName);
-
         // Group INV_ADMIN users by country
         Map<Long, List<Users>> invAdminsByCountry = foreignInvAdmins.stream()
                 .collect(Collectors.groupingBy(Users::getCountryId));
+
+        List<Long> countryIds = new ArrayList<>(invAdminsByCountry.keySet());
+
+        // Get filtered other countries
+        List<Country> otherCountries = organizationalDataRepository.findOtherCountriesWithSearch(currentUserCountryId, countryIds, countryName);
 
         // Build tree structure with filtering
         return otherCountries.stream()
@@ -116,10 +118,6 @@ public class OrganizationalDataService {
                             country.getName(),
                             country.getCode(),
                             invAdminNodes);
-                })
-                .filter(country -> {
-                    // Include country only if it has INV_ADMIN users or if no invAdminName filter is applied
-                    return country.getInvAdmins().size() > 0 || invAdminName == null || invAdminName.trim().isEmpty();
                 })
                 .collect(Collectors.toList());
     }
