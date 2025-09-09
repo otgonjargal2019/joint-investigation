@@ -22,7 +22,8 @@ export const USER_STATUS = {
  * API endpoints
  */
 export const API_ENDPOINTS = {
-  COMPLETE_TREE: '/api/organizational-data/complete-tree'
+  COMPLETE_TREE: '/api/organizational-data/complete-tree',
+  CURRENT_COUNTRY_TREE: '/api/organizational-data/current-country-tree'
 };
 
 /**
@@ -30,5 +31,6 @@ export const API_ENDPOINTS = {
  */
 export const QUERY_KEYS = {
   ORGANIZATIONAL_DATA: 'organizational-data',
-  COMPLETE_TREE: [API_ENDPOINTS.COMPLETE_TREE]
+  COMPLETE_TREE: [API_ENDPOINTS.COMPLETE_TREE],
+  CURRENT_COUNTRY_TREE: ['organizational-data', 'current-country-tree']
 };
