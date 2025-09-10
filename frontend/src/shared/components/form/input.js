@@ -13,6 +13,7 @@ const Input = ({
   className = "",
   showError = true,
   variant = "default",
+  onBlur,
 }) => {
   const variants = {
     default: "text-color-4 border rounded-10 px-3 py-2",
@@ -28,7 +29,7 @@ const Input = ({
       <input
         id={name}
         type={type}
-        {...register(name)}
+        {...register(name, { onBlur })}
         placeholder={placeholder}
         className={clsx(
           "w-full focus:ring-2 focus:ring-blue-500 outline-none",

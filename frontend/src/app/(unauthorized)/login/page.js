@@ -25,8 +25,9 @@ function LoginPage() {
     watch,
     setValue,
     handleSubmit,
+    setError
   } = useForm({ resolver: zodResolver(loginFormSchema) });
-  const [error, setError] = useState(true);
+  //const [error, setError] = useState(true);
 
   const t = useTranslations();
   const router = useRouter();
@@ -46,10 +47,10 @@ function LoginPage() {
         }
       },
       onError: (err) => {
-        toast.warning(`LoginID or Password wrong`, {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setError("root",{
+          type: "manual",
+          message: err.response.data.message,
+        })
       },
     });
   };
@@ -106,7 +107,7 @@ function LoginPage() {
           </FormField>
 
           <p className="h-[28px] ml-[66px] text-color-100 text-[19.2px] font-normal leading-[19.2px] mb-4">
-            {error && t("error-msg.id-pass-not-match")}
+            {Object.keys(errors).length > 0 && t("error-msg.id-pass-not-match")}
           </p>
 
           <div className="flex flex-col justify-center gap-4 mt-4">

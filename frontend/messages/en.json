@@ -88,14 +88,20 @@
   "create-announcement": "create a announcement",
   "error-msg": {
     "id-pass-not-match": "The ID or password does not match.",
-    "enter-all-membership-info": "Please enter all your membership information."
+    "enter-all-membership-info": "Please enter all your membership information.",
+    "passwords-not-match": "Passwords does not match. Please try again."
   },
   "info-msg": {
     "password": "* 8-16 characters / case, number, special character combination",
     "membership-registered": "Your membership has been registered.",
     "login-after-admin-approves": "You can log in after your administrator approves it.",
     "request-modify-membership-info-completed": "Your request to modify your membership information has been completed.",
-    "after-admin-approves-changes": "After the administrator approves, the changes take effect."
+    "after-admin-approves-changes": "After the administrator approves, the changes take effect.",
+    "available-id": "This ID is available.",
+    "not-available-id": "This ID is already in use.",
+    "available-email-id": "This EmailID is available.",
+    "not-available-email-id": "This EmailID is already in use.",
+    "signup-successful": "Signup successful"
   },
   "form": {
     "id": "id",

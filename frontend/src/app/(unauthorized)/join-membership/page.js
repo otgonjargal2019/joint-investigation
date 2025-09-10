@@ -21,20 +21,21 @@ import { signupQuery } from "@/entities/auth/auth.query";
 
 
 function JoinMembershipPage() {
-
   const { register, formState: { errors }, trigger, handleSubmit, watch, setError, setValue } = useForm({resolver: zodResolver(registerFormSchema)});
   const [submitted, setSubmitted] = useState(false);
+  const [loginIdChecked, setLoginIdChecked] = useState(false);
+  const [emailChecked, setEmailChecked] = useState(false);
   const t = useTranslations();
   const router = useRouter();
   const signupMutation = useSignUp();
   const checkLoginIdMutation = useCheckLoginId();
   const checkEmailMutation = useCheckEmail();
   const {data} = useQuery(signupQuery.getSignup());
-  
+
   // Watch selected country
   const selectedCountryCode = watch("countryId");
   const selectedQuarterCode = watch("headquarterId");
-  
+
   // Filter headquarters by selected country using state/effect
   const [headquarterOptions, setHeadquarterOptions] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
@@ -44,7 +45,7 @@ function JoinMembershipPage() {
     label: country.name,
     value: country.id
   })) || [];
-  
+
   //Filter headquarters by selected country using state/effect
   useEffect(() => {
     if (!data?.listHeadquarter) {
@@ -58,9 +59,15 @@ function JoinMembershipPage() {
         value: hq.id
       }));
     setHeadquarterOptions(filtered);
-    
+
     if(filtered.length) {
       setValue("headquarterId", String(filtered[0].value));
+    }
+
+    if(data?.listCountry){
+      const selectedCountry = data?.listCountry.find(c => c.id == selectedCountryCode);
+      if(selectedCountry)
+        setValue("phone1", selectedCountry?.phonePrefix);
     }
   }, [selectedCountryCode]);
 
@@ -103,12 +110,12 @@ function JoinMembershipPage() {
     delete payload.email2;
     delete payload.phone1;
     delete payload.phone2;
-    
+
     signupMutation.mutate(payload, {
       onSuccess: (res) => {
         const {message, success} = res.data;
         if (success){
-          toast.success(`${message}`, {
+          toast.success(t("info-msg.signup-successful"), {
             autoClose: 3000,
             position: "top-center",
           });
@@ -116,9 +123,9 @@ function JoinMembershipPage() {
         }
         else {
           toast.warning(`${message}`, {
-          autoClose: 3000,
-          position: "top-center",
-        });
+            autoClose: 3000,
+            position: "top-center",
+          });
         }
       },
       onError: (err) => {
@@ -142,16 +149,18 @@ function JoinMembershipPage() {
     };
 
     checkLoginIdMutation.mutate(reqData, {
-      onSuccess: (res) => {
-        toast.success(`${res.data.message} Now set the password please.`, {
+      onSuccess: () => {
+        setLoginIdChecked(true);
+        toast.success(t("info-msg.available-id"), {
           autoClose: 3000,
           position: "top-center",
         });
       },
       onError: (err) => {
+        setLoginIdChecked(false);
         setError("loginId", {
           type: "manual",
-          message: err.response.data.message,
+          message: '이미 사용 중인 아이디 입니다.',
         });
       },
     });
@@ -170,14 +179,16 @@ function JoinMembershipPage() {
     };
     
     checkEmailMutation.mutate(reqData, {
-      onSuccess: (res) => {
-        toast.success(`${res.data.message}`, {
+      onSuccess: () => {
+        setEmailChecked(true);
+        toast.success( t("info-msg.available-email-id"), {
           autoClose: 3000,
           position: "top-center",
         });
       },
-      onError: (err) => {
-        toast.warning(`${err.response.data.message}`, {
+      onError: () => {
+        setEmailChecked(false);
+        toast.warning( t("info-msg.not-available-email-id"), {
           autoClose: 3000,
           position: "top-center",
         });
@@ -222,7 +233,7 @@ function JoinMembershipPage() {
                 />
                 <Button
                   size="small2"
-                  variant="gray3"
+                  variant={watch("loginId") ? "neon" : "gray3"}
                   type="button"
                   className="min-w-[135px]"
                   onClick={handleCheckLoginId}
@@ -250,15 +261,23 @@ function JoinMembershipPage() {
               <Label color="gray" className="text-right mt-2">
                 {t("form.password-confirm")}
               </Label>
-              <Input
-                register={register}
-                name="passwordConfirm"
-                type="password"
-                showError={false}
-                variant="form"
-                placeholder={t("placeholder.password-confirm")}
-                error={errors.passwordConfirm}
-              />
+              <div className="w-full">
+                <Input
+                  register={register}
+                  name="passwordConfirm"
+                  type="password"
+                  showError={false}
+                  variant="form"
+                  placeholder={t("placeholder.password-confirm")}
+                  error={errors.passwordConfirm}
+                  onBlur={async () => {
+                    await trigger(["password", "passwordConfirm"]);
+                  }}
+                />
+                <p className="text-color-86 text-[16px] font-normal text-left mt-1">
+                  {errors.passwordConfirm && t("error-msg.passwords-not-match")}
+                </p>
+              </div>
             </div>
 
             <div className="w-full h-px bg-color-24 mb-4" />
@@ -326,7 +345,7 @@ function JoinMembershipPage() {
               <Label color="gray" className="text-right mt-2">
                 {t("form.contact-info")}
               </Label>
-              
+
               <div
                 className="grid gap-2"
                 style={{ gridTemplateColumns: "120px 1fr" }}
@@ -337,6 +356,7 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.country-code")}
+                  disabled={true}
                 />
                 <Input
                   register={register}
@@ -365,7 +385,7 @@ function JoinMembershipPage() {
                   variant="form"
                   error={errors.email}
                 />
-                <Button size="small2" variant="gray3" className="min-w-[135px]" onClick={handleCheckEmail}>
+                <Button size="small2" variant={watch("email") && watch("email2") ? "neon" : "gray3"} className="min-w-[135px]" onClick={handleCheckEmail}>
                   {t("check-redundancy")}
                 </Button>
               </div>
@@ -377,8 +397,9 @@ function JoinMembershipPage() {
               <Button
                 type="submit"
                 size="small3"
-                variant="gray2"
+                variant={loginIdChecked && Object.keys(errors).length == 0 && emailChecked ? "neon" : "gray2"} 
                 className="min-w-[600px]"
+                disabled={!(loginIdChecked && Object.keys(errors).length == 0 && emailChecked)}
               >
                 {t("join-membership")}
               </Button>
