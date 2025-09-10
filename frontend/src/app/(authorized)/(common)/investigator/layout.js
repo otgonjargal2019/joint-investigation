@@ -6,8 +6,8 @@ import { ROLES } from "@/shared/dictionary";
 export default async function InvestigatorLayout({ children }) {
   const user = await getUserFromCookie();
 
-  //only for ROLES.INVESTIGATOR
-  if (user.role !== ROLES.INVESTIGATOR) {
+  //only for ROLES.INVESTIGATOR, ROLES.RESEARCHER
+  if (user.role !== ROLES.INVESTIGATOR && user.role !== ROLES.RESEARCHER) {
     notFound();
   }
 
