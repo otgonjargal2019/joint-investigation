@@ -222,7 +222,7 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
     public List<Users> findInvestigatorsByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.eq(countryId));
-        builder.and(users.role.eq(Role.INVESTIGATOR));
+        builder.and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)));
         builder.and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
 
         if (searchWord != null && !searchWord.trim().isEmpty()) {
