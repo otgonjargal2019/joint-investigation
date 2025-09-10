@@ -129,13 +129,20 @@ function IncidentPage() {
             title: t("incident.manager"),
           },
           {
-            key: "creator.country",
+            key: "relatedCountries",
             title: t("incident.country-of-occurrence"),
           },
           {
             key: "investigationDate",
             title: t("incident.investigation-start-date"),
-            render: (value) => new Date(value).toLocaleDateString(),
+            render: (value) => {
+              if (!value) return '';
+              const date = new Date(value);
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              return `${year}-${month}-${day}`;
+            }
           },
           {
             key: "infringementType",
