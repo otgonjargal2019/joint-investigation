@@ -12,8 +12,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserStatusHistoryRepository extends JpaRepository<UserStatusHistory, UUID> {
 
-    Optional<UserStatusHistory> findFirstByUser_UserIdAndFromStatusAndToStatusOrderByCreatedAtDesc(
-            UUID userId,
-            USER_STATUS fromStatus,
-            USER_STATUS toStatus);
+        Optional<UserStatusHistory> findTopByUser_UserIdAndFromStatusAndToStatusOrderByCreatedAtDesc(
+                        UUID userId, USER_STATUS fromStatus, USER_STATUS toStatus);
 }
