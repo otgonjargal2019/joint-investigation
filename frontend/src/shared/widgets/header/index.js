@@ -165,7 +165,7 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-          <button onClick={() => router.push("/profile")}>
+          <button className="cursor-pointer" onClick={() => router.push("/profile")}>
             <UserSmall />
           </button>
           <div className="hidden sm:block">

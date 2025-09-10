@@ -13,6 +13,7 @@ import ProfileImageUploader from "@/shared/components/profileImageUploader";
 import Modal from "@/shared/components/modal";
 import PageTitle from "@/shared/components/pageTitle/page";
 import SuccessNotice from "@/shared/components/successNotice";
+import { USERSTATUS } from "@/shared/dictionary";
 import { profileQuery, useProfile, useDeleteProfileImg, useChangePassword } from "@/entities/profile";
 import { toast } from "react-toastify";
 import { useCheckEmail } from "@/entities/auth/auth.mutation";
@@ -48,15 +49,12 @@ function Membership() {
   const [headquarterOptions, setHeadquarterOptions] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
 
-  // Convert API country data to SelectBox options
-  // const countryOptions = data?.listCountry?.map(country => ({
-  //   label: country.name,
-  //   value: country.id
-  // })) || [];
-
   useEffect(() => {
-    // if(countryOptions.length)
-    //   setValue("countryId", String(data?.userData.countryId));
+    if(data?.userData?.status === USERSTATUS.WAITING_TO_CHANGE){
+      setSubmitted(true);
+      return;
+    }
+
     if(data?.listCountry?.length) {
       const country = data.listCountry.find(c => c.id === data?.userData.countryId);
       setCountryName(country?.name || null);
@@ -100,21 +98,6 @@ function Membership() {
         setValue("departmentId", String(departmentOptions[0].value));
     }
   }, [departmentOptions]);
-
-  //Filter headquarters by selected country using state/effect
-  // useEffect(() => {
-  //   if (!data?.listHeadquarter) {
-  //     setHeadquarterOptions([]);
-  //     return;
-  //   }
-  //   const filtered = data.listHeadquarter
-  //     .filter(hq => hq.country?.id == selectedCountryCode)
-  //     .map(hq => ({
-  //       label: hq.name,
-  //       value: hq.id
-  //     }));
-  //   setHeadquarterOptions(filtered);
-  // }, [selectedCountryCode]);
 
   // Filter departments by selected headquarter using state/effect
   useEffect(() => {
