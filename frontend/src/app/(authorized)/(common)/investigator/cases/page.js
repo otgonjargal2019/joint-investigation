@@ -117,7 +117,7 @@ function IncidentPage() {
       <SimpleDataTable
         columns={[
           {
-            key: "caseId",
+            key: "number",
             title: t("incident.case-number"),
           },
           {

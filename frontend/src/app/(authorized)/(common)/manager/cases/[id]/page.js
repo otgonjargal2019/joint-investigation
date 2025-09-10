@@ -4,7 +4,6 @@ import React, { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 
-import Tag from "@/shared/components/tag";
 import Button from "@/shared/components/button";
 import CaseDetailGrid from "@/shared/widgets/caseDetailGrid";
 import Pagination from "@/shared/components/pagination";
@@ -12,6 +11,7 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import Users from "@/shared/components/icons/users";
 import EditFile from "@/shared/components/icons/editFile";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
+import TagCaseStatus from "@/shared/components/tagCaseStatus";
 
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
@@ -81,8 +81,9 @@ function IncidentDetailPage() {
 				<div className="flex flex-col items-center">
 					<PageTitle title={t("header.incident-detail")} />
 					<div className="flex gap-4 justify-center mt-2">
-						<Tag status="ONGOING" />
-						<Tag status="COLLECTINGDIGITAL" />
+						<TagCaseStatus status={caseData.status} />
+						{/* <Tag status="ONGOING" />
+						<Tag status="COLLECTINGDIGITAL" /> */}
 					</div>
 				</div>
 

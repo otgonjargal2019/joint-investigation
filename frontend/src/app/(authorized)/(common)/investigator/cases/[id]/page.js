@@ -123,7 +123,7 @@ function IncidentDetailPage() {
 
       <div className="flex gap-4 justify-center mt-2">
         <TagCaseStatus status={caseData.status} />
-        {caseData.riskLevel && <Tag status={caseData.riskLevel} />}
+        {/* {caseData.riskLevel && <Tag status={caseData.riskLevel} />} */}
       </div>
 
       <div className="mb-8">

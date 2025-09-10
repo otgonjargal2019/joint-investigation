@@ -22,6 +22,7 @@ public class CaseDto {
     private String infringementType;
     private String relatedCountries;
     private Integer priority;
+    private Integer number;
     private CASE_STATUS status;
     private LocalDate investigationDate;
     private UserDto creator;
@@ -41,6 +42,7 @@ public class CaseDto {
         caseEntity.setInfringementType(this.infringementType);
         caseEntity.setRelatedCountries(this.relatedCountries);
         caseEntity.setPriority(this.priority);
+        caseEntity.setNumber(this.number);
         caseEntity.setStatus(this.status);
         caseEntity.setInvestigationDate(this.investigationDate);
         if (this.creator != null) {
