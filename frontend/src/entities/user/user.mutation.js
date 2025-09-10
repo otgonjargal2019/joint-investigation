@@ -3,12 +3,38 @@ import { axiosInstance } from "@/shared/api/baseAxiosApi";
 
 export const useUpdateUserStatus = () => {
   return useMutation({
-    mutationFn: async ({ userId, status, reason }) => {
+    mutationFn: async ({ userId, userStatus, historyStatus, reason }) => {
       return axiosInstance.post("/api/user/update-status", {
         userId,
-        status,
+        userStatus,
+        historyStatus,
         reason,
       });
+    },
+  });
+};
+
+export const useUpdateRole = () => {
+  return useMutation({
+    mutationFn: async ({ userId, role }) => {
+      return axiosInstance.post("/api/user/update-role", {
+        userId,
+        role,
+      });
+    },
+  });
+};
+
+export const useGetLastWaitingToChangeByUserId = () => {
+  return useMutation({
+    mutationFn: async ({ userId }) => {
+      const response = await axiosInstance.get(
+        `/api/user-status-histories/last-waiting-change`,
+        {
+          params: { userId },
+        }
+      );
+      return response.data;
     },
   });
 };

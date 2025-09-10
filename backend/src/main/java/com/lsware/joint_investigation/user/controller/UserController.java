@@ -29,6 +29,7 @@ import com.lsware.joint_investigation.common.util.CustomResponseException;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.config.customException.FileNotStoredException;
 import com.lsware.joint_investigation.file.service.FileService;
+import com.lsware.joint_investigation.user.dto.UpdateUserRoleRequest;
 import com.lsware.joint_investigation.user.dto.UpdateUserStatusRequest;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.Country;
@@ -121,7 +122,7 @@ public class UserController {
             try {
                 CustomUser userDetail = (CustomUser) authentication.getPrincipal();
                 Optional<Users> me = userRepository.findByUserId(userDetail.getId());
-                if(!me.get().getEmail().equals(profile.getEmail())) {
+                if (!me.get().getEmail().equals(profile.getEmail())) {
                     boolean emailExist = authenticationService.checkEmailExist(profile.getEmail());
                     if (emailExist) {
                         response.put("message", "Email exist.");
@@ -148,9 +149,8 @@ public class UserController {
                 history.setPhone(profile.getPhone());
                 userStatusHistoryRepository.save(history);
 
-                
                 userRepository.updateUserStatusById(userDetail.getId(), Users.USER_STATUS.WAITING_TO_CHANGE.name());
-                //userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
+                // userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
                 response.put("success", true);
                 response.put("message", "Profile updated successfully");
                 return ResponseEntity.ok(response);
@@ -267,26 +267,36 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("Target user not found"));
 
         Users.USER_STATUS oldStatus = user.getStatus();
-        user.setStatus(request.getStatus());
+        user.setStatus(request.getUserStatus());
         userRepository.save(user);
 
         UserStatusHistory history = new UserStatusHistory();
         history.setUser(user);
         history.setCreator(creator);
         history.setFromStatus(oldStatus);
-        history.setToStatus(request.getStatus());
+        history.setToStatus(request.getHistoryStatus());
 
-        if (request.getReason() == null || request.getReason().isBlank()) {
-            history.setReason(null);
-        } else {
-            history.setReason(request.getReason());
-        }
+        String reason = request.getReason();
+        history.setReason((reason == null || reason.isBlank()) ? null : reason.trim());
 
         userStatusHistoryRepository.save(history);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Status history created successfully", user.getUserId(),
                         null));
+    }
+
+    @PostMapping("/update-role")
+    public ResponseEntity<ApiResponse<UUID>> updateUserRole(@RequestBody UpdateUserRoleRequest request) {
+
+        Users user = userRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRole(request.getRole());
+        userRepository.save(user);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Role updated successfully", user.getUserId(), null));
     }
 
     private FilterProvider getUserFilter() {
@@ -308,8 +318,8 @@ public class UserController {
             try {
 
                 authenticationService.authenticate(
-                    me.get().getLoginId(),
-                    payload.get("currentPassword"));
+                        me.get().getLoginId(),
+                        payload.get("currentPassword"));
 
                 authenticationService.updateUserPassword(userDetail.getId(), payload.get("newPassword"));
                 response.put("success", true);

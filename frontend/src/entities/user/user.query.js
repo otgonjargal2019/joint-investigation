@@ -18,7 +18,6 @@ export const userQuery = {
     queryOptions({
       queryKey: [...userQuery.all(), userId],
       queryFn: async () => {
-        console.log("end bnu");
         const response = await axiosInstance.get(`/api/user/${userId}`);
         return response.data;
       },

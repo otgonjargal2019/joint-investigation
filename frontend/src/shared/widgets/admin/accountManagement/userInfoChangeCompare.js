@@ -22,7 +22,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-color-45 font-normal px-4"
             >
-              {userInfo.id}
+              {userInfo.loginId}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -33,7 +33,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-color-45 font-normal px-4"
             >
-              {userInfo.name}
+              {userInfo.nameKr || userInfo.nameEn}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -44,7 +44,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-color-45 font-normal px-4"
             >
-              {userInfo.nation}
+              {userInfo.countryName}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -52,10 +52,10 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               {t("form.affiliation")}
             </th>
             <td className="w-[234px] bg-white border border-color-32 text-black font-normal px-4">
-              {userInfo.unit}
+              {userInfo.headquarterName}
             </td>
             <td className="w-[273px] bg-white border border-color-32 text-black font-normal px-4">
-              {userInfo.team}
+              {userInfo.departmentName}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -66,7 +66,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-black font-normal px-4"
             >
-              {userInfo.contactInfo}
+              {userInfo.phone}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -88,7 +88,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-black font-normal px-4"
             >
-              {userInfo.accountPermissions}
+              {userInfo.role}
             </td>
           </tr>
         </tbody>
@@ -127,7 +127,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-color-45 font-normal px-4"
             >
-              {newUserInfo.id}
+              {newUserInfo.loginId}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -138,7 +138,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-color-45 font-normal px-4"
             >
-              {newUserInfo.name}
+              {newUserInfo.nameKr || newUserInfo.nameEn}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -149,7 +149,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-color-45 font-normal px-4"
             >
-              {newUserInfo.nation}
+              {newUserInfo.countryName}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -157,10 +157,10 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               {t("form.affiliation")}
             </th>
             <td className="w-[234px] bg-white border border-color-32 text-black font-normal px-4">
-              {newUserInfo.unit}
+              {newUserInfo.headquarterName}
             </td>
             <td className="w-[273px] bg-white border border-color-32 text-black font-normal px-4">
-              {newUserInfo.team}
+              {newUserInfo.departmentName}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -171,7 +171,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-black font-normal px-4"
             >
-              {newUserInfo.contactInfo}
+              {newUserInfo.phone}
             </td>
           </tr>
           <tr className="h-[54px]">
@@ -193,7 +193,7 @@ const UserInfoChangeCompare = ({ newUserInfo, userInfo }) => {
               colSpan="2"
               className="w-[506px] bg-white border border-color-32 text-black font-normal px-4"
             >
-              {newUserInfo.accountPermissions}
+              {newUserInfo.role}
             </td>
           </tr>
         </tbody>

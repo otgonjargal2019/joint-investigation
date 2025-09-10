@@ -18,11 +18,15 @@ import UserDetailTable from "@/shared/widgets/admin/accountManagement/userDetail
 import UserDetailWithRoleChange from "@/shared/widgets/admin/accountManagement/userDetailWithRoleChange";
 import UserInfoChangeCompare from "@/shared/widgets/admin/accountManagement/userInfoChangeCompare";
 import { USERSTATUS } from "@/shared/dictionary";
-import { userQuery, useUpdateUserStatus } from "@/entities/user";
+import {
+  userQuery,
+  useUpdateUserStatus,
+  useUpdateRole,
+  useGetLastWaitingToChangeByUserId,
+} from "@/entities/user";
 
 const UserDetailPage = ({ params }) => {
   const { id } = use(params);
-
   const t = useTranslations();
   const router = useRouter();
 
@@ -42,9 +46,10 @@ const UserDetailPage = ({ params }) => {
   } = useForm();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [nextStatus, setNextStatus] = useState(null);
-
+  const [waitingUserInfo, setWaitingUserInfo] = useState({});
   const userStatusMutation = useUpdateUserStatus();
+  const userRoleMutation = useUpdateRole();
+  const lastWaitingToChangeMutation = useGetLastWaitingToChangeByUserId();
 
   useEffect(() => {
     if (setValue && user && user.status === USERSTATUS.APPROVED) {
@@ -52,21 +57,75 @@ const UserDetailPage = ({ params }) => {
     }
   }, [user, setValue]);
 
-  const openModal = (status) => {
-    setNextStatus(status);
+  useEffect(() => {
+    if (user && user.status === USERSTATUS.WAITING_TO_CHANGE) {
+      lastWaitingToChangeMutation.mutate(
+        { userId: user.userId },
+        {
+          onSuccess: (res) => {
+            if (res?.data) {
+              setWaitingUserInfo(res.data);
+            } else {
+              setWaitingUserInfo({});
+            }
+          },
+          onError: (err) => {
+            setWaitingUserInfo({});
+          },
+        }
+      );
+    }
+  }, [user]);
+
+  const handleApprove = () => {
+    if (!user) return;
+
+    let userStatus = USERSTATUS.APPROVED;
+    let historyStatus = USERSTATUS.APPROVED;
+
+    userStatusMutation.mutate(
+      { userId: user.userId, userStatus, historyStatus, reason: null },
+      {
+        onSuccess: (res) => {
+          toast.success(res.data.message, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+          router.push("/admin/account-management");
+        },
+        onError: (err) => {
+          toast.error(err.response.data.message, {
+            position: "top-center",
+            autoClose: 2000,
+          });
+        },
+      }
+    );
+  };
+
+  const openRejectModal = () => {
     setValue("reason", "");
     setModalOpen(true);
   };
 
-  const onConfirmStatusChange = () => {
-    if (!user || !nextStatus) return;
+  const onConfirmReject = () => {
+    if (!user) return;
 
     const reason = getValues("reason");
 
-    console.log(nextStatus, reason);
+    let userStatus;
+    let historyStatus;
+
+    if (user.status === USERSTATUS.PENDING) {
+      userStatus = USERSTATUS.REJECTED;
+      historyStatus = USERSTATUS.REJECTED;
+    } else if (user.status === USERSTATUS.WAITING_TO_CHANGE) {
+      userStatus = USERSTATUS.APPROVED;
+      historyStatus = USERSTATUS.REJECTED;
+    }
 
     userStatusMutation.mutate(
-      { userId: user.userId, status: nextStatus, reason },
+      { userId: user.userId, userStatus, historyStatus, reason },
       {
         onSuccess: (res) => {
           toast.success(res.data.message, {
@@ -88,9 +147,31 @@ const UserDetailPage = ({ params }) => {
 
   const onChangeRole = () => {
     const role = getValues("role");
-    console.log("role:", role);
+
+    userRoleMutation.mutate(
+      { userId: user.userId, role },
+      {
+        onSuccess: (res) => {
+          toast.success(res.data.message, {
+            autoClose: 3000,
+            position: "top-center",
+          });
+        },
+        onError: (err) => {
+          toast.error(err.response.data.message, {
+            position: "top-center",
+            autoClose: 2000,
+          });
+        },
+      }
+    );
   };
 
+  const rejectTitle =
+    user?.status === USERSTATUS.PENDING
+      ? "회원가입 거절"
+      : "회원 정보 변경 거절";
+  console.log(waitingUserInfo);
   return (
     <div className="flex justify-center">
       <div className="space-y-5">
@@ -113,7 +194,7 @@ const UserDetailPage = ({ params }) => {
                   variant="pink"
                   size="mediumWithShadow"
                   className="gap-3"
-                  onClick={() => openModal(USERSTATUS.REJECTED)}
+                  onClick={openRejectModal}
                 >
                   <CancelCircle />
                   {t("refuse")}
@@ -122,7 +203,7 @@ const UserDetailPage = ({ params }) => {
                   variant="yellow"
                   size="mediumWithShadow"
                   className="gap-3"
-                  onClick={() => openModal(USERSTATUS.APPROVED)}
+                  onClick={handleApprove}
                 >
                   <CheckCircle />
                   {t("approve")}
@@ -144,16 +225,17 @@ const UserDetailPage = ({ params }) => {
         )}
 
         {user?.status === USERSTATUS.WAITING_TO_CHANGE && (
-          <UserInfoChangeCompare userInfo={user} newUserInfo={user} />
+          <UserInfoChangeCompare
+            userInfo={user}
+            newUserInfo={waitingUserInfo}
+          />
         )}
       </div>
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} size="w568">
         <div className="space-y-8">
           <h3 className="text-color-8 text-[24px] font-medium text-center">
-            {nextStatus === USERSTATUS.REJECTED
-              ? "회원가입 거절"
-              : "회원가입 승인"}
+            {rejectTitle}
           </h3>
 
           <div className="bg-color-77 rounded-20 text-color-24 text-[20px] font-normal text-center p-4 py-5">
@@ -178,11 +260,7 @@ const UserDetailPage = ({ params }) => {
             >
               {t("cancel")}
             </Button>
-            <Button
-              size="form"
-              className="w-[148px]"
-              onClick={onConfirmStatusChange}
-            >
+            <Button size="form" className="w-[148px]" onClick={onConfirmReject}>
               {t("check")}
             </Button>
           </div>
