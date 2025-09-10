@@ -1,5 +1,24 @@
 import { useTranslations } from "next-intl";
 
+// Helper function to format date from ISO format to YYYY-MM-DD HH:mm:ss
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  } catch (error) {
+    return dateString; // Return original if formatting fails
+  }
+};
+
 const GrayDiv = ({ className, children }) => (
   <div
     className={`bg-color-72 py-1.5 px-3 border-b border-color-53 ${className}`}
@@ -23,7 +42,7 @@ function CaseDetailGrid({ item }) {
       <GrayDiv className="border-t">
         {t("case-detail.date-of-occurrence")}
       </GrayDiv>
-      <WhiteDiv className="border-t">{item?.createdAt}</WhiteDiv>
+      <WhiteDiv className="border-t">{formatDate(item?.createdAt)}</WhiteDiv>
       <GrayDiv className="border-t">
         {t("case-detail.ranking-of-investigate-responses")}
       </GrayDiv>
