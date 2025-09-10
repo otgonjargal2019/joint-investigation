@@ -6,6 +6,11 @@
     "RESEARCHER": "연구원",
     "COPYRIGHT_HOLDER": "저작권자"
   },
+  "case_status": {
+    "OPEN": "진행중",
+    "ON_HOLD": "미해결",
+    "CLOSED": "수사종료"
+  },
   "incident": {
     "case-number": "사건번호",
     "title": "사건 명",

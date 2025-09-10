@@ -112,9 +112,9 @@ function CaseListPage() {
           {
             key: "status",
             title: t("incident.status"),
-            // render: (value) => (
-            //   <Tag status={value === CASE_STATUS.CLOSED ? "수사종료" : "진행중"} />
-            // )
+            render: (value) => (
+              t(`case_status.${value}`)
+            )
           },
           {
             key: "latestRecord.progressStatus",

@@ -6,6 +6,11 @@
     "RESEARCHER": "Researcher",
     "COPYRIGHT_HOLDER": "Copyright Holder"
   },
+  "case_status": {
+    "OPEN": "Open",
+    "ON_HOLD": "On Hold",
+    "CLOSED": "Closed"
+  },
   "incident": {
     "case-number": "Case Number",
     "title": "Case Title",
@@ -108,7 +113,6 @@
     "before-change": "before the change",
     "after-change": "after the change"
   },
-
   "auth": {
     "admin-approve-msg": "You can log in after your administrator approves it."
   },
@@ -135,7 +139,6 @@
     "incident-detail": "case details",
     "case-investigation-record": "case investigation record",
     "member-information": "member information",
-
     "account-mgnt": "account management",
     "resource-mgnt": "resource management",
     "bulletin-mgnt": "bulletin mgnt",
@@ -157,7 +160,9 @@
     "unresolved": "unresolved",
     "termination": "termination"
   },
-  "case-card": { "no-events-assigned": "No events have been assigned." },
+  "case-card": {
+    "no-events-assigned": "No events have been assigned."
+  },
   "home": {
     "profile": "profile",
     "status-of-my-case": "status of my case",
