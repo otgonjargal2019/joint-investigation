@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
 
 import sequelize from "./config/database.js";
-import { User, Message } from "./models/index.js";
+import { User, Message, Notification } from "./models/index.js";
 
 dotenv.config();
 
@@ -16,6 +16,30 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => res.send("Socket.IO server running!"));
+
+// Listen for REST-triggered notification pushes
+app.post("/notify-user", async (req, res) => {
+  const { userId, title, content, relatedUrl } = req.body;
+  if (!userId || !title)
+    return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    const notification = await Notification.create({
+      userId,
+      title,
+      content,
+      relatedUrl,
+    });
+
+    // Emit to user via socket
+    io.to(`user:${userId}`).emit("notification", notification);
+
+    res.json({ success: true, notification });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to create notification" });
+  }
+});
 
 const server = http.createServer(app);
 
