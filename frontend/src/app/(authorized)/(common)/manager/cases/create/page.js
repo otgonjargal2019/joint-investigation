@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import Button from "@/shared/components/button";
 import Label from "@/shared/components/form/label";
 import { useCreateCase } from "@/entities/case";
+import { useCountries } from "@/entities/organizationalData";
 import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
 import Textarea from "@/shared/components/form/textarea";
@@ -63,6 +64,15 @@ function CreateNewCase() {
 
   const router = useRouter();
   const createCase = useCreateCase();
+
+  // Fetch countries for the select dropdown
+  const { data: countries = [], isLoading: isLoadingCountries } = useCountries();
+
+  // Transform countries data for SelectBox options
+  const countryOptions = countries.map(country => ({
+    label: `${country.name} (${country.code})`,
+    value: `${country.name} (${country.code})`
+  }));
 
   const onSubmit = async (data) => {
     try {
@@ -148,12 +158,15 @@ function CreateNewCase() {
                   <Label color="gray" variant="formBig" className="text-right">
                     {t("case-detail.country-concerned")}
                   </Label>
-                  <Input
+                  <SelectBox
                     variant="formBig"
                     register={register}
                     name="relatedCountries"
+                    options={countryOptions}
                     error={errors.relatedCountries}
                     showError={false}
+                    disabled={isLoadingCountries}
+                    placeholder={isLoadingCountries ? "Loading countries..." : "Select a country"}
                   />
                 </div>
                 <div className="grid grid-cols-[278px_300px] gap-5 items-baseline">
