@@ -171,7 +171,8 @@
     "set-investigator": "set investigator",
     "edit-incident-info": "edit incident info",
     "inquiry-of-investigation-records": "inquiry of investigation records",
-    "create-success": "Incident has been created successfully."
+    "create-success": "Incident has been created successfully.",
+    "create-error": "Incident creation failed."
   },
   "tag": {
     "ongoing": "ongoing",

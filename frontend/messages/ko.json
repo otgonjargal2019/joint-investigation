@@ -171,7 +171,8 @@
     "set-investigator": "담당 수사관 설정",
     "edit-incident-info": "사건 정보 수정",
     "inquiry-of-investigation-records": "수사 기록 조회",
-    "create-success": "사건이 성공적으로 생성되었습니다."
+    "create-success": "사건이 성공적으로 생성되었습니다.",
+    "create-error": "사건 생성에 실패하였습니다."
   },
   "tag": {
     "ongoing": "수사 진행중",
