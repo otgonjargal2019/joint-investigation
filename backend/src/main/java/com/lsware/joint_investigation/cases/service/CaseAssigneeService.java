@@ -95,7 +95,7 @@ public class CaseAssigneeService {
         log.debug("Fetching assignees for case {}", caseId);
 
         List<CaseAssignee> assignments = caseAssigneeRepository.findByCaseIdWithUserDetails(caseId);
-        
+
         return assignments.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -109,7 +109,7 @@ public class CaseAssigneeService {
         log.debug("Fetching case assignments for user {}", userId);
 
         List<CaseAssignee> assignments = caseAssigneeRepository.findByUserIdWithCaseDetails(userId);
-        
+
         return assignments.stream()
                 .map(assignment -> {
                     CaseAssigneeDto dto = convertToDto(assignment);

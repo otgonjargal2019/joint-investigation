@@ -81,7 +81,7 @@ public class CaseService {
 		return mapping;
 	}
 
-	@PreAuthorize("hasRole('INV_ADMIN')")
+	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	public MappingJacksonValue getCaseList(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
 		Map<String, Object> result = caseRepository.getCaseList(userId, name, status, pageable);
 
