@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useParams } from "next/navigation";
 
@@ -13,6 +13,15 @@ import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
+
+const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
+
+// Helper function to safely get nested object values
+const getNestedValue = (obj, path) => {
+  return path.split('.').reduce((current, key) => {
+    return current ? current[key] : undefined;
+  }, obj);
+};
 
 function IncidentDetailPage() {
   const [page, setPage] = useState(1);
@@ -55,19 +64,19 @@ function IncidentDetailPage() {
     },
     { key: "evidence", title: "디지털 증거물" },
     { key: "investigationReport", title: "수사보고서" },
-    { key: "progressStatus", title: "진행상태", render: (value) => t(`incident.progress-status.${value.toLowerCase()}`) },
+    { key: "progressStatus", title: "진행상태", render: (value) => t(`incident.PROGRESS_STATUS.${value}`) },
   ];
 
-  // Transform investigation records data for table
-  const investigationRecordsTableData = investigationRecordsData?.content?.map((record, index) => ({
-    no: (investigationRecordsPage - 1) * (parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10) + index + 1,
-    recordName: record.recordName,
-    writer: record.creator?.nameKr || record.creator?.nameEn || record.creator?.loginId || '-',
-    createdAt: record.createdAt || '-',
-    evidence: '-', // This might need to be fetched separately or from another field
-    investigationReport: '-', // This might need to be fetched separately or from another field
-    progressStatus: record.progressStatus || '-',
-  })) || [];
+  const transformedData = useMemo(() => {
+      if (!investigationRecordsData?.rows) return [];
+      return investigationRecordsData.rows.map(row => ({
+        ...row,
+        // Pre-compute nested values for table rendering
+        "creator.nameKr": getNestedValue(row, "creator.nameKr"),
+        "creator.country": getNestedValue(row, "creator.country"),
+        // "latestRecord.progressStatus": getNestedValue(row, "latestRecord.progressStatus")
+      }));
+    }, [investigationRecordsData]);
 
   // Show loading state
   if (isLoading) {
@@ -132,12 +141,12 @@ function IncidentDetailPage() {
       </div>
       <SimpleDataTable
         columns={investigationRecordsColumns}
-        data={investigationRecordsTableData}
+        data={transformedData}
         loading={isLoadingRecords}
       />
       <Pagination
         currentPage={investigationRecordsPage}
-        totalPages={investigationRecordsData?.totalPages || 1}
+        totalPages={Math.ceil((investigationRecordsData?.total || 0) / ROWS_PER_PAGE)}
         onPageChange={setInvestigationRecordsPage}
       />
     </div>

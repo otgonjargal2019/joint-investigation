@@ -16,7 +16,7 @@ import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
 
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
 // Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
@@ -110,7 +110,7 @@ function IncidentDetailPage() {
 					},
 					{ key: "evidence", title: "디지털 증거물" },
 					{ key: "investigationReport", title: "수사보고서" },
-					{ key: "progressStatus", title: "진행상태", render: (value) => t(`incident.progress-status.${value.toLowerCase()}`) },
+					{ key: "progressStatus", title: "진행상태", render: (value) => t(`incident.PROGRESS_STATUS.${value}`) },
 				]}
 				data={transformedData}
 				onClickRow={onClickRow}
