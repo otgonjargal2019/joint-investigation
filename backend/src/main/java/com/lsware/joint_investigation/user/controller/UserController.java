@@ -211,9 +211,9 @@ public class UserController {
         List<Users> users;
 
         if (status != null) {
-            users = userRepository.findByStatus(status, page, size);
+            users = userRepository.findByStatusExcludingPlatformAdmin(status, page, size);
         } else {
-            users = userRepository.findAll(page, size);
+            users = userRepository.findAllExcludingPlatformAdmin(page, size);
         }
 
         List<UserDto> dtos = users.stream()
@@ -268,6 +268,24 @@ public class UserController {
 
         Users.USER_STATUS oldStatus = user.getStatus();
         user.setStatus(request.getUserStatus());
+        if (oldStatus == Users.USER_STATUS.WAITING_TO_CHANGE
+                && request.getHistoryStatus() == Users.USER_STATUS.APPROVED) {
+
+            UserStatusHistory lastHistory = userStatusHistoryRepository
+                    .findTopByUser_UserIdAndFromStatusAndToStatusOrderByCreatedAtDesc(
+                            user.getUserId(),
+                            Users.USER_STATUS.APPROVED,
+                            Users.USER_STATUS.WAITING_TO_CHANGE)
+                    .orElse(null);
+
+            if (lastHistory != null) {
+                user.setProfileImageUrl(lastHistory.getProfileImageUrl());
+                user.setHeadquarterId(lastHistory.getHeadquarterId());
+                user.setDepartmentId(lastHistory.getDepartmentId());
+                user.setEmail(lastHistory.getEmail());
+                user.setPhone(lastHistory.getPhone());
+            }
+        }
         userRepository.save(user);
 
         UserStatusHistory history = new UserStatusHistory();

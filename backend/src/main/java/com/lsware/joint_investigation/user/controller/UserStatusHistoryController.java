@@ -31,70 +31,72 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserStatusHistoryController {
 
-    @Autowired
-    UserStatusHistoryRepository historyRepository;
+        @Autowired
+        UserStatusHistoryRepository historyRepository;
 
-    @Autowired
-    CountryRepository countryRepository;
+        @Autowired
+        CountryRepository countryRepository;
 
-    @Autowired
-    HeadquarterRepository headquarterRepository;
+        @Autowired
+        HeadquarterRepository headquarterRepository;
 
-    @Autowired
-    DepartmentRepository departmentRepository;
+        @Autowired
+        DepartmentRepository departmentRepository;
 
-    @GetMapping("/last-waiting-change")
-    public ResponseEntity<MappingJacksonValue> getLastWaitingChange(
-            @RequestParam UUID userId) {
+        @GetMapping("/last-waiting-change")
+        public ResponseEntity<MappingJacksonValue> getLastWaitingChange(
+                        @RequestParam UUID userId) {
 
-        UserStatusHistory history = historyRepository
-                .findFirstByUser_UserIdAndFromStatusAndToStatusOrderByCreatedAtDesc(
-                        userId,
-                        USER_STATUS.APPROVED,
-                        USER_STATUS.WAITING_TO_CHANGE)
-                .orElse(null);
+                UserStatusHistory history = historyRepository
+                                .findTopByUser_UserIdAndFromStatusAndToStatusOrderByCreatedAtDesc(
+                                                userId,
+                                                USER_STATUS.APPROVED,
+                                                USER_STATUS.WAITING_TO_CHANGE)
+                                .orElse(null);
 
-        if (history == null) {
-            return ResponseEntity.ok(
-                    new MappingJacksonValue(new ApiResponse<>(true, "No history found", null, null)));
+                if (history == null) {
+                        return ResponseEntity.ok(
+                                        new MappingJacksonValue(
+                                                        new ApiResponse<>(true, "No history found", null, null)));
+                }
+
+                Map<Long, String> countryMap = countryRepository.findAll()
+                                .stream().collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
+                Map<Long, String> departmentMap = departmentRepository.findAll()
+                                .stream().collect(Collectors.toMap(d -> d.getId(), d -> d.getName()));
+                Map<Long, String> headquarterMap = headquarterRepository.findAll()
+                                .stream().collect(Collectors.toMap(h -> h.getId(), h -> h.getName()));
+
+                UserStatusHistoryDto dto = new UserStatusHistoryDto();
+                dto.setUserId(history.getUser().getUserId());
+                dto.setLoginId(history.getUser().getLoginId());
+                dto.setNameEn(history.getUser().getNameEn());
+                dto.setNameKr(history.getUser().getNameKr());
+                dto.setRole(history.getUser().getRole());
+
+                dto.setCountryName(countryMap.get(history.getUser().getCountryId()));
+                dto.setDepartmentName(departmentMap.get(history.getDepartmentId()));
+                dto.setHeadquarterName(headquarterMap.get(history.getHeadquarterId()));
+
+                dto.setEmail(history.getEmail());
+                dto.setPhone(history.getPhone());
+                dto.setProfileImageUrl(history.getProfileImageUrl());
+
+                ApiResponse<UserStatusHistoryDto> response = new ApiResponse<>(true,
+                                "Last history fetched successfully", dto,
+                                null);
+
+                MappingJacksonValue mapping = new MappingJacksonValue(response);
+                mapping.setFilters(getHistoryFilter());
+
+                return ResponseEntity.ok(mapping);
         }
 
-        Map<Long, String> countryMap = countryRepository.findAll()
-                .stream().collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
-        Map<Long, String> departmentMap = departmentRepository.findAll()
-                .stream().collect(Collectors.toMap(d -> d.getId(), d -> d.getName()));
-        Map<Long, String> headquarterMap = headquarterRepository.findAll()
-                .stream().collect(Collectors.toMap(h -> h.getId(), h -> h.getName()));
+        private FilterProvider getHistoryFilter() {
+                SimpleBeanPropertyFilter historyFilter = SimpleBeanPropertyFilter
+                                .filterOutAllExcept("id", "fromStatus", "toStatus", "reason", "userId", "creatorId");
 
-        UserStatusHistoryDto dto = new UserStatusHistoryDto();
-        dto.setUserId(history.getUser().getUserId());
-        dto.setLoginId(history.getUser().getLoginId());
-        dto.setNameEn(history.getUser().getNameEn());
-        dto.setNameKr(history.getUser().getNameKr());
-        dto.setRole(history.getUser().getRole());
-
-        dto.setCountryName(countryMap.get(history.getUser().getCountryId()));
-        dto.setDepartmentName(departmentMap.get(history.getDepartmentId()));
-        dto.setHeadquarterName(headquarterMap.get(history.getHeadquarterId()));
-
-        dto.setEmail(history.getEmail());
-        dto.setPhone(history.getPhone());
-        dto.setProfileImageUrl(history.getProfileImageUrl());
-
-        ApiResponse<UserStatusHistoryDto> response = new ApiResponse<>(true, "Last history fetched successfully", dto,
-                null);
-
-        MappingJacksonValue mapping = new MappingJacksonValue(response);
-        mapping.setFilters(getHistoryFilter());
-
-        return ResponseEntity.ok(mapping);
-    }
-
-    private FilterProvider getHistoryFilter() {
-        SimpleBeanPropertyFilter historyFilter = SimpleBeanPropertyFilter
-                .filterOutAllExcept("id", "fromStatus", "toStatus", "reason", "userId", "creatorId");
-
-        return new SimpleFilterProvider().addFilter("HistoryFilter", historyFilter);
-    }
+                return new SimpleFilterProvider().addFilter("HistoryFilter", historyFilter);
+        }
 
 }

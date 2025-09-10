@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.QUsers;
+import com.lsware.joint_investigation.user.entity.Role;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -81,7 +82,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
     public Boolean updateProfileByUserId(UUID userId, UserDto userDto, String avatar) {
         JPAUpdateClause clause = queryFactory.update(users)
                 .where(users.userId.eq(userId))
-                //.set(users.countryId, Long.valueOf(userDto.getCountryId()))
+                // .set(users.countryId, Long.valueOf(userDto.getCountryId()))
                 .set(users.headquarterId, Long.valueOf(userDto.getHeadquarterId()))
                 .set(users.departmentId, Long.valueOf(userDto.getDepartmentId()))
                 .set(users.phone, userDto.getPhone())
@@ -98,7 +99,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         JPAUpdateClause clause = queryFactory.update(users)
                 .where(users.userId.eq(userId))
                 .set(users.status, Users.USER_STATUS.valueOf(status));
-        
+
         long updatedRows = clause.execute();
         return updatedRows > 0;
     }
@@ -113,18 +114,38 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         return updatedRows > 0;
     }
 
-    public List<Users> findByStatus(Users.USER_STATUS status, int page, int size) {
+    // public List<Users> findByStatus(Users.USER_STATUS status, int page, int size)
+    // {
+    // return queryFactory
+    // .selectFrom(users)
+    // .where(users.status.eq(status))
+    // .offset((long) page * size)
+    // .limit(size)
+    // .fetch();
+    // }
+
+    // public List<Users> findAll(int page, int size) {
+    // return queryFactory
+    // .selectFrom(users)
+    // .offset((long) page * size)
+    // .limit(size)
+    // .fetch();
+    // }
+
+    public List<Users> findByStatusExcludingPlatformAdmin(Users.USER_STATUS status, int page, int size) {
         return queryFactory
                 .selectFrom(users)
-                .where(users.status.eq(status))
+                .where(users.status.eq(status)
+                        .and(users.role.ne(Role.PLATFORM_ADMIN)))
                 .offset((long) page * size)
                 .limit(size)
                 .fetch();
     }
 
-    public List<Users> findAll(int page, int size) {
+    public List<Users> findAllExcludingPlatformAdmin(int page, int size) {
         return queryFactory
                 .selectFrom(users)
+                .where(users.role.ne(Role.PLATFORM_ADMIN))
                 .offset((long) page * size)
                 .limit(size)
                 .fetch();
@@ -137,7 +158,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         if (userIds == null || userIds.isEmpty()) {
             return List.of();
         }
-        
+
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.userId.in(userIds));
 
