@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useParams } from "next/navigation";
 
-import Tag from "@/shared/components/tag";
 import Button from "@/shared/components/button";
 import CaseDetailGrid from "@/shared/widgets/caseDetailGrid";
 import Pagination from "@/shared/components/pagination";
@@ -13,6 +12,7 @@ import CreateDoc from "@/shared/components/icons/createDoc";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
+import TagCaseStatus from "@/shared/components/tagCaseStatus";
 
 function IncidentDetailPage() {
   const [page, setPage] = useState(1);
@@ -106,7 +106,7 @@ function IncidentDetailPage() {
       <PageTitle title={t("header.incident-detail")} />
 
       <div className="flex gap-4 justify-center mt-2">
-        <Tag status={caseData.status} />
+        <TagCaseStatus status={caseData.status} />
         {caseData.riskLevel && <Tag status={caseData.riskLevel} />}
       </div>
 
