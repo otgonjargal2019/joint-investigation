@@ -1,4 +1,5 @@
 {
+  "loading": "Loading...",
   "user-role": {
     "PLATFORM_ADMIN": "Platform Admin",
     "INV_ADMIN": "Investigation Admin",

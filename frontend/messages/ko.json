@@ -1,4 +1,5 @@
 {
+  "loading": "로딩중...",
   "user-role": {
     "PLATFORM_ADMIN": "플랫폼 관리자",
     "INV_ADMIN": "수사 관리자",

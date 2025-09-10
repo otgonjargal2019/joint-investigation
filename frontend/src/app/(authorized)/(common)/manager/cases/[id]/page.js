@@ -20,9 +20,9 @@ const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
 // Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
-  return path.split('.').reduce((current, key) => {
-    return current ? current[key] : undefined;
-  }, obj);
+	return path.split('.').reduce((current, key) => {
+		return current ? current[key] : undefined;
+	}, obj);
 };
 
 function IncidentDetailPage() {
@@ -37,7 +37,7 @@ function IncidentDetailPage() {
 		id,
 	});
 
-	const { data: investigationRecordData, invRecordLoading } = useInvestigationRecords({
+	const { data: investigationRecordData, isLoading: invRecordLoading } = useInvestigationRecords({
 		caseId: id,
 		page: page - 1,
 	});
@@ -63,6 +63,15 @@ function IncidentDetailPage() {
 		console.log("id:", id);
 		router.push(`/manager/incident/${id}/inquiry/${row.no}`);
 	};
+
+	if (caseDataLoading) {
+		return (
+			<div>
+				<PageTitle title={t("header.incident-detail")} />
+				<div className="text-center py-8">{t("loading")}</div>
+			</div>
+		);
+	}
 
 	return (
 		<div>
@@ -100,15 +109,22 @@ function IncidentDetailPage() {
 			</h3>
 			<SimpleDataTable
 				columns={[
-					{ key: "no", title: "No." },
+					{ key: "recordId", title: "No." },
 					{ key: "recordName", title: "수사기록" },
 					{ key: "creator.nameKr", title: "작성자" },
 					{
 						key: "createdAt",
 						title: "작성일",
-						render: (value) => new Date(value).toLocaleDateString()
+						render: (value) => {
+							if (!value) return '';
+							const date = new Date(value);
+							const year = date.getFullYear();
+							const month = String(date.getMonth() + 1).padStart(2, '0');
+							const day = String(date.getDate()).padStart(2, '0');
+							return `${year}-${month}-${day}`;
+						}
 					},
-					{ key: "evidence", title: "디지털 증거물" },
+					{ key: "content", title: "디지털 증거물" },
 					{ key: "investigationReport", title: "수사보고서" },
 					{ key: "progressStatus", title: "진행상태", render: (value) => t(`incident.PROGRESS_STATUS.${value}`) },
 				]}
