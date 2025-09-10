@@ -55,7 +55,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
           name: inv.nameKr,
           label: inv.nameKr,
           type: "employee",
-          role: inv.rank || "Investigator",
+          role: t(`user-role.${inv.role}`)  || "-",
           nation: currentCountry.countryName,
           headquarterName: hq.headquarterName,
           departmentName: dept.departmentName,
@@ -82,7 +82,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
             label: invAdmin.nameKr || invAdmin.nameEn,
             type: "employee",
             nation: country.countryName,
-            role: invAdmin.role,
+            role: t(`user-role.${invAdmin.role}`) || "-",
             userId: invAdmin.userId,
             email: invAdmin.email,
             phone: invAdmin.phone

@@ -1,4 +1,11 @@
 {
+  "user-role": {
+    "PLATFORM_ADMIN": "Platform Admin",
+    "INV_ADMIN": "Investigation Admin",
+    "INVESTIGATOR": "Investigator",
+    "RESEARCHER": "Researcher",
+    "COPYRIGHT_HOLDER": "Copyright Holder"
+  },
   "incident": {
     "case-number": "Case Number",
     "title": "Case Title",
