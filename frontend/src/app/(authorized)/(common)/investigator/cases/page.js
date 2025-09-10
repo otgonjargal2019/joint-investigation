@@ -75,7 +75,7 @@ function IncidentPage() {
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push(`/investigator/cases/${row.id}`);
+    router.push(`/investigator/cases/${row.caseId}`);
   };
 
   // Show loading or error states
