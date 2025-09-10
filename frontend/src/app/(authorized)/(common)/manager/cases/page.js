@@ -21,7 +21,7 @@ const tabs = [
   { label: "종료 사건", value: 2 },
 ];
 
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
 // Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {

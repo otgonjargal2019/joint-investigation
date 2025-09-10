@@ -81,7 +81,7 @@ public class CaseService {
 		return mapping;
 	}
 
-	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
+	@PreAuthorize("hasRole('INV_ADMIN')")
 	public MappingJacksonValue getCaseList(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
 		Map<String, Object> result = caseRepository.getCaseList(userId, name, status, pageable);
 
@@ -126,6 +126,40 @@ public class CaseService {
 
 		MappingJacksonValue mapping = new MappingJacksonValue(dto);
 
+		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
+				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
+						"department", "status");
+
+		FilterProvider filters = new SimpleFilterProvider()
+				.addFilter("UserFilter", userFilter);
+
+		mapping.setFilters(filters);
+
+		return mapping;
+	}
+
+	@PreAuthorize("hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
+	public MappingJacksonValue getAssignedCases(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
+		// Fetch cases where the user is assigned through case_assignees table
+		var casePage = caseRepository.findAssignedCases(userId, name, status, pageable);
+
+		// Convert to DTOs
+		var caseDtos = casePage.getContent().stream()
+				.map(Case::toDto)
+				.collect(Collectors.toList());
+
+		// Create response map with pagination info
+		Map<String, Object> response = Map.of(
+			"rows", caseDtos,
+			"total", casePage.getTotalElements(),
+			"totalPages", casePage.getTotalPages(),
+			"size", casePage.getSize(),
+			"number", casePage.getNumber()
+		);
+
+		MappingJacksonValue mapping = new MappingJacksonValue(response);
+
+		// Apply filters to hide sensitive user information
 		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
 				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
 						"department", "status");

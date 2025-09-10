@@ -1,6 +1,7 @@
 // Case queries
 export {
   useCase,
+  useMyAssignedCase,
   useCaseById,
   useCaseAssignees,
   useMyAssignments,

@@ -1,16 +1,17 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
-import Tag from "@/shared/components/tag";
 import Tabs from "@/shared/components/tab";
 import Pagination from "@/shared/components/pagination";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import PageTitle from "@/shared/components/pageTitle/page";
 import CaseCard from "@/shared/components/caseCard";
+import { useMyAssignedCase } from "@/entities/case";
+import TagCaseStatus from "@/shared/components/tagCaseStatus";
+import TagProgressStatus from "@/shared/components/tagProgressStatus";
 
-import { tableColumns, tableData } from "@/shared/widgets/incident/mockData";
 import { caseData } from "@/shared/widgets/mockData/homepage";
 
 const tabs = [
@@ -19,29 +20,75 @@ const tabs = [
   { label: "종료 사건", value: 2 },
 ];
 
+const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
+
+// Helper function to safely get nested object values
+const getNestedValue = (obj, path) => {
+  return path.split(".").reduce((current, key) => {
+    return current ? current[key] : undefined;
+  }, obj);
+};
+
 function IncidentPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
-  const [isLoading, setLoading] = useState(false);
 
   const t = useTranslations();
 
-  useEffect(() => {
-    if (tableData) {
-      const updatedData = tableData.map((row, idx) => ({
-        ...row,
-        state: <Tag status={idx % 2 === 0 ? "수사종료" : "진행중"} />,
-      }));
-      setData(updatedData);
+  // Get status filter based on active tab
+  const getStatusFilter = (tabValue) => {
+    switch (tabValue) {
+      case 1: return "OPEN"; // 진행중인 사건
+      case 2: return "CLOSED"; // 종료 사건
+      default: return undefined; // 전체 (no filter)
     }
-  }, [tableData]);
+  };
+
+  // Fetch cases using the real API
+  const {
+    data: casesResponse,
+    isLoading,
+    error
+  } = useMyAssignedCase({
+    page: page - 1, // API uses 0-based pagination
+    size: ROWS_PER_PAGE,
+    status: getStatusFilter(activeTab),
+    sortBy: "createdAt",
+    sortDirection: "desc"
+  });
+
+  const transformedData = useMemo(() => {
+    if (!casesResponse?.rows) return [];
+    return casesResponse.rows.map((row) => ({
+      ...row,
+      // Pre-compute nested values for table rendering
+      "creator.nameKr": getNestedValue(row, "creator.nameKr"),
+      "creator.country": getNestedValue(row, "creator.country"),
+      "latestRecord.progressStatus": getNestedValue(
+        row,
+        "latestRecord.progressStatus"
+      ),
+    }));
+  }, [casesResponse?.rows]);
 
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push(`/investigator/incident/${row.id}`);
+    router.push(`/investigator/cases/${row.id}`);
   };
+
+  // Show loading or error states
+  if (error) {
+    return (
+      <div>
+        <PageTitle title={t("header.current-state-entire-incident")} />
+        <div className="text-red-500 text-center py-8">
+          Error loading cases: {error.message}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -68,11 +115,56 @@ function IncidentPage() {
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
       <SimpleDataTable
-        columns={tableColumns}
-        data={data}
+        columns={[
+          {
+            key: "caseId",
+            title: t("incident.case-number"),
+          },
+          {
+            key: "caseName",
+            title: t("incident.title"),
+          },
+          {
+            key: "creator.nameKr",
+            title: t("incident.manager"),
+          },
+          {
+            key: "creator.country",
+            title: t("incident.country-of-occurrence"),
+          },
+          {
+            key: "investigationDate",
+            title: t("incident.investigation-start-date"),
+            render: (value) => new Date(value).toLocaleDateString(),
+          },
+          {
+            key: "infringementType",
+            title: t("incident.infringement-type"),
+          },
+          {
+            key: "status",
+            title: t("incident.status"),
+            render: (value) => (
+              <TagCaseStatus status={value} />
+            )
+          },
+          {
+            key: "latestRecord.progressStatus",
+            title: t("incident.progress-detail"),
+            render: (value) => (
+              <TagProgressStatus status={value} />
+            )
+          },
+        ]}
+        data={transformedData}
         onClickRow={onClickRow}
+        isLoading={isLoading}
       />
-      <Pagination currentPage={page} totalPages={2} onPageChange={setPage} />
+      <Pagination
+        currentPage={page}
+        totalPages={casesResponse?.totalPages || 1}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

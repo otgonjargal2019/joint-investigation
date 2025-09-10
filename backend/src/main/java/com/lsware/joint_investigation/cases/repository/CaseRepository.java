@@ -6,11 +6,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Repository;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.QCase;
+import com.lsware.joint_investigation.cases.entity.QCaseAssignee;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 import com.lsware.joint_investigation.util.QuerydslHelper;
@@ -114,5 +117,72 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
             .fetchOne();
 
         return Optional.of(found);
+    }
+
+    public Page<Case> findAssignedCases(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
+        QCase qCase = QCase.case$;
+        QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+        QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+
+        // Build the where clause
+        BooleanExpression assigneePredicate = qAssignee.userId.eq(userId);
+
+        BooleanExpression namePredicate = name != null && !name.trim().isEmpty()
+            ? qCase.caseName.containsIgnoreCase(name.trim())
+            : null;
+
+        BooleanExpression statusPredicate = status != null
+            ? qCase.status.eq(status)
+            : null;
+
+        BooleanExpression combinedPredicate = assigneePredicate;
+        if (namePredicate != null) {
+            combinedPredicate = combinedPredicate.and(namePredicate);
+        }
+        if (statusPredicate != null) {
+            combinedPredicate = combinedPredicate.and(statusPredicate);
+        }
+
+        // Get latest investigation record subquery
+        var latestRecordSubquery = queryFactory
+            .select(qRecord.createdAt.max())
+            .from(qRecord)
+            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+
+        // Main query with join to case_assignees
+        List<Tuple> results = queryFactory
+            .select(qCase, qRecord)
+            .from(qCase)
+            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+            .leftJoin(qRecord).on(
+                qRecord.caseInstance.caseId.eq(qCase.caseId)
+                .and(qRecord.createdAt.eq(latestRecordSubquery))
+            )
+            .where(combinedPredicate)
+            .limit(pageable.getPageSize())
+            .offset(pageable.getOffset())
+            .orderBy(QuerydslHelper.getSortedColumn(qCase, pageable.getSort()))
+            .fetch();
+
+        List<Case> cases = results.stream()
+            .map(tuple -> {
+                Case caseEntity = tuple.get(qCase);
+                InvestigationRecord record = tuple.get(qRecord);
+                if (record != null) {
+                    caseEntity.setLatestRecord(record);
+                }
+                return caseEntity;
+            })
+            .toList();
+
+        // Count total
+        Long total = queryFactory
+            .select(qCase.caseId.countDistinct())
+            .from(qCase)
+            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+            .where(combinedPredicate)
+            .fetchOne();
+
+        return new PageImpl<>(cases, pageable, total != null ? total : 0);
     }
 }
