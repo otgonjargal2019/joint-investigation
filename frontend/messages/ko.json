@@ -27,12 +27,12 @@
       "approved": "승인됨",
       "rejected": "반려됨"
     },
-    "progress-status": {
-      "pre_investigation": "pre_investigation",
-      "investigation": "KOREA: investigation",
-      "review": "review",
-      "prosecution": "prosecution",
-      "closed": "closed"
+    "PROGRESS_STATUS": {
+      "PRE_INVESTIGATION": "사전조사",
+      "INVESTIGATION": "디지털 증거물 수집중",
+      "REVIEW": "검토중",
+      "DISPOSE": "디지털 증거물 파기",
+      "CLOSED": "종료"
     }
   },
   "case": "건",

@@ -9,6 +9,8 @@ import Plus from "@/shared/components/icons/plus";
 import Pagination from "@/shared/components/pagination";
 import PageTitle from "@/shared/components/pageTitle/page";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
+import TagCaseStatus from "@/shared/components/tagCaseStatus";
+import TagProgressStatus from "@/shared/components/tagProgressStatus";
 
 import { useCase } from "@/entities/case";
 import { CASE_STATUS } from "@/entities/case";
@@ -78,7 +80,7 @@ function CaseListPage() {
       <div className="mt-10 mb-4 flex justify-between items-end">
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
         <Button size="mediumWithShadow" onClick={onClickAdd}>
-          <Plus />
+          <div className="mr-[6px]"><Plus /></div>
           {t("create-new-incident")}
         </Button>
       </div>
@@ -113,16 +115,15 @@ function CaseListPage() {
             key: "status",
             title: t("incident.status"),
             render: (value) => (
-              t(`case_status.${value}`)
+              <TagCaseStatus status={value} />
             )
           },
           {
             key: "latestRecord.progressStatus",
             title: t("incident.progress-detail"),
-            render: (value) =>
-              value
-                ? t(`incident.progress-status.${value?.toLowerCase()}`)
-                : null,
+            render: (value) => (
+              <TagProgressStatus status={value} />
+            )
           },
         ]}
         data={transformedData}
