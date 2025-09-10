@@ -156,11 +156,11 @@ function JoinMembershipPage() {
           position: "top-center",
         });
       },
-      onError: (err) => {
+      onError: () => {
         setLoginIdChecked(false);
-        setError("loginId", {
-          type: "manual",
-          message: '이미 사용 중인 아이디 입니다.',
+        toast.warning(t("info-msg.not-available-id"), {
+          autoClose: 3000,
+          position: "top-center",
         });
       },
     });
