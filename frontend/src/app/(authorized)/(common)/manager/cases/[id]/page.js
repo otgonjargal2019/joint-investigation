@@ -90,12 +90,12 @@ function IncidentDetailPage() {
 			</div>
 
 			<div className="mb-8 mt-2">
-				<h3 className="text-[24px] text-color-8 font-medium mb-2">
+				<h3 className="text-[24px] text-color-8 font-medium mb-2 border-l-[9px] border-black pl-[10px]">
 					{t("subtitle.incident-information")}
 				</h3>
 				<CaseDetailGrid item={caseData} />
 			</div>
-			<h3 className="text-[24px] text-color-8 font-medium mb-2">
+			<h3 className="text-[24px] text-color-8 font-medium mb-2 border-l-[9px] border-black pl-[10px]">
 				{t("subtitle.investigation-records")}
 			</h3>
 			<SimpleDataTable
