@@ -30,7 +30,7 @@ function CaseDetailGrid({ item }) {
       <WhiteDiv className="border-t">{item?.priority}</WhiteDiv>
       <GrayDiv className="border-t">{t("case-detail.other-matters")}</GrayDiv>
       <GrayDiv>{t("case-detail.country-concerned")}</GrayDiv>
-      <WhiteDiv>{item?.creator?.country}</WhiteDiv>
+      <WhiteDiv>{item?.relatedCountries}</WhiteDiv>
       <GrayDiv>{t("case-detail.content-type")}</GrayDiv>
       <WhiteDiv>{item?.contentType}</WhiteDiv>
       <GrayDiv>{t("case-detail.types-of-copyright-infringement")}</GrayDiv>

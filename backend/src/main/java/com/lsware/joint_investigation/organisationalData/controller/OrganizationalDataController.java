@@ -2,6 +2,7 @@ package com.lsware.joint_investigation.organisationalData.controller;
 
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.organisationalData.dto.CombinedOrganizationalDataDto;
+import com.lsware.joint_investigation.organisationalData.dto.CountryDto;
 import com.lsware.joint_investigation.organisationalData.dto.CountryOrganizationTreeDto;
 import com.lsware.joint_investigation.organisationalData.dto.ForeignInvAdminTreeDto;
 import com.lsware.joint_investigation.organisationalData.service.OrganizationalDataService;
@@ -183,6 +184,31 @@ public class OrganizationalDataController {
         } catch (Exception e) {
             log.error("Unexpected error in getForeignInvAdminsTree for user {} with searchWord '{}': {}", 
                      customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get list of all countries
+     * Returns all countries ordered by name
+     * Accessible by all authenticated users with proper roles
+     */
+    @GetMapping("/countries")
+    @PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR')")
+    public ResponseEntity<List<CountryDto>> getAllCountries(Authentication authentication) {
+        CustomUser customUser = null;
+        try {
+            customUser = (CustomUser) authentication.getPrincipal();
+            log.debug("getAllCountries called by user {}", customUser.getId());
+
+            List<CountryDto> countries = organizationalDataService.getAllCountries();
+            log.info("Successfully retrieved {} countries for user {}", 
+                    countries.size(), customUser.getId());
+            return ResponseEntity.ok(countries);
+
+        } catch (Exception e) {
+            log.error("Unexpected error in getAllCountries for user {}: {}", 
+                     customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

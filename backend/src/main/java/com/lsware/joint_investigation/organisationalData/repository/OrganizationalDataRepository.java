@@ -193,10 +193,12 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.ne(excludeCountryId));
         builder.and(users.role.eq(Role.INV_ADMIN));
-        builder.and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
+        builder.and(
+                users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
 
         // Filter by INV_ADMIN name if provided
-        if (invAdminName != null && !invAdminName.trim().isEmpty() && countryName != null && !countryName.trim().isEmpty()) {
+        if (invAdminName != null && !invAdminName.trim().isEmpty() && countryName != null
+                && !countryName.trim().isEmpty()) {
             BooleanBuilder nameBuilder = new BooleanBuilder();
             nameBuilder.or(users.nameKr.containsIgnoreCase(invAdminName.trim()));
             nameBuilder.or(users.nameEn.containsIgnoreCase(invAdminName.trim()));
@@ -207,38 +209,42 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
             builder.and(countryNameBuilder.or(nameBuilder));
         }
         return queryFactory
-            .selectFrom(users)
-            .join(country).on(users.countryId.eq(country.id))
-            .where(builder)
-            .orderBy(country.name.asc(), users.nameKr.asc())
-            .fetch();
+                .selectFrom(users)
+                .join(country).on(users.countryId.eq(country.id))
+                .where(builder)
+                .orderBy(country.name.asc(), users.nameKr.asc())
+                .fetch();
 
     }
 
     /**
-     * Get investigators for a specific country with unified search across all fields using OR operator
-     * Searches for the searchWord in country name, headquarter name, department name, or user name
+     * Get investigators for a specific country with unified search across all
+     * fields using OR operator
+     * Searches for the searchWord in country name, headquarter name, department
+     * name, or user name
      */
     public List<Users> findInvestigatorsByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.eq(countryId));
-        builder.and(users.role.eq(Role.INVESTIGATOR));
-        builder.and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
+        builder.and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)));
+        builder.and(
+                users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
 
         if (searchWord != null && !searchWord.trim().isEmpty()) {
             String trimmedSearch = searchWord.trim();
             BooleanBuilder searchBuilder = new BooleanBuilder();
-            
+
             searchBuilder.or(headquarter.name.containsIgnoreCase(searchWord.trim()));
             searchBuilder.or(department.name.containsIgnoreCase(searchWord.trim()));
             // Search in user names (Korean or English)
             searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
-            
+
             builder.and(searchBuilder);
         }
 
-        // Always join with department, headquarter, and country for complete data access
+        // Always join with department, headquarter, and country for complete data
+        // access
         return queryFactory
                 .selectFrom(users)
                 .join(department).on(users.departmentId.eq(department.id))
@@ -259,22 +265,25 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         if (searchWord != null && !searchWord.trim().isEmpty()) {
             String trimmedSearch = searchWord.trim();
             BooleanBuilder searchBuilder = new BooleanBuilder();
-            
+
             // Search in country name or headquarter name
             searchBuilder.or(headquarter.name.containsIgnoreCase(trimmedSearch));
-            
+
             // Also search in departments and users associated with this headquarter
             searchBuilder.or(department.name.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
-            
+
             builder.and(searchBuilder);
         }
 
         return queryFactory
                 .selectFrom(headquarter)
                 .leftJoin(department).on(department.headquarter.id.eq(headquarter.id))
-                .leftJoin(users).on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR)).and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
+                .leftJoin(users)
+                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR))
+                        .and(users.status.eq(Users.USER_STATUS.APPROVED)
+                                .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
                 .where(builder)
                 .distinct()
                 .orderBy(headquarter.name.asc())
@@ -291,19 +300,22 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         if (searchWord != null && !searchWord.trim().isEmpty()) {
             String trimmedSearch = searchWord.trim();
             BooleanBuilder searchBuilder = new BooleanBuilder();
-            
+
             // Search in headquarter name, department name, or user names
             searchBuilder.or(department.headquarter.name.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(department.name.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
-            
+
             builder.and(searchBuilder);
         }
 
         return queryFactory
                 .selectFrom(department)
-                .leftJoin(users).on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR)).and(users.status.eq(Users.USER_STATUS.APPROVED).or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
+                .leftJoin(users)
+                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR))
+                        .and(users.status.eq(Users.USER_STATUS.APPROVED)
+                                .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
                 .where(builder)
                 .distinct()
                 .orderBy(department.name.asc())
@@ -313,7 +325,8 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
     /**
      * Get all countries except the specified one with optional name search
      */
-    public List<Country> findOtherCountriesWithSearch(Long excludeCountryId, List<Long> countryIds, String countryName) {
+    public List<Country> findOtherCountriesWithSearch(Long excludeCountryId, List<Long> countryIds,
+            String countryName) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(country.id.ne(excludeCountryId));
 

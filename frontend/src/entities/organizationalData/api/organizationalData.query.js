@@ -77,3 +77,21 @@ export const useForeignInvAdminsTree = (searchWord) => {
     keepPreviousData: true,
   });
 };
+
+/**
+ * Hook for fetching all countries
+ * Returns list of all countries ordered by name
+ *
+ * @returns {import('@tanstack/react-query').UseQueryResult<import('../model/types').Country[]>}
+ */
+export const useCountries = () => {
+  return useQuery({
+    queryKey: QUERY_KEYS.COUNTRIES,
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(API_ENDPOINTS.COUNTRIES);
+      return data;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - countries rarely change
+    cacheTime: 30 * 60 * 1000, // 30 minutes - can cache longer
+  });
+};

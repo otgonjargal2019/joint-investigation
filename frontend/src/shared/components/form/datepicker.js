@@ -47,6 +47,7 @@ const DatePickerInput = ({
               disabled && "bg-color-71 cursor-not-allowed",
               className
             )}
+            autoComplete="off"
           />
         )}
       />

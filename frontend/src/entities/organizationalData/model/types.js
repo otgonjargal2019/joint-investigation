@@ -50,4 +50,15 @@
  * @property {ForeignInvAdminTree[]} foreignInvAdmins
  */
 
+/**
+ * @typedef {Object} Country
+ * @property {number} id
+ * @property {string} uuid
+ * @property {string} name
+ * @property {string} phonePrefix
+ * @property {string} code
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ */
+
 export {};
