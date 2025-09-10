@@ -41,6 +41,9 @@ public class Case {
     @Column(name = "priority")
     private Integer priority;
 
+    @Column(name = "number")
+    private Integer number;
+
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private CASE_STATUS status;
@@ -87,6 +90,7 @@ public class Case {
         dto.setInfringementType(this.infringementType);
         dto.setRelatedCountries(this.relatedCountries);
         dto.setPriority(this.priority);
+        dto.setNumber(this.number);
         dto.setStatus(this.status);
         dto.setInvestigationDate(this.investigationDate);
         if (this.creator != null) {

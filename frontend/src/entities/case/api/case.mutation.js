@@ -1,14 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosInstance } from '@/shared/api/baseAxiosApi';
 
-/**
- * Hook for creating a new case
- * @returns {import('@tanstack/react-query').UseMutationResult<
- *   import('../model/types').Case,
- *   Error,
- *   import('../model/types').CreateCaseRequest
- * >}
- */
 export const useCreateCase = () => {
   const queryClient = useQueryClient();
 
@@ -24,20 +16,6 @@ export const useCreateCase = () => {
   });
 };
 
-/**
- * Hook for assigning users to a case
- * @returns {import('@tanstack/react-query').UseMutationResult<
- *   Array<{
- *     caseId: string,
- *     userId: string,
- *     assignedAt: string,
- *     user: any,
- *     caseName: string
- *   }>,
- *   Error,
- *   {caseId: string, userIds: string[]}
- * >}
- */
 export const useAssignUsersToCase = () => {
   const queryClient = useQueryClient();
 
@@ -56,14 +34,6 @@ export const useAssignUsersToCase = () => {
   });
 };
 
-/**
- * Hook for removing users from a case
- * @returns {import('@tanstack/react-query').UseMutationResult<
- *   void,
- *   Error,
- *   {caseId: string, userIds: string[]}
- * >}
- */
 export const useRemoveUsersFromCase = () => {
   const queryClient = useQueryClient();
 

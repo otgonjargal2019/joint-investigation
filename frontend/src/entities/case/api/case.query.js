@@ -1,20 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { axiosInstance } from "@/shared/api/baseAxiosApi";
 
-/**
- * Hook for fetching investigation records with pagination and filtering
- * @param {import('../model/query-params').CaseQueryParams} params
- * @returns {import('@tanstack/react-query').UseQueryResult<{
- *   content: import('../model/types').Case[],
- *   totalElements: number,
- *   totalPages: number,
- *   size: number,
- *   number: number
- * }>}
- */
 export const useCase = ({
-  sortBy = "createdAt",
-  sortDirection = "asc",
+  sortBy = "number",
+  sortDirection = "desc",
   page = 0,
   size = 10,
   status,
@@ -41,8 +30,8 @@ export const useCase = ({
 };
 
 export const useMyAssignedCase = ({
-  sortBy = "createdAt",
-  sortDirection = "asc",
+  sortBy = "number",
+  sortDirection = "desc",
   page = 0,
   size = 10,
   status,
@@ -82,20 +71,6 @@ export const useCaseById = ({
   });
 };
 
-/**
- * Hook for fetching case assignees
- * @param {string} caseId - The case ID
- * @returns {import('@tanstack/react-query').UseQueryResult<
- *   Array<{
- *     caseId: string,
- *     userId: string,
- *     assignedAt: string,
- *     user: any,
- *     caseName: string
- *   }>,
- *   Error
- * >}
- */
 export const useCaseAssignees = (caseId) => {
   return useQuery({
     queryKey: ['caseAssignees', caseId],
@@ -107,19 +82,6 @@ export const useCaseAssignees = (caseId) => {
   });
 };
 
-/**
- * Hook for fetching current user's case assignments
- * @returns {import('@tanstack/react-query').UseQueryResult<
- *   Array<{
- *     caseId: string,
- *     userId: string,
- *     assignedAt: string,
- *     user: any,
- *     caseName: string
- *   }>,
- *   Error
- * >}
- */
 export const useMyAssignments = () => {
   return useQuery({
     queryKey: ['myAssignments'],
@@ -130,20 +92,6 @@ export const useMyAssignments = () => {
   });
 };
 
-/**
- * Hook for fetching a specific user's case assignments
- * @param {string} userId - The user ID
- * @returns {import('@tanstack/react-query').UseQueryResult<
- *   Array<{
- *     caseId: string,
- *     userId: string,
- *     assignedAt: string,
- *     user: any,
- *     caseName: string
- *   }>,
- *   Error
- * >}
- */
 export const useUserAssignments = (userId) => {
   return useQuery({
     queryKey: ['userAssignments', userId],
@@ -155,12 +103,6 @@ export const useUserAssignments = (userId) => {
   });
 };
 
-/**
- * Hook for checking if a user is assigned to a case
- * @param {string} caseId - The case ID
- * @param {string} userId - The user ID
- * @returns {import('@tanstack/react-query').UseQueryResult<boolean, Error>}
- */
 export const useIsUserAssignedToCase = (caseId, userId) => {
   return useQuery({
     queryKey: ['userCaseAssignment', caseId, userId],
@@ -172,11 +114,6 @@ export const useIsUserAssignedToCase = (caseId, userId) => {
   });
 };
 
-/**
- * Hook for fetching case assignment count
- * @param {string} caseId - The case ID
- * @returns {import('@tanstack/react-query').UseQueryResult<number, Error>}
- */
 export const useCaseAssignmentCount = (caseId) => {
   return useQuery({
     queryKey: ['caseAssignmentCount', caseId],
