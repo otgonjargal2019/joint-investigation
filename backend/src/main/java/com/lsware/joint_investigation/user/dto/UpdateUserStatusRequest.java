@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateUserStatusRequest {
     private UUID userId;
-    private USER_STATUS status;
+    private USER_STATUS userStatus;
+    private USER_STATUS historyStatus;
     private String reason;
 
 }
