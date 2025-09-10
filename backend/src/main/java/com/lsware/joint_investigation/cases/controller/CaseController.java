@@ -51,4 +51,22 @@ public class CaseController {
     public MappingJacksonValue getCaseById(@PathVariable UUID id) {
         return caseService.getCaseById(id);
     }
+
+    @GetMapping("/my-assigned")
+    public MappingJacksonValue getMyAssignedCases(
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) CASE_STATUS status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+        @RequestParam(required = false, defaultValue = "desc") String sortDirection,
+        Authentication authentication
+    ) {
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+        Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return caseService.getAssignedCases(user.getId(), name, status, pageable);
+    }
 }

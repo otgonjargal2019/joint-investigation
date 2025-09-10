@@ -45,7 +45,7 @@ const Header = () => {
       user?.role === ROLES.RESEARCHER ||
       user?.role === ROLES.COPYRIGHT_HOLDER
     ) {
-      return "/investigator/incident";
+      return "/investigator/cases";
     }
     return "/";
   }, [user]);

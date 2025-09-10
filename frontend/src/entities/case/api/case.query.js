@@ -40,6 +40,34 @@ export const useCase = ({
   });
 };
 
+export const useMyAssignedCase = ({
+  sortBy = "createdAt",
+  sortDirection = "asc",
+  page = 0,
+  size = 10,
+  status,
+  caseName,
+} = {}) => {
+  return useQuery({
+    queryKey: ["/api/cases/my-assigned", { sortBy, sortDirection, page, size, status, caseName }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        sortBy,
+        sortDirection,
+        page: String(page),
+        size: String(size),
+        ...(status && { status }),
+        ...(caseName && { caseName }),
+      });
+
+      const { data } = await axiosInstance.get(
+        `/api/cases/my-assigned?${params.toString()}`
+      );
+      return data;
+    },
+  });
+};
+
 export const useCaseById = ({
   id,
 } = {}) => {

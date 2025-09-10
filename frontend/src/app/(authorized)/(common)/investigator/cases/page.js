@@ -4,16 +4,15 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import Tabs from "@/shared/components/tab";
-import Button from "@/shared/components/button";
-import Plus from "@/shared/components/icons/plus";
 import Pagination from "@/shared/components/pagination";
-import PageTitle from "@/shared/components/pageTitle/page";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
+import PageTitle from "@/shared/components/pageTitle/page";
+import CaseCard from "@/shared/components/caseCard";
+import { useMyAssignedCase } from "@/entities/case";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
 import TagProgressStatus from "@/shared/components/tagProgressStatus";
 
-import { useCase } from "@/entities/case";
-import { CASE_STATUS } from "@/entities/case";
+import { caseData } from "@/shared/widgets/mockData/homepage";
 
 const tabs = [
   { label: "전체", value: 0 },
@@ -30,28 +29,38 @@ const getNestedValue = (obj, path) => {
   }, obj);
 };
 
-function CaseListPage() {
+function IncidentPage() {
   const [activeTab, setActiveTab] = useState(0);
-  const [page, setPage] = useState(0); // React Query uses 0-based pagination
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState([]);
+
   const t = useTranslations();
 
-  const caseStatus =
-    activeTab === 1
-      ? CASE_STATUS.OPEN
-      : activeTab === 2
-      ? CASE_STATUS.CLOSED
-      : undefined;
+  // Get status filter based on active tab
+  const getStatusFilter = (tabValue) => {
+    switch (tabValue) {
+      case 1: return "OPEN"; // 진행중인 사건
+      case 2: return "CLOSED"; // 종료 사건
+      default: return undefined; // 전체 (no filter)
+    }
+  };
 
-  const { data: recordsData, isLoading } = useCase({
-    page,
+  // Fetch cases using the real API
+  const {
+    data: casesResponse,
+    isLoading,
+    error
+  } = useMyAssignedCase({
+    page: page - 1, // API uses 0-based pagination
     size: ROWS_PER_PAGE,
-    status: caseStatus,
+    status: getStatusFilter(activeTab),
+    sortBy: "createdAt",
+    sortDirection: "desc"
   });
 
-  // Transform the data to handle nested properties
   const transformedData = useMemo(() => {
-    if (!recordsData?.rows) return [];
-    return recordsData.rows.map((row) => ({
+    if (!casesResponse?.rows) return [];
+    return casesResponse.rows.map((row) => ({
       ...row,
       // Pre-compute nested values for table rendering
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
@@ -61,28 +70,49 @@ function CaseListPage() {
         "latestRecord.progressStatus"
       ),
     }));
-  }, [recordsData?.rows]);
+  }, [casesResponse?.rows]);
 
   const router = useRouter();
 
   const onClickRow = (row) => {
-    router.push(`/manager/cases/${row.caseId}`);
+    router.push(`/investigator/cases/${row.id}`);
   };
 
-  const onClickAdd = () => {
-    router.push(`/manager/cases/create`);
-  };
+  // Show loading or error states
+  if (error) {
+    return (
+      <div>
+        <PageTitle title={t("header.current-state-entire-incident")} />
+        <div className="text-red-500 text-center py-8">
+          Error loading cases: {error.message}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <PageTitle title={t("header.current-state-entire-incident")} />
+      <h3 className="text-[24px] text-color-8 font-medium mb-2">
+        {t("subtitle.recent-investigation")}
+      </h3>
+      <div className="w-full flex gap-6 justify-between">
+        {caseData.map((item, idx) => (
+          <CaseCard
+            key={idx}
+            size={"big"}
+            label={item.label}
+            code={item.code}
+            desc={item.desc}
+            color={item.color}
+            country={item.country}
+            isLoading={isLoading}
+          />
+        ))}
+      </div>
 
-      <div className="mt-10 mb-4 flex justify-between items-end">
+      <div className="mt-10 mb-3">
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
-        <Button size="mediumWithShadow" onClick={onClickAdd}>
-          <div className="mr-[6px]"><Plus /></div>
-          {t("create-new-incident")}
-        </Button>
       </div>
       <SimpleDataTable
         columns={[
@@ -131,12 +161,12 @@ function CaseListPage() {
         isLoading={isLoading}
       />
       <Pagination
-        currentPage={page + 1}
-        totalPages={Math.ceil((recordsData?.total || 0) / ROWS_PER_PAGE)}
-        onPageChange={(newPage) => setPage(newPage - 1)}
+        currentPage={page}
+        totalPages={casesResponse?.totalPages || 1}
+        onPageChange={setPage}
       />
     </div>
   );
 }
 
-export default CaseListPage;
+export default IncidentPage;
