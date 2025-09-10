@@ -63,6 +63,7 @@ public class InvestigationRecord {
     private REVIEW_STATUS reviewStatus;
 
     public enum REVIEW_STATUS {
+        WRITING,
         PENDING,
         APPROVED,
         REJECTED
