@@ -1,8 +1,8 @@
-const CreateDoc = ({ color = "#585858" }) => (
+const CreateDoc = ({ color = "#585858", width = 60, height = 60 }) => (
   <svg
-    width="20"
-    height="22"
-    viewBox="0 0 20 22"
+    width={width}
+    height={height}
+    viewBox={`0 0 ${width} ${height}`}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >

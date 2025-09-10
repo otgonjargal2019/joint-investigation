@@ -21,6 +21,7 @@ public class InvestigationRecordDto {
     private String recordName;
     private String content;
     private String securityLevel;
+    private Integer number;
     private PROGRESS_STATUS progressStatus;
     private REVIEW_STATUS reviewStatus;
     private String rejectionReason;
@@ -37,6 +38,7 @@ public class InvestigationRecordDto {
         entity.setRecordName(this.recordName);
         entity.setContent(this.content);
         entity.setSecurityLevel(this.securityLevel);
+        entity.setNumber(number);
         entity.setProgressStatus(this.progressStatus);
         entity.setReviewStatus(this.reviewStatus);
         entity.setRejectionReason(this.rejectionReason);

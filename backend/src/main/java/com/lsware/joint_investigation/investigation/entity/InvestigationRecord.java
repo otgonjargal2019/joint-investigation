@@ -46,6 +46,9 @@ public class InvestigationRecord {
     @Column(name = "security_level", nullable = false)
     private String securityLevel;
 
+    @Column(name = "number")
+    private Integer number;
+
     @Column(name = "progress_status")
     @Enumerated(EnumType.STRING)
     private PROGRESS_STATUS progressStatus;
@@ -102,6 +105,7 @@ public class InvestigationRecord {
         dto.setRecordName(this.recordName);
         dto.setContent(this.content);
         dto.setSecurityLevel(this.securityLevel);
+        dto.setNumber(number);
         dto.setProgressStatus(this.progressStatus);
         dto.setReviewStatus(this.reviewStatus);
         dto.setRejectionReason(this.rejectionReason);

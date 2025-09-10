@@ -61,7 +61,7 @@ function IncidentDetailPage() {
 		console.log(row);
 		const id = pathname.split("/")[3];
 		console.log("id:", id);
-		router.push(`/manager/incident/${id}/inquiry/${row.no}`);
+		router.push(`/manager/cases/${id}/inquiry/${row.recordId}`);
 	};
 
 	if (caseDataLoading) {
@@ -92,7 +92,15 @@ function IncidentDetailPage() {
 						<Users />
 						{t("case-detail.set-investigator")}
 					</Button>
-					<Button variant="white" size="mediumWithShadow" className="gap-3">
+					<Button
+						variant="white"
+						size="mediumWithShadow"
+						className="gap-3"
+						onClick={() => {
+							const id = pathname.split("/")[3];
+							router.push(`/manager/cases/edit/${id}`);
+						}}
+					>
 						<EditFile />
 						{t("case-detail.edit-incident-info")}
 					</Button>
@@ -110,7 +118,7 @@ function IncidentDetailPage() {
 			</h3>
 			<SimpleDataTable
 				columns={[
-					{ key: "recordId", title: "No." },
+					{ key: "number", title: "No." },
 					{ key: "recordName", title: "수사기록" },
 					{ key: "creator.nameKr", title: "작성자" },
 					{

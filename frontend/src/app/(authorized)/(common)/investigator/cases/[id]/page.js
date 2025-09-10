@@ -49,12 +49,12 @@ function IncidentDetailPage() {
   });
 
   const onClickNew = () => {
-    router.push(`/investigator/investigation-records/create?caseId=${params.id}`);
+    router.push(`/investigator/cases/create?caseId=${params.id}`);
   };
 
   // Define investigation records table columns
   const investigationRecordsColumns = [
-    { key: "recordId", title: "No." },
+    { key: "number", title: "No." },
     { key: "recordName", title: "수사기록" },
     { key: "creator.nameKr", title: "작성자" },
     {
@@ -142,7 +142,7 @@ function IncidentDetailPage() {
           className="gap-3 w-[228.5px]"
           onClick={onClickNew}
         >
-          <CreateDoc />
+          <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
           {t("create-new-investigation-record")}
         </Button>
       </div>

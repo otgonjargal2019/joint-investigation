@@ -40,7 +40,7 @@ const IncidentCreatePage = () => {
               {t("cancel")}
             </Button>
             <Button variant="white" size="mediumWithShadow" className="gap-3">
-              <CreateDoc />
+              <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
               {t("upload-investigation-material")}
             </Button>
           </div>
