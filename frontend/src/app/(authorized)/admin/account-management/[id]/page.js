@@ -147,24 +147,25 @@ const UserDetailPage = ({ params }) => {
 
   const onChangeRole = () => {
     const role = getValues("role");
-
-    userRoleMutation.mutate(
-      { userId: user.userId, role },
-      {
-        onSuccess: (res) => {
-          toast.success(res.data.message, {
-            autoClose: 3000,
-            position: "top-center",
-          });
-        },
-        onError: (err) => {
-          toast.error(err.response.data.message, {
-            position: "top-center",
-            autoClose: 2000,
-          });
-        },
-      }
-    );
+    if (role) {
+      userRoleMutation.mutate(
+        { userId: user.userId, role },
+        {
+          onSuccess: (res) => {
+            toast.success(res.data.message, {
+              autoClose: 3000,
+              position: "top-center",
+            });
+          },
+          onError: (err) => {
+            toast.error(err.response.data.message, {
+              position: "top-center",
+              autoClose: 2000,
+            });
+          },
+        }
+      );
+    }
   };
 
   const rejectTitle =
