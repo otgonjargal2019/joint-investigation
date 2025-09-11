@@ -31,7 +31,7 @@ public class AuthService {
     }
 
     public boolean checkloginIdExist(String loginId) {
-        Optional<Users> user = userRepository.findByLoginId(loginId) ;
+        Optional<Users> user = userRepository.checkLoginIdExist(loginId); //userRepository.findByLoginId(loginId) ;
 
         if (!user.isEmpty()) {
             throw new IllegalArgumentException("user found with this ID.");
@@ -48,7 +48,6 @@ public class AuthService {
         return false;
     }
 
-    
     public Users updateUserPassword(UUID userId, String password) {
         Optional<Users> userOptional = userRepository.findByUserId(userId);
         if (!userOptional.isPresent()) {

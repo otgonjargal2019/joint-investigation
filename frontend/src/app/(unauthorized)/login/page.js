@@ -47,10 +47,18 @@ function LoginPage() {
         }
       },
       onError: (err) => {
-        setError("root",{
-          type: "manual",
-          message: err.response.data.message,
-        })
+        console.log('EERRRR', err);
+        if (err.response?.data?.message == "ADMIN_CONFRIMATION_NEEDED") {
+          toast.warning(t("auth.admin-approve-msg"), {
+            autoClose: 3000,
+            position: "top-center",
+          });
+        } else {
+          setError("root",{
+            type: "manual",
+            message: err.response.data.message,
+          })
+        }
       },
     });
   };

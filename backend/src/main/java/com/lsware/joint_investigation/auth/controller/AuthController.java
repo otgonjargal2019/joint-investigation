@@ -99,7 +99,11 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "Authentication failed. Invalid credentials.");
+
+            if("ADMIN_CONFRIMATION_NEEDED".equals(ex.getMessage()))
+                errorResponse.put("message", "ADMIN_CONFRIMATION_NEEDED");
+            else
+                errorResponse.put("message", "Authentication failed. Invalid credentials.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
         }
     }
