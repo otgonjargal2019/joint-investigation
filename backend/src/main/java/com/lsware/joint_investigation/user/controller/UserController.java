@@ -235,7 +235,7 @@ public class UserController {
                 meta);
 
         MappingJacksonValue mapping = new MappingJacksonValue(response);
-        mapping.setFilters(getUserFilter());
+        mapping.setFilters(UserController.getUserFilter());
 
         return ResponseEntity.ok(mapping);
     }
@@ -247,7 +247,7 @@ public class UserController {
                     UserDto dto = mapUserWithNames(user);
                     ApiResponse<UserDto> response = new ApiResponse<>(true, "User retrieved successfully", dto, null);
                     MappingJacksonValue mapping = new MappingJacksonValue(response);
-                    mapping.setFilters(getUserFilter());
+                    mapping.setFilters(UserController.getUserFilter());
                     return ResponseEntity.ok(mapping);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -317,11 +317,10 @@ public class UserController {
                 new ApiResponse<>(true, "Role updated successfully", user.getUserId(), null));
     }
 
-    private FilterProvider getUserFilter() {
+    public static FilterProvider getUserFilter() {
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone",
-                        "countryName", "headquarterName", "departmentName",
-                        "status", "createdAtFormatted");
+                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "countryId", "headquarterId",
+                            "departmentId", "status");
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }

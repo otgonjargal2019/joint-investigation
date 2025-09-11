@@ -19,13 +19,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.lsware.joint_investigation.common.dto.ApiResponse;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.file.service.FileService;
@@ -35,6 +31,7 @@ import com.lsware.joint_investigation.posts.entity.PostAttachment;
 import com.lsware.joint_investigation.posts.repository.PostRepository;
 import com.lsware.joint_investigation.posts.repository.PostViewRepository;
 import com.lsware.joint_investigation.posts.service.PostViewService;
+import com.lsware.joint_investigation.user.controller.UserController;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 
@@ -92,7 +89,7 @@ public class PostController {
                                 meta);
 
                 MappingJacksonValue mapping = new MappingJacksonValue(response);
-                mapping.setFilters(getUserFilter());
+                mapping.setFilters(UserController.getUserFilter());
 
                 return ResponseEntity.ok(mapping);
         }
@@ -107,7 +104,7 @@ public class PostController {
                                 PostDto.fromEntity(post),
                                 null);
                 MappingJacksonValue mapping = new MappingJacksonValue(response);
-                mapping.setFilters(getUserFilter());
+                mapping.setFilters(UserController.getUserFilter());
                 return ResponseEntity.ok(mapping);
         }
 
@@ -140,7 +137,7 @@ public class PostController {
                 ApiResponse<Map<String, Object>> response = new ApiResponse<>(true,
                                 "Post with neighbors retrieved successfully", result, null);
                 MappingJacksonValue mapping = new MappingJacksonValue(response);
-                mapping.setFilters(getUserFilter());
+                mapping.setFilters(UserController.getUserFilter());
                 return ResponseEntity.ok(mapping);
         }
 
@@ -172,7 +169,7 @@ public class PostController {
                 ApiResponse<PostDto> response = new ApiResponse<>(true, "Post created successfully",
                                 PostDto.fromEntity(savedPost), null);
                 MappingJacksonValue mapping = new MappingJacksonValue(response);
-                mapping.setFilters(getUserFilter());
+                mapping.setFilters(UserController.getUserFilter());
                 return ResponseEntity.ok(mapping);
 
         }
@@ -228,7 +225,7 @@ public class PostController {
                 ApiResponse<PostDto> response = new ApiResponse<>(true, "Post updated successfully",
                                 PostDto.fromEntity(updated), null);
                 MappingJacksonValue mapping = new MappingJacksonValue(response);
-                mapping.setFilters(getUserFilter());
+                mapping.setFilters(UserController.getUserFilter());
                 return ResponseEntity.ok(mapping);
         }
 
@@ -282,12 +279,4 @@ public class PostController {
                 return ResponseEntity.ok(response);
         }
 
-        // ---------------- USER FILTER ----------------
-        private FilterProvider getUserFilter() {
-                SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-                                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone",
-                                                "country", "department", "status");
-
-                return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
-        }
 }

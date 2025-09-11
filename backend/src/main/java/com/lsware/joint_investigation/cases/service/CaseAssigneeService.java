@@ -201,6 +201,7 @@ public class CaseAssigneeService {
         CaseAssigneeDto dto = CaseAssigneeDto.builder()
                 .caseId(assignment.getCaseId())
                 .userId(assignment.getUserId())
+                .user(assignment.getUser().toDto())
                 .assignedAt(assignment.getAssignedAt())
                 .build();
 

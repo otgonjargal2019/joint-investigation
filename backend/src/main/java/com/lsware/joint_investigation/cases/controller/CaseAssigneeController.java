@@ -8,14 +8,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.lsware.joint_investigation.cases.dto.AssignUsersRequest;
 import com.lsware.joint_investigation.cases.dto.CaseAssigneeDto;
 import com.lsware.joint_investigation.cases.dto.RemoveAssigneesRequest;
 import com.lsware.joint_investigation.cases.service.CaseAssigneeService;
 import com.lsware.joint_investigation.config.CustomUser;
+import com.lsware.joint_investigation.user.controller.UserController;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,14 +44,7 @@ public class CaseAssigneeController {
                     request.getUserIds().size(), request.getCaseId());
             MappingJacksonValue mapping = new MappingJacksonValue(assignments);
 
-            SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-                    .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
-                            "department", "status");
-
-            FilterProvider filters = new SimpleFilterProvider()
-                    .addFilter("UserFilter", userFilter);
-
-            mapping.setFilters(filters);
+            mapping.setFilters(UserController.getUserFilter());
             return ResponseEntity.ok(mapping);
 
         } catch (IllegalArgumentException e) {
@@ -116,14 +107,7 @@ public class CaseAssigneeController {
 
             MappingJacksonValue mapping = new MappingJacksonValue(assignees);
 
-            SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-                    .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
-                            "department", "status");
-
-            FilterProvider filters = new SimpleFilterProvider()
-                    .addFilter("UserFilter", userFilter);
-
-            mapping.setFilters(filters);
+            mapping.setFilters(UserController.getUserFilter());
             return ResponseEntity.ok(mapping);
 
         } catch (Exception e) {
