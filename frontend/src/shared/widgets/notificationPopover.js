@@ -7,7 +7,14 @@ import Bell from "../components/icons/bell";
 import Ellipse from "../components/icons/ellipse";
 import Button from "../components/button";
 
-const NotificationPopover = ({ title, data, data2 }) => {
+const NotificationPopover = ({
+  notifications,
+  hasNew,
+  markAsRead,
+  title,
+  data,
+  data2,
+}) => {
   const t = useTranslations();
   const router = useRouter();
 
@@ -17,9 +24,12 @@ const NotificationPopover = ({ title, data, data2 }) => {
         <button
           title="Notifications"
           aria-label="Notifications"
-          className="cursor-pointer"
+          className="relative cursor-pointer"
         >
           <Bell color="#C3C3C3" />
+          {hasNew && (
+            <span className="absolute -top-0.5 -right-0.5 bg-color-61 w-3 h-3 rounded-full"></span>
+          )}
         </button>
       </Popover.Trigger>
 
@@ -31,7 +41,23 @@ const NotificationPopover = ({ title, data, data2 }) => {
           alignOffset={0}
           className="rounded-20 bg-color-4 shadow p-4 w-[419px] h-[425px] z-50"
         >
-          <div className="bg-color-9 border-[2px] border-color-61 rounded-10 py-3 px-5 space-y-2">
+          {notifications?.map((notif) => (
+            <div
+              key={notif.notificationId}
+              className={`bg-color-9 ${
+                notif.isRead ? "" : "border-[2px] border-color-61"
+              } rounded-10 py-3 px-5 space-y-2`}
+            >
+              <div className="flex justify-between items-center">
+                <div className="text-white text-[18px] font-bold">
+                  {notif.title}
+                </div>
+                <div>{!notif.isRead && <Ellipse />}</div>
+              </div>
+            </div>
+          ))}
+
+          {/* <div className="bg-color-9 border-[2px] border-color-61 rounded-10 py-3 px-5 space-y-2">
             <div className="flex justify-between items-center">
               <div className="text-white text-[18px] font-bold">{title}</div>
               <div>
@@ -77,7 +103,7 @@ const NotificationPopover = ({ title, data, data2 }) => {
                 </React.Fragment>
               ))}
             </dl>
-          </div>
+          </div> */}
           <div className="flex justify-center pt-6">
             <Button
               size="extraSmall"

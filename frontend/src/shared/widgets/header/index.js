@@ -18,7 +18,8 @@ import UsersSmaller from "../../components/icons/usersSmaller";
 import Layers from "../../components/icons/layers";
 import { useAuth } from "@/providers/authProviders";
 import { logout } from "@/app/actions/auth";
-import { useMessenger } from "@/providers/messengerProvider";
+// import { useMessenger } from "@/providers/messengerProvider";
+import { useRealTime } from "@/providers/realtimeProvider";
 import { ROLES } from "@/shared/dictionary";
 
 const Header = () => {
@@ -28,7 +29,9 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const t = useTranslations();
 
-  const { unreadUsersCount } = useMessenger();
+  // const { unreadUsersCount } = useMessenger();
+  const { notifications, hasNewNotification, markNotificationAsRead } =
+    useRealTime();
 
   const { user } = useAuth();
   if (!user) return null;
@@ -141,14 +144,17 @@ const Header = () => {
             onClick={() => router.push("/messenger")}
           >
             <PaperPlane color="#C3C3C3" size={24} />
-            {unreadUsersCount > 0 && (
+            {/* {unreadUsersCount > 0 && (
               <span className="absolute -top-2 -right-3 bg-color-17 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {unreadUsersCount}
               </span>
-            )}
+            )} */}
           </button>
 
           <NotificationPopover
+            notifications={notifications}
+            hasNew={hasNewNotification}
+            markAsRead={markNotificationAsRead}
             title="사건 종료"
             data={[
               { label: "사건번호", value: "3254" },
@@ -165,7 +171,10 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-          <button className="cursor-pointer" onClick={() => router.push("/profile")}>
+          <button
+            className="cursor-pointer"
+            onClick={() => router.push("/profile")}
+          >
             <UserSmall />
           </button>
           <div className="hidden sm:block">
