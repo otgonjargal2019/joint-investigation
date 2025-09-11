@@ -51,7 +51,7 @@ function InvestigatorAssignEdit({ caseId }) {
     // Helper function to find user details in current country organizational data
     const findUserInCurrentCountry = (userId) => {
         if (!currentCountryData?.headquarters) return null;
-        
+
         for (const hq of currentCountryData.headquarters) {
             for (const dept of hq.departments || []) {
                 const user = (dept.investigators || []).find(inv => inv.userId === userId);
@@ -71,7 +71,7 @@ function InvestigatorAssignEdit({ caseId }) {
     // Helper function to find user details in foreign countries data
     const findUserInForeignCountries = (userId) => {
         if (!foreignInvAdminsData || !Array.isArray(foreignInvAdminsData)) return null;
-        
+
         for (const country of foreignInvAdminsData) {
             const user = (country.invAdmins || []).find(admin => admin.userId === userId);
             if (user) {
@@ -89,16 +89,16 @@ function InvestigatorAssignEdit({ caseId }) {
     // Helper function to build presentation data from assignees and organizational data
     const buildAssigneeDisplayData = (assignees) => {
         if (!assignees || assignees.length === 0) return [];
-        
+
         return assignees.map(assignee => {
             // First try to find in current country data
             let userDetails = findUserInCurrentCountry(assignee.userId);
-            
+
             // If not found, try foreign countries data
             if (!userDetails) {
                 userDetails = findUserInForeignCountries(assignee.userId);
             }
-            
+
             // Fallback to user data from the assignee DTO if organizational data not found
             if (!userDetails && assignee.user) {
                 userDetails = {
@@ -113,7 +113,7 @@ function InvestigatorAssignEdit({ caseId }) {
                     phone: assignee.user.phone
                 };
             }
-            
+
             return {
                 id: assignee.userId,
                 nation: userDetails?.nation || "-",
@@ -304,8 +304,8 @@ function InvestigatorAssignEdit({ caseId }) {
             <div className="flex justify-center items-center min-h-screen">
                 <div className="text-lg">
                     {isLoading ? t('loading-organizational-data') :
-                     isForeignLoading ? t('loading-foreign-data') :
-                     isLoadingAssignees ? t('loading-assignees') : t('loading')}...
+                        isForeignLoading ? t('loading-foreign-data') :
+                            isLoadingAssignees ? t('loading-assignees') : t('loading')}...
                 </div>
             </div>
         );
@@ -317,8 +317,8 @@ function InvestigatorAssignEdit({ caseId }) {
             <div className="flex flex-col justify-center items-center min-h-screen">
                 <div className="text-red-500 text-lg mb-4">
                     {error ? t('organizational-data-load-error') :
-                     foreignError ? t('foreign-data-load-error') :
-                     assigneesError ? t('assignees-load-error') : t('case-detail.load-error')}
+                        foreignError ? t('foreign-data-load-error') :
+                            assigneesError ? t('assignees-load-error') : t('case-detail.load-error')}
                 </div>
                 <Button onClick={onGoBack} variant="primary">
                     {t('go-back')}
