@@ -88,7 +88,13 @@ function IncidentDetailPage() {
 				</div>
 
 				<div className="flex gap-2 items-center flex-1 justify-end">
-					<Button variant="white" size="mediumWithShadow" className="gap-3">
+					<Button
+						variant="white"
+						size="mediumWithShadow"
+						className="gap-3"
+						onClick={() => {
+							router.push(`/manager/cases/edit/assignment/${id}`);
+						}}>
 						<Users />
 						{t("case-detail.set-investigator")}
 					</Button>
@@ -97,7 +103,6 @@ function IncidentDetailPage() {
 						size="mediumWithShadow"
 						className="gap-3"
 						onClick={() => {
-							const id = pathname.split("/")[3];
 							router.push(`/manager/cases/edit/${id}`);
 						}}
 					>

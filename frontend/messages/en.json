@@ -1,5 +1,9 @@
 {
   "loading": "Loading...",
+  "loading-countries": "Loading countries",
+  "loading-organizational-data": "Loading organizational data",
+  "loading-foreign-data": "Loading foreign data",
+  "loading-assignees": "Loading assignees",
   "user-role": {
     "PLATFORM_ADMIN": "Platform Admin",
     "INV_ADMIN": "Investigation Admin",
@@ -58,6 +62,8 @@
   "login": "login",
   "check": "check",
   "save": "save",
+  "update": "update",
+  "updating": "updating",
   "add": "add",
   "go-back": "go back",
   "check-redundancy": "check redundancy",
@@ -78,6 +84,8 @@
   "create-new-investigation-record": "create new investigation record",
   "upload-investigation-material": "upload investigation material",
   "create-new-incident": "create new",
+  "edit-incident": "edit incident",
+  "edit-case-assignment": "Edit Case Assignment",
   "refuse": "refuse",
   "deny": "deny",
   "approve": "approve",
@@ -191,8 +199,15 @@
     "edit-incident-info": "edit incident info",
     "inquiry-of-investigation-records": "inquiry of investigation records",
     "create-success": "Incident has been created successfully.",
-    "create-error": "Incident creation failed."
+    "create-error": "Incident creation failed.",
+    "update-success": "Incident has been updated successfully.",
+    "update-error": "Incident update failed.",
+    "load-error": "Failed to load case details.",
+    "not-found": "Case not found."
   },
+  "organizational-data-load-error": "Failed to load organizational data.",
+  "foreign-data-load-error": "Failed to load foreign data.",
+  "assignees-load-error": "Failed to load assignees data.",
   "tag": {
     "ongoing": "ongoing",
     "collecting-digital-evidence": "collecting digital evidence"
@@ -211,6 +226,7 @@
     "digital-evidence": "digital evidence"
   },
   "enter-incident-info": "enter incident info",
+  "edit-incident-info": "edit incident info",
   "assign-investigator": "assign investigator",
   "not-found": {
     "title": "Page not found",

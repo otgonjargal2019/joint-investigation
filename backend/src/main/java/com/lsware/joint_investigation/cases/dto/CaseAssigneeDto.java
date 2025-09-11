@@ -11,7 +11,6 @@ import com.lsware.joint_investigation.user.dto.UserDto;
 @AllArgsConstructor
 @Builder
 public class CaseAssigneeDto {
-    
     private UUID caseId;
     private UUID userId;
     private LocalDateTime assignedAt;

@@ -1,5 +1,9 @@
 {
-  "loading": "로딩중...",
+  "loading": "로딩 중...",
+  "loading-countries": "국가 목록 로딩 중",
+  "loading-organizational-data": "조직 데이터 로딩 중",
+  "loading-foreign-data": "해외 데이터 로딩 중",
+  "loading-assignees": "할당자 로딩 중",
   "user-role": {
     "PLATFORM_ADMIN": "플랫폼 관리자",
     "INV_ADMIN": "수사 관리자",
@@ -58,6 +62,8 @@
   "login": "로그인",
   "check": "확인",
   "save": "저장",
+  "update": "수정",
+  "updating": "수정 중",
   "add": "추가",
   "go-back": "뒤로가기",
   "check-redundancy": "중복확인",
@@ -78,6 +84,8 @@
   "create-new-investigation-record": "신규 수사 기록 작성",
   "upload-investigation-material": "수사보고서/디지털 증거물 업로드",
   "create-new-incident": "새 사건 생성",
+  "edit-incident": "사건 편집",
+  "edit-case-assignment": "케이스 할당 편집",
   "refuse": "거절",
   "deny": "반려",
   "approve": "승인",
@@ -191,8 +199,15 @@
     "edit-incident-info": "사건 정보 수정",
     "inquiry-of-investigation-records": "수사 기록 조회",
     "create-success": "사건이 성공적으로 생성되었습니다.",
-    "create-error": "사건 생성에 실패하였습니다."
+    "create-error": "사건 생성에 실패하였습니다.",
+    "update-success": "사건이 성공적으로 수정되었습니다.",
+    "update-error": "사건 수정에 실패하였습니다.",
+    "load-error": "사건 정보를 불러오는데 실패하였습니다.",
+    "not-found": "사건을 찾을 수 없습니다."
   },
+  "organizational-data-load-error": "조직 데이터를 불러오는데 실패하였습니다.",
+  "foreign-data-load-error": "해외 데이터를 불러오는데 실패하였습니다.",
+  "assignees-load-error": "할당자 데이터를 불러오는데 실패하였습니다.",
   "tag": {
     "ongoing": "수사 진행중",
     "collecting-digital-evidence": "디지털 증거물 수집중"
@@ -211,6 +226,7 @@
     "digital-evidence": "디지털 증거물"
   },
   "enter-incident-info": "사건 정보 입력",
+  "edit-incident-info": "사건 정보 수정",
   "assign-investigator": "담당 수사관 배정",
   "not-found": {
     "title": "페이지를 찾을 수 없습니다",

@@ -2,6 +2,8 @@
 package com.lsware.joint_investigation.investigation.controller;
 
 import com.lsware.joint_investigation.investigation.service.InvestigationService;
+import com.lsware.joint_investigation.user.controller.UserController;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,9 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.converter.json.MappingJacksonValue;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.util.Map;
 
 
@@ -44,13 +43,7 @@ public class InvestigationController {
 		Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, caseId, pageable);
 		MappingJacksonValue mapping = new MappingJacksonValue(result);
 
-		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country", "department", "status");
-
-		FilterProvider filters = new SimpleFilterProvider()
-				.addFilter("UserFilter", userFilter);
-
-		mapping.setFilters(filters);
+		mapping.setFilters(UserController.getUserFilter());
 
 		return mapping;
 	}

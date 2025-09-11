@@ -1,7 +1,7 @@
 package com.lsware.joint_investigation.cases.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +24,7 @@ public class CaseDto {
     private Integer priority;
     private Integer number;
     private CASE_STATUS status;
-    private LocalDate investigationDate;
+    private ZonedDateTime investigationDate;
     private UserDto creator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

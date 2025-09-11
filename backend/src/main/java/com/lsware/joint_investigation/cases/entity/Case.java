@@ -41,7 +41,7 @@ public class Case {
     @Column(name = "priority")
     private Integer priority;
 
-    @Column(name = "number")
+    @Column(name = "number", insertable = false, updatable = false)
     private Integer number;
 
     @Column(name = "status", nullable = false)
@@ -55,7 +55,7 @@ public class Case {
     }
 
     @Column(name = "investigation_date")
-    private LocalDate investigationDate;
+    private ZonedDateTime investigationDate;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = true)

@@ -59,6 +59,7 @@ export const useMyAssignedCase = ({
 
 export const useCaseById = ({
   id,
+  enabled = true,
 } = {}) => {
   return useQuery({
     queryKey: ["/api/cases/id", { id }],
@@ -68,17 +69,18 @@ export const useCaseById = ({
       );
       return data;
     },
+    enabled: enabled && !!id, // Only run query when enabled and id is provided
   });
 };
 
-export const useCaseAssignees = (caseId) => {
+export const useCaseAssignees = (caseId, options = {}) => {
   return useQuery({
     queryKey: ['caseAssignees', caseId],
     queryFn: async () => {
       const response = await axiosInstance.get(`/api/cases/${caseId}/assignees`);
       return response.data;
     },
-    enabled: !!caseId,
+    enabled: options.enabled !== undefined ? options.enabled : !!caseId,
   });
 };
 

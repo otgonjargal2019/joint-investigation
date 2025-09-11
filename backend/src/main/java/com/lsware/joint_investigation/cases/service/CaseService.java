@@ -14,9 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.cases.dto.CaseDto;
@@ -24,6 +21,7 @@ import com.lsware.joint_investigation.cases.dto.CreateCaseRequest;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
+import com.lsware.joint_investigation.user.controller.UserController;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 
@@ -69,14 +67,7 @@ public class CaseService {
 
 		MappingJacksonValue mapping = new MappingJacksonValue(caseDto);
 
-		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
-						"department", "status");
-
-		FilterProvider filters = new SimpleFilterProvider()
-				.addFilter("UserFilter", userFilter);
-
-		mapping.setFilters(filters);
+		mapping.setFilters(UserController.getUserFilter());
 
 		return mapping;
 	}
@@ -93,14 +84,7 @@ public class CaseService {
 				"rows", dtos,
 				"total", result.get("total")));
 
-		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
-						"department", "status");
-
-		FilterProvider filters = new SimpleFilterProvider()
-				.addFilter("UserFilter", userFilter);
-
-		mapping.setFilters(filters);
+		mapping.setFilters(UserController.getUserFilter());
 
 		return mapping;
 	}
@@ -126,14 +110,7 @@ public class CaseService {
 
 		MappingJacksonValue mapping = new MappingJacksonValue(dto);
 
-		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
-						"department", "status");
-
-		FilterProvider filters = new SimpleFilterProvider()
-				.addFilter("UserFilter", userFilter);
-
-		mapping.setFilters(filters);
+		mapping.setFilters(UserController.getUserFilter());
 
 		return mapping;
 	}
@@ -159,15 +136,7 @@ public class CaseService {
 
 		MappingJacksonValue mapping = new MappingJacksonValue(response);
 
-		// Apply filters to hide sensitive user information
-		SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-				.filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
-						"department", "status");
-
-		FilterProvider filters = new SimpleFilterProvider()
-				.addFilter("UserFilter", userFilter);
-
-		mapping.setFilters(filters);
+		mapping.setFilters(UserController.getUserFilter());
 
 		return mapping;
 	}

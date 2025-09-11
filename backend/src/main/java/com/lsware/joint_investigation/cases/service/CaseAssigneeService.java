@@ -154,6 +154,47 @@ public class CaseAssigneeService {
     }
 
     /**
+     * Update all assignments for a case (replace existing assignments)
+     */
+    public List<CaseAssigneeDto> updateCaseAssignments(AssignUsersRequest request) {
+        log.info("Updating all assignments for case {} with {} users",
+                request.getCaseId(), request.getUserIds().size());
+
+        // Validate case exists
+        caseRepository.findById(request.getCaseId())
+                .orElseThrow(() -> new IllegalArgumentException("Case not found with ID: " + request.getCaseId()));
+
+        // Validate users exist
+        List<Users> users = userRepository.findByUserIds(request.getUserIds());
+        if (users.size() != request.getUserIds().size()) {
+            throw new IllegalArgumentException("One or more users not found");
+        }
+
+        // Remove all existing assignments for this case
+        caseAssigneeRepository.deleteByCaseId(request.getCaseId());
+
+        // Create new assignments
+        List<CaseAssignee> assignments = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (UUID userId : request.getUserIds()) {
+            CaseAssignee assignment = new CaseAssignee();
+            assignment.setCaseId(request.getCaseId());
+            assignment.setUserId(userId);
+            assignment.setAssignedAt(now);
+            assignments.add(assignment);
+        }
+
+        // Save all assignments
+        List<CaseAssignee> savedAssignments = caseAssigneeRepository.saveAll(assignments);
+        log.info("Successfully updated {} assignments for case {}",
+                savedAssignments.size(), request.getCaseId());
+
+        // Fetch assignments with user details for return
+        return getCaseAssignees(request.getCaseId());
+    }
+
+    /**
      * Convert CaseAssignee entity to DTO
      */
     private CaseAssigneeDto convertToDto(CaseAssignee assignment) {
