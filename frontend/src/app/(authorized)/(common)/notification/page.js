@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ const NotificationItem = ({
   isRead,
   relatedUrl,
 }) => {
+  const contentObj = content ? JSON.parse(content) : {};
   return (
     <div
       className={`border border-color-66 rounded-5 shadow-md p-4 ${
@@ -24,17 +26,16 @@ const NotificationItem = ({
     >
       <div className="text-black text-[20px] font-bold mb-[3px]">{title}</div>
 
-      <div
-        className="grid gap-y-1 gap-x-4 text-[18px] font-medium text-color-25"
-        style={{ gridTemplateColumns: "100px 1fr" }}
-      >
-        <div>사건번호</div>
-        <div>test1</div>
-        <div>사건 명</div>
-        <div>test2</div>
-        <div>변경 일시</div>
-        <div>{createdAt}</div>
+      <div className="grid grid-cols-[150px_1fr] gap-x-4 gap-y-1 text-[18px] font-medium text-color-25">
+        {Object.entries(contentObj).map(([label, value], idx) => (
+          <React.Fragment key={`${label}-${idx}`}>
+            <div>{label}</div>
+            <div>{value}</div>
+          </React.Fragment>
+        ))}
       </div>
+
+      <div className="text-right text-color-25 text-sm mt-2">{createdAt}</div>
     </div>
   );
 };

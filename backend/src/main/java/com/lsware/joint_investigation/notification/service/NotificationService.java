@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.lsware.joint_investigation.notification.util.NotificationUtils;
+
 @Service
 public class NotificationService {
 
@@ -19,11 +21,13 @@ public class NotificationService {
                 .build();
     }
 
-    public void notifyUser(UUID userId, String title, String content, String relatedUrl) {
+    public void notifyUser(UUID userId, String title, Map<String, String> contentMap, String relatedUrl) {
+        String structuredContent = NotificationUtils.toStructuredContent(contentMap);
+
         Map<String, Object> body = new HashMap<>();
         body.put("userId", userId.toString());
         body.put("title", title);
-        body.put("content", content);
+        body.put("content", structuredContent);
         body.put("relatedUrl", relatedUrl);
 
         webClient.post()
