@@ -24,7 +24,7 @@ public class CaseDto {
     private Integer priority;
     private Integer number;
     private CASE_STATUS status;
-    private LocalDate investigationDate;
+    private LocalDateTime investigationDate;
     private UserDto creator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

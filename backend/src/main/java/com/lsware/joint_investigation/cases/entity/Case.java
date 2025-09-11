@@ -55,7 +55,7 @@ public class Case {
     }
 
     @Column(name = "investigation_date")
-    private LocalDate investigationDate;
+    private LocalDateTime investigationDate;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = true)

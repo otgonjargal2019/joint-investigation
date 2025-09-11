@@ -42,7 +42,7 @@ function CaseDetailGrid({ item }) {
 			<GrayDiv className="border-t">
 				{t("case-detail.date-of-occurrence")}
 			</GrayDiv>
-			<WhiteDiv className="border-t">{formatDate(item?.createdAt)}</WhiteDiv>
+			<WhiteDiv className="border-t">{formatDate(item?.investigationDate)}</WhiteDiv>
 			<GrayDiv className="border-t">
 				{t("case-detail.ranking-of-investigate-responses")}
 			</GrayDiv>
