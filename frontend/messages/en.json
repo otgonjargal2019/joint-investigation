@@ -58,6 +58,8 @@
   "login": "login",
   "check": "check",
   "save": "save",
+  "update": "update",
+  "updating": "updating",
   "add": "add",
   "go-back": "go back",
   "check-redundancy": "check redundancy",
@@ -78,6 +80,7 @@
   "create-new-investigation-record": "create new investigation record",
   "upload-investigation-material": "upload investigation material",
   "create-new-incident": "create new",
+  "edit-incident": "edit incident",
   "refuse": "refuse",
   "deny": "deny",
   "approve": "approve",
@@ -191,7 +194,11 @@
     "edit-incident-info": "edit incident info",
     "inquiry-of-investigation-records": "inquiry of investigation records",
     "create-success": "Incident has been created successfully.",
-    "create-error": "Incident creation failed."
+    "create-error": "Incident creation failed.",
+    "update-success": "Incident has been updated successfully.",
+    "update-error": "Incident update failed.",
+    "load-error": "Failed to load case details.",
+    "not-found": "Case not found."
   },
   "tag": {
     "ongoing": "ongoing",
@@ -211,6 +218,7 @@
     "digital-evidence": "digital evidence"
   },
   "enter-incident-info": "enter incident info",
+  "edit-incident-info": "edit incident info",
   "assign-investigator": "assign investigator",
   "not-found": {
     "title": "Page not found",

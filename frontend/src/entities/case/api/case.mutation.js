@@ -16,6 +16,24 @@ export const useCreateCase = () => {
   });
 };
 
+export const useUpdateCase = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data) => {
+      // Use the same endpoint as create, but with caseId included for update
+      const response = await axiosInstance.post('/api/cases', data);
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate related queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', variables.caseId] });
+      queryClient.invalidateQueries({ queryKey: ['myAssignedCases'] });
+    }
+  });
+};
+
 export const useAssignUsersToCase = () => {
   const queryClient = useQueryClient();
 
