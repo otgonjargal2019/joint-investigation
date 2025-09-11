@@ -59,6 +59,7 @@ export const useMyAssignedCase = ({
 
 export const useCaseById = ({
   id,
+  enabled = true,
 } = {}) => {
   return useQuery({
     queryKey: ["/api/cases/id", { id }],
@@ -68,6 +69,7 @@ export const useCaseById = ({
       );
       return data;
     },
+    enabled: enabled && !!id, // Only run query when enabled and id is provided
   });
 };
 

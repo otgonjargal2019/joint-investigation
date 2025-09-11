@@ -62,15 +62,18 @@ function EditCase() {
   const router = useRouter();
   const updateCase = useUpdateCase();
 
-  // Fetch existing case data
+  // Fetch countries for the select dropdown first
+  const { data: countries = [], isLoading: isLoadingCountries, isSuccess: isCountriesSuccess } = useCountries();
+
+  // Fetch existing case data only after countries are loaded
   const {
     data: caseData,
     isLoading: isLoadingCase,
     error: caseError
-  } = useCaseById({ id: caseId });
-
-  // Fetch countries for the select dropdown
-  const { data: countries = [], isLoading: isLoadingCountries } = useCountries();
+  } = useCaseById({ 
+    id: caseId,
+    enabled: isCountriesSuccess // Only fetch case data after countries are successfully loaded
+  });
 
   // Transform countries data for SelectBox options
   const countryOptions = countries.map(country => ({
@@ -135,11 +138,13 @@ function EditCase() {
     router.push(`/manager/cases/${caseId}`);
   };
 
-  // Loading state
-  if (isLoadingCase) {
+  // Loading state - show loading if either countries or case data is loading
+  if (isLoadingCountries || isLoadingCase) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="text-lg">{t('loading')}...</div>
+        <div className="text-lg">
+          {isLoadingCountries ? t('loading-countries') : t('loading')}...
+        </div>
       </div>
     );
   }
