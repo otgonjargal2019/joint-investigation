@@ -103,7 +103,7 @@ public class CaseAssigneeController {
      */
     @GetMapping("/{caseId}/assignees")
     @PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR')")
-    public ResponseEntity<List<CaseAssigneeDto>> getCaseAssignees(
+    public ResponseEntity<MappingJacksonValue> getCaseAssignees(
             @PathVariable UUID caseId,
             Authentication authentication) {
 
@@ -113,10 +113,55 @@ public class CaseAssigneeController {
         try {
             List<CaseAssigneeDto> assignees = caseAssigneeService.getCaseAssignees(caseId);
             log.info("Retrieved {} assignees for case {}", assignees.size(), caseId);
-            return ResponseEntity.ok(assignees);
+
+            MappingJacksonValue mapping = new MappingJacksonValue(assignees);
+
+            SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
+                    .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "country",
+                            "department", "status");
+
+            FilterProvider filters = new SimpleFilterProvider()
+                    .addFilter("UserFilter", userFilter);
+
+            mapping.setFilters(filters);
+            return ResponseEntity.ok(mapping);
 
         } catch (Exception e) {
             log.error("Error fetching assignees for case {}: {}", caseId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Update all assignments for a case (replace existing assignments)
+     * Only accessible by INV_ADMIN and PLATFORM_ADMIN
+     */
+    @PutMapping("/{caseId}/assignees")
+    @PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN')")
+    public ResponseEntity<List<CaseAssigneeDto>> updateCaseAssignments(
+            @PathVariable UUID caseId,
+            @RequestBody AssignUsersRequest request,
+            Authentication authentication) {
+
+        CustomUser customUser = (CustomUser) authentication.getPrincipal();
+        log.info("User {} updating all assignments for case {}", customUser.getId(), caseId);
+
+        try {
+            // Set the case ID in the request
+            request.setCaseId(caseId);
+
+            List<CaseAssigneeDto> updatedAssignments = caseAssigneeService.updateCaseAssignments(request);
+            log.info("Successfully updated assignments for case {} with {} users",
+                    caseId, request.getUserIds().size());
+            return ResponseEntity.ok(updatedAssignments);
+
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid request for updating assignments for case {}: {}",
+                    caseId, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error updating assignments for case {}: {}",
+                    caseId, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

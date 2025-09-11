@@ -69,3 +69,22 @@ export const useRemoveUsersFromCase = () => {
     }
   });
 };
+
+export const useUpdateCaseAssignments = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ caseId, userIds }) => {
+      // This will replace all current assignments with the new ones
+      const response = await axiosInstance.put(`/api/cases/${caseId}/assignees`, { userIds });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate queries related to case assignments
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['caseAssignees', variables.caseId] });
+      queryClient.invalidateQueries({ queryKey: ['myAssignments'] });
+      queryClient.invalidateQueries({ queryKey: ['userAssignments'] });
+    }
+  });
+};
