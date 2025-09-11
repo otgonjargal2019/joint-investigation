@@ -56,7 +56,20 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         builder.and(users.loginId.eq(loginId));
         builder.and(
                 users.status.eq(Users.USER_STATUS.APPROVED)
-                        .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE)));
+                        .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))
+                        .or(users.status.eq(Users.USER_STATUS.PENDING)));
+
+        return Optional.ofNullable(
+                queryFactory
+                        .select(users)
+                        .from(users)
+                        .where(builder)
+                        .fetchFirst());
+    }
+
+    public Optional<Users> checkLoginIdExist(String loginId) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(users.loginId.eq(loginId));
 
         return Optional.ofNullable(
                 queryFactory

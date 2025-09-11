@@ -296,21 +296,14 @@ function Membership() {
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
                   {data?.userData?.nameKr}
+                  <span className="mx-4">|</span>
+                  {data?.userData?.nameEn}
                 </div>
                 <Label color="gray" className="text-right">
                   {t("form.nation")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
                   {countryName}
-                  {/* <SelectBox
-                    register={registerProfile}
-                    name="countryId"
-                    options={countryOptions}
-                    showError={false}
-                    variant="form"
-                    placeholder={t("placeholder.select-country")}
-                    error={profileErrors.countryId}
-                  /> */}
                 </div>
                 <Label color="gray" className="text-right mt-2">
                   {t("form.affiliation")}
@@ -380,7 +373,7 @@ function Membership() {
                   />
                   <Button
                     size="small2"
-                    variant="gray3"
+                    variant={!profileErrors.email && !profileErrors.email2 ? "neon" : "gray3"}
                     className="min-w-[135px]"
                     onClick={handleCheckEmail}
                   >
@@ -392,8 +385,12 @@ function Membership() {
                   {Object.keys(profileErrors).length > 0 && t("error-msg.enter-all-membership-info")}
                 </p>
                 <div />
-                <Button type="submit" size="small3" variant="gray2">
-                  {t("request-modification-member-info")}
+                <Button
+                  type="submit"
+                  size="small3"
+                  variant={Object.keys(profileErrors).length == 0 ? "neon" : "gray2"} 
+                  disabled={Object.keys(profileErrors).length > 0}>
+                    {t("request-modification-member-info")}
                 </Button>
               </div>
             </form>

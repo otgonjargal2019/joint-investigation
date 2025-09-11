@@ -383,10 +383,19 @@ function JoinMembershipPage() {
                   name="email2"
                   showError={false}
                   variant="form"
-                  error={errors.email}
+                  error={errors.email2}
+                  onBlur={async () => {
+                    await trigger(["email", "email2"]);
+                  }}
                 />
-                <Button size="small2" variant={watch("email") && watch("email2") ? "neon" : "gray3"} className="min-w-[135px]" onClick={handleCheckEmail}>
-                  {t("check-redundancy")}
+                <Button 
+                  size="small2" 
+                  variant={!errors.email && !errors.email2 ? "neon" : "gray3"} 
+                  className="min-w-[135px]" 
+                  onClick={handleCheckEmail}
+                  disabled={errors.email || errors.email2}
+                  >
+                    {t("check-redundancy")}
                 </Button>
               </div>
               <div />
