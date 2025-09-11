@@ -13,9 +13,7 @@ import { useCountries } from "@/entities/organizationalData";
 import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
 import Textarea from "@/shared/components/form/textarea";
-import ChevronTabs from "@/shared/components/chevronTab";
 import DatePickerInput from "@/shared/components/form/datepicker";
-import InvestigatorAssign from "@/shared/widgets/manager/investigatorAssign";
 import PageTitle from "@/shared/components/pageTitle/page";
 
 const priorityOptions = [
@@ -60,9 +58,6 @@ function EditCase() {
 
   const params = useParams();
   const caseId = params.id;
-
-  const tabs = [t("edit-incident-info"), t("assign-investigator")];
-  const [activeTab, setActiveTab] = useState(0);
 
   const router = useRouter();
   const updateCase = useUpdateCase();
@@ -129,8 +124,7 @@ function EditCase() {
         draggable: true
       });
 
-      // Move to investigator assignment tab
-      setActiveTab(1);
+      router.push(`/manager/cases/${caseId}`);
     } catch (error) {
       toast.error(t('case-detail.update-error'), {
         position: "top-right",
@@ -145,7 +139,7 @@ function EditCase() {
   };
 
   const onGoBack = () => {
-    router.push("/manager/cases");
+    router.push(`/manager/cases/${caseId}`);
   };
 
   // Loading state
@@ -185,15 +179,7 @@ function EditCase() {
     <div>
       <PageTitle title={t("edit-incident")} />
       <div className="flex flex-col items-center">
-        <div className="mt-2 mb-8">
-          <ChevronTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-        </div>
         <div className="flex justify-center">
-          {activeTab === 0 && (
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="flex gap-0">
                 <div className="grid grid-cols-[120px_400px] gap-x-7.5 gap-y-6 items-baseline">
@@ -326,11 +312,6 @@ function EditCase() {
                 </Button>
               </div>
             </form>
-          )}
-
-          {activeTab === 1 && (
-            <InvestigatorAssign setActiveTab={setActiveTab} createdCaseId={caseId} />
-          )}
         </div>
       </div>
     </div>

@@ -41,7 +41,7 @@ public class Case {
     @Column(name = "priority")
     private Integer priority;
 
-    @Column(name = "number")
+    @Column(name = "number", insertable = false, updatable = false)
     private Integer number;
 
     @Column(name = "status", nullable = false)
