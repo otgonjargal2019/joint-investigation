@@ -17,7 +17,6 @@ export const MessengerProvider = ({ children }) => {
   const { user } = useAuth();
 
   const socketRef = useRef(null);
-  const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [unreadUsersCount, setUnreadUsersCount] = useState(0);
   const [unreadUsers, setUnreadUsers] = useState(new Set());
   const [serverUrl] = useState(
@@ -40,7 +39,7 @@ export const MessengerProvider = ({ children }) => {
     //console.log("socketToken yu irev:", socketToken);
 
     const socket = io(serverUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
       auth: { token: socketToken },
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -48,17 +47,14 @@ export const MessengerProvider = ({ children }) => {
 
     socket.on("connect", () => {
       console.log(`Socket connected: ${socket.id}`);
-      setConnectionStatus("connected");
     });
 
     socket.on("disconnect", (reason) => {
       console.log(`Socket disconnected: ${reason}`);
-      setConnectionStatus("disconnected");
     });
 
     socket.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
-      setConnectionStatus("error");
     });
 
     socketRef.current = socket;
@@ -129,7 +125,6 @@ export const MessengerProvider = ({ children }) => {
 
   const value = {
     socket: socketRef.current,
-    connectionStatus,
     unreadUsersCount,
     unreadUsers,
     setUnreadUsers,

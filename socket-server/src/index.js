@@ -80,6 +80,82 @@ io.on("connection", (socket) => {
   // Emit initial status
   socket.emit("connectionStatus", { status: "connected" });
 
+  //-------------------------notification start-----------------------------------------
+
+  // Send last 5 notifications on request
+  socket.on("getLastNotifications", async (ack) => {
+    try {
+      const notifications = await Notification.findAll({
+        where: { userId: socket.userId },
+        order: [["createdAt", "DESC"]],
+        limit: 5,
+      });
+      ack?.(notifications);
+    } catch (err) {
+      console.error("Failed to get notifications:", err);
+      ack?.([]);
+    }
+  });
+
+  // Mark all notifications as read for this user
+  socket.on("notifications:markAllRead", async (ack) => {
+    try {
+      const [updatedCount] = await Notification.update(
+        { isRead: true },
+        { where: { userId: socket.userId, isRead: false } }
+      );
+      // Optionally, emit updated notifications back
+      const last5 = await Notification.findAll({
+        where: { userId: socket.userId },
+        order: [["createdAt", "DESC"]],
+        limit: 5,
+      });
+      socket.emit("notifications:update", last5);
+
+      ack?.({ success: true, updatedCount });
+    } catch (err) {
+      console.error(err);
+      ack?.({ success: false });
+    }
+  });
+
+  // Mark a specific notification as read
+  socket.on("notifications:markRead", async (notifId, ack) => {
+    try {
+      const notif = await Notification.findByPk(notifId);
+      if (!notif) return ack?.({ success: false, error: "Not found" });
+
+      notif.isRead = true;
+      await notif.save();
+
+      // Emit updated notifications back
+      const last5 = await Notification.findAll({
+        where: { userId: socket.userId },
+        order: [["createdAt", "DESC"]],
+        limit: 5,
+      });
+      socket.emit("notifications:update", last5);
+
+      ack?.({ success: true, notification: notif });
+    } catch (err) {
+      console.error(err);
+      ack?.({ success: false });
+    }
+  });
+
+  socket.on("notifications:getUnreadCount", async (ack) => {
+    try {
+      const count = await Notification.count({
+        where: { userId: socket.userId, isRead: false },
+      });
+      ack?.(count);
+    } catch (err) {
+      console.error(err);
+      ack?.(0);
+    }
+  });
+  //-------------------------notification end-----------------------------------------
+
   // Handle chat users
   socket.on("getChatUsers", async (ack) => {
     const userId = socket.userId;
