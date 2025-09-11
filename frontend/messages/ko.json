@@ -1,6 +1,9 @@
 {
   "loading": "로딩 중...",
   "loading-countries": "국가 목록 로딩 중",
+  "loading-organizational-data": "조직 데이터 로딩 중",
+  "loading-foreign-data": "해외 데이터 로딩 중",
+  "loading-assignees": "할당자 로딩 중",
   "user-role": {
     "PLATFORM_ADMIN": "플랫폼 관리자",
     "INV_ADMIN": "수사 관리자",
@@ -202,6 +205,9 @@
     "load-error": "사건 정보를 불러오는데 실패하였습니다.",
     "not-found": "사건을 찾을 수 없습니다."
   },
+  "organizational-data-load-error": "조직 데이터를 불러오는데 실패하였습니다.",
+  "foreign-data-load-error": "해외 데이터를 불러오는데 실패하였습니다.",
+  "assignees-load-error": "할당자 데이터를 불러오는데 실패하였습니다.",
   "tag": {
     "ongoing": "수사 진행중",
     "collecting-digital-evidence": "디지털 증거물 수집중"

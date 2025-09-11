@@ -1,6 +1,9 @@
 {
   "loading": "Loading...",
   "loading-countries": "Loading countries",
+  "loading-organizational-data": "Loading organizational data",
+  "loading-foreign-data": "Loading foreign data",
+  "loading-assignees": "Loading assignees",
   "user-role": {
     "PLATFORM_ADMIN": "Platform Admin",
     "INV_ADMIN": "Investigation Admin",
@@ -202,6 +205,9 @@
     "load-error": "Failed to load case details.",
     "not-found": "Case not found."
   },
+  "organizational-data-load-error": "Failed to load organizational data.",
+  "foreign-data-load-error": "Failed to load foreign data.",
+  "assignees-load-error": "Failed to load assignees data.",
   "tag": {
     "ongoing": "ongoing",
     "collecting-digital-evidence": "collecting digital evidence"
