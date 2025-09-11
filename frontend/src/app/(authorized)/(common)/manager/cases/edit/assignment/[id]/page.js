@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-toastify";
 
 import Button from "@/shared/components/button";
@@ -27,22 +27,13 @@ function CreateNewCase() {
     } = useForm();
     const t = useTranslations();
 
-    const tabs = [t("enter-incident-info"), t("assign-investigator")];
-    const [activeTab, setActiveTab] = useState(0);
+    const params = useParams();
+    const caseId = params.id;
 
     const [createdCaseId, setCreatedCaseId] = useState(null);
 
     const router = useRouter();
     const createCase = useCreateCase();
-
-    // Fetch countries for the select dropdown
-    const { data: countries = [], isLoading: isLoadingCountries } = useCountries();
-
-    // Transform countries data for SelectBox options
-    const countryOptions = countries.map(country => ({
-        label: `${country.name} (${country.code})`,
-        value: `${country.name} (${country.code})`
-    }));
 
     const onSubmit = async (data) => {
         try {
@@ -83,23 +74,15 @@ function CreateNewCase() {
     };
 
     const onGoBack = () => {
-        router.push("/manager/cases");
+        router.push(`/manager/cases/${caseId}`);
     };
 
     return (
         <div>
-            <PageTitle title={t("create-new-incident")} />
+            <PageTitle title={t("assign-investigator")} />
             <div className="flex flex-col items-center">
-                <div className="mt-2 mb-8">
-                    <ChevronTabs
-                        tabs={tabs}
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                    />
-                </div>
                 <div className="flex justify-center">
-                    <InvestigatorAssign setActiveTab={setActiveTab} createdCaseId={createdCaseId} />
-
+                    <InvestigatorAssign />
                 </div>
             </div>
         </div>
