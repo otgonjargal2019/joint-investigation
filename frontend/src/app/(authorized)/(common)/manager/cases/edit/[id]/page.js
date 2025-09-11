@@ -78,13 +78,6 @@ function EditCase() {
     value: `${country.name} (${country.code})`
   }));
 
-  // Format date for date picker (YYYY-MM-DD format)
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-  };
-
   // Populate form with existing case data
   useEffect(() => {
     if (caseData) {
@@ -95,7 +88,7 @@ function EditCase() {
         infringementType: caseData.infringementType || '',
         relatedCountries: caseData.relatedCountries || '',
         priority: caseData.priority || '',
-        investigationDate: formatDateForInput(caseData.investigationDate),
+        investigationDate: new Date(caseData.investigationDate),
         etc: caseData.etc || '',
       });
     }
