@@ -17,6 +17,7 @@ import PaperPlane from "../../components/icons/paperplane";
 import UsersSmaller from "../../components/icons/usersSmaller";
 import Layers from "../../components/icons/layers";
 import { useAuth } from "@/providers/authProviders";
+import { useUserInfo } from "@/providers/userInfoProviders";
 import { logout } from "@/app/actions/auth";
 // import { useMessenger } from "@/providers/messengerProvider";
 import { useRealTime } from "@/providers/realtimeProvider";
@@ -36,6 +37,7 @@ const Header = () => {
   const { user } = useAuth();
   if (!user) return null;
 
+  const { userInfo } = useUserInfo();
   const isActive = (path) => pathname.startsWith(path);
 
   // console.log("header dotroos role:", user.role);
@@ -163,7 +165,7 @@ const Header = () => {
             className="cursor-pointer"
             onClick={() => router.push("/profile")}
           >
-            <UserSmall />
+            <UserSmall avatar = {userInfo?.profileImageUrl}/>
           </button>
           <div className="hidden sm:block">
             <div className="text-white text-[20px] font-medium">
@@ -177,9 +179,9 @@ const Header = () => {
                 text-color-51 text-[13px] sm:text-[15px] font-medium
               "
             >
-              <span>{user.headquarters}</span>
+              <span>{userInfo?.headquarterName}</span>
               <div className="hidden 2xl:block w-[1px] h-4 bg-color-51 mx-3" />
-              <span>{user.department}</span>
+              <span>{userInfo?.departmentName}</span>
             </div>
           </div>
           <div className="hidden sm:block w-[2px] h-12 bg-color-101 mx-2" />
