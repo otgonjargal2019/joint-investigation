@@ -39,108 +39,32 @@ function InvestigatorAssignEdit({ caseId }) {
     // Fetch current case assignees only after organizational data is loaded
     const {
         data: currentAssignees,
-        isLoading: isLoadingAssignees,
-        error: assigneesError
-    } = useCaseAssignees(caseId, {
-        enabled: !!caseId && !!currentCountryData && !!foreignInvAdminsData
-    });
+    } = useCaseAssignees(caseId);
 
     // Case assignment mutation
     const updateAssignmentsMutation = useUpdateCaseAssignments();
 
-    // Helper function to find user details in current country organizational data
-    const findUserInCurrentCountry = (userId) => {
-        if (!currentCountryData?.headquarters) return null;
-
-        for (const hq of currentCountryData.headquarters) {
-            for (const dept of hq.departments || []) {
-                const user = (dept.investigators || []).find(inv => inv.userId === userId);
-                if (user) {
-                    return {
-                        ...user,
-                        nation: currentCountryData.countryName,
-                        headquarterName: hq.headquarterName,
-                        departmentName: dept.departmentName
-                    };
-                }
-            }
-        }
-        return null;
-    };
-
-    // Helper function to find user details in foreign countries data
-    const findUserInForeignCountries = (userId) => {
-        if (!foreignInvAdminsData || !Array.isArray(foreignInvAdminsData)) return null;
-
-        for (const country of foreignInvAdminsData) {
-            const user = (country.invAdmins || []).find(admin => admin.userId === userId);
-            if (user) {
-                return {
-                    ...user,
-                    nation: country.countryName,
-                    headquarterName: "-", // Foreign admins don't have headquarters
-                    departmentName: "-"   // Foreign admins don't have departments
-                };
-            }
-        }
-        return null;
-    };
-
-    // Helper function to build presentation data from assignees and organizational data
-    const buildAssigneeDisplayData = (assignees) => {
-        if (!assignees || assignees.length === 0) return [];
-
-        return assignees.map(assignee => {
-            // First try to find in current country data
-            let userDetails = findUserInCurrentCountry(assignee.userId);
-
-            // If not found, try foreign countries data
-            if (!userDetails) {
-                userDetails = findUserInForeignCountries(assignee.userId);
-            }
-
-            // Fallback to user data from the assignee DTO if organizational data not found
-            if (!userDetails && assignee.user) {
-                userDetails = {
-                    nameKr: assignee.user.nameKr,
-                    nameEn: assignee.user.nameEn,
-                    role: assignee.user.role,
-                    nation: assignee.user.countryName || "-",
-                    headquarterName: assignee.user.headquarterName || "-",
-                    departmentName: assignee.user.departmentName || "-",
-                    userId: assignee.user.userId,
-                    email: assignee.user.email,
-                    phone: assignee.user.phone
-                };
-            }
-
-            return {
-                id: assignee.userId,
-                nation: userDetails?.nation || "-",
-                role: userDetails ? t(`user-role.${userDetails.role}`) : "-",
-                investigator: userDetails?.nameKr || userDetails?.nameEn || "-",
-                affiliation: userDetails?.headquarterName || "-",
-                department: userDetails?.departmentName || "-",
+    useEffect(() => {
+        if (currentAssignees) {
+            setData(currentAssignees.map(obj => ({
+                id: obj.userId,
+                nation: obj.user.countryName,
+                role: t(`user-role.${obj.user.role}`) || "-",
+                investigator: obj.user.nameKr || obj.user.nameEn,
+                affiliation: obj.user.headquarterName,
+                department: obj.user.departmentName,
                 action: (
                     <Trash2
                         size={20}
-                        onClick={() => removeCurrentCountryInvestigator(assignee.userId)}
+                        onClick={() => removeCurrentCountryInvestigator(obj.userId)}
                     />
                 ),
-            };
-        });
-    };
-
-    // Load current assignees into the table when data is available
-    useEffect(() => {
-        if (currentAssignees && currentAssignees.length > 0 && currentCountryData && foreignInvAdminsData) {
-            const assigneeData = buildAssigneeDisplayData(currentAssignees);
-            setData(assigneeData);
+            })));
         } else if (currentAssignees && currentAssignees.length === 0) {
             // Clear data if no assignees
             setData([]);
         }
-    }, [currentAssignees, currentCountryData, foreignInvAdminsData, t]);
+    }, [currentAssignees]);
 
     const transformToTreeData = (currentCountry) => {
         if (!currentCountry) return [];
@@ -298,35 +222,6 @@ function InvestigatorAssignEdit({ caseId }) {
         }
     };
 
-    // Loading state - show loading if any of the required data is loading
-    if (isLoading || isForeignLoading || isLoadingAssignees) {
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                <div className="text-lg">
-                    {isLoading ? t('loading-organizational-data') :
-                        isForeignLoading ? t('loading-foreign-data') :
-                            isLoadingAssignees ? t('loading-assignees') : t('loading')}...
-                </div>
-            </div>
-        );
-    }
-
-    // Error state - show error if any query fails
-    if (error || foreignError || assigneesError) {
-        return (
-            <div className="flex flex-col justify-center items-center min-h-screen">
-                <div className="text-red-500 text-lg mb-4">
-                    {error ? t('organizational-data-load-error') :
-                        foreignError ? t('foreign-data-load-error') :
-                            assigneesError ? t('assignees-load-error') : t('case-detail.load-error')}
-                </div>
-                <Button onClick={onGoBack} variant="primary">
-                    {t('go-back')}
-                </Button>
-            </div>
-        );
-    }
-
     return (
         <div className="p-4">
             <div className="flex justify-center gap-4">
@@ -336,20 +231,10 @@ function InvestigatorAssignEdit({ caseId }) {
                         onChange={(e) => setQueryCurrentCountry(e.target.value)}
                         placeholder="이름/소속/부서"
                     />
-                    {isLoading ? (
-                        <div className="flex justify-center items-center h-32">
-                            <div className="text-sm text-gray-500">Loading...</div>
-                        </div>
-                    ) : error ? (
-                        <div className="flex justify-center items-center h-32">
-                            <div className="text-sm text-red-500">Error loading data</div>
-                        </div>
-                    ) : (
-                        <TreeView
-                            data={transformToTreeData(currentCountryData)}
-                            onClick={chooseCurrentCountryInvestigator}
-                        />
-                    )}
+                    <TreeView
+                        data={transformToTreeData(currentCountryData)}
+                        onClick={chooseCurrentCountryInvestigator}
+                    />
                 </Card>
                 <Card className={"w-[987px]"}>
                     <AssignTable
