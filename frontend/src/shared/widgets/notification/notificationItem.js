@@ -6,13 +6,15 @@ const NotificationItem = ({
   createdAt,
   isRead,
   relatedUrl,
+  onClick,
 }) => {
   const contentObj = content ? JSON.parse(content) : {};
   return (
     <div
-      className={`border border-color-66 rounded-5 shadow-md p-4 ${
+      className={`border border-color-66 rounded-5 shadow-md p-4 cursor-pointer ${
         isRead ? "bg-white" : "bg-color-84"
       }`}
+      onClick={onClick}
     >
       <div className="text-black text-[20px] font-bold mb-[3px]">{title}</div>
 

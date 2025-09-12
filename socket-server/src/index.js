@@ -32,7 +32,7 @@ app.post("/notify-user", async (req, res) => {
     });
 
     // Emit to user via socket
-    io.to(`user:${userId}`).emit("notification", notification);
+    io.to(`user:${userId}`).emit("notification:new", notification);
 
     res.json({ success: true, notification });
   } catch (err) {
@@ -61,7 +61,6 @@ sequelize
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) return next(new Error("No token provided"));
-
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     //console.log("Socket auth payload:", payload);
@@ -82,7 +81,7 @@ io.on("connection", (socket) => {
 
   //-------------------------notification start-----------------------------------------
 
-  // Send last 5 notifications on request
+  // Send last 5 notifications
   socket.on("getLastNotifications", async (ack) => {
     try {
       const notifications = await Notification.findAll({
@@ -97,29 +96,21 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Mark all notifications as read for this user
-  socket.on("notifications:markAllRead", async (ack) => {
+  // Fetch all notifications
+  socket.on("getAllNotifications", async (ack) => {
     try {
-      const [updatedCount] = await Notification.update(
-        { isRead: true },
-        { where: { userId: socket.userId, isRead: false } }
-      );
-      // Optionally, emit updated notifications back
-      const last5 = await Notification.findAll({
+      const notifications = await Notification.findAll({
         where: { userId: socket.userId },
         order: [["createdAt", "DESC"]],
-        limit: 5,
       });
-      socket.emit("notifications:update", last5);
-
-      ack?.({ success: true, updatedCount });
+      ack?.(notifications);
     } catch (err) {
-      console.error(err);
-      ack?.({ success: false });
+      console.error("Failed to get all notifications:", err);
+      ack?.([]);
     }
   });
 
-  // Mark a specific notification as read
+  // Mark notification as read
   socket.on("notifications:markRead", async (notifId, ack) => {
     try {
       const notif = await Notification.findByPk(notifId);
@@ -128,13 +119,16 @@ io.on("connection", (socket) => {
       notif.isRead = true;
       await notif.save();
 
-      // Emit updated notifications back
-      const last5 = await Notification.findAll({
+      const allNotifications = await Notification.findAll({
         where: { userId: socket.userId },
         order: [["createdAt", "DESC"]],
-        limit: 5,
       });
-      socket.emit("notifications:update", last5);
+      const lastNotifications = allNotifications.slice(0, 5);
+
+      socket.emit("notifications:update", {
+        allNotifications,
+        lastNotifications,
+      });
 
       ack?.({ success: true, notification: notif });
     } catch (err) {
@@ -143,6 +137,30 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Mark all notifications as read
+  socket.on("notifications:markAllRead", async (ack) => {
+    try {
+      await Notification.update(
+        { isRead: true },
+        { where: { userId: socket.userId, isRead: false } }
+      );
+      const allNotifications = await Notification.findAll({
+        where: { userId: socket.userId },
+        order: [["createdAt", "DESC"]],
+      });
+      const lastNotifications = allNotifications.slice(0, 5);
+      socket.emit("notifications:update", {
+        allNotifications,
+        lastNotifications,
+      });
+      ack?.({ success: true });
+    } catch (err) {
+      console.error(err);
+      ack?.({ success: false });
+    }
+  });
+
+  // Unread count
   socket.on("notifications:getUnreadCount", async (ack) => {
     try {
       const count = await Notification.count({

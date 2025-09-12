@@ -17,24 +17,9 @@ export const RealtimeProvider = ({ children }) => {
     process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
   );
 
-  const [notifications, setNotifications] = useState([]);
-  const [hasNewNotification, setHasNewNotification] = useState(false);
-
-  const fetchLastNotifications = useCallback(() => {
-    if (!socketRef.current) return;
-
-    socketRef.current.emit("getLastNotifications", (notifications) => {
-      setNotifications(notifications);
-    });
-  }, []);
-
-  const fetchUnreadCount = useCallback(() => {
-    if (!socketRef.current) return;
-
-    socketRef.current.emit("notifications:getUnreadCount", (count) => {
-      setHasNewNotification(count > 0);
-    });
-  }, []);
+  const [allNotifications, setAllNotifications] = useState([]);
+  const [lastNotifications, setLastNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const connectSocket = useCallback(async () => {
     if (socketRef.current?.connected) return;
@@ -48,75 +33,66 @@ export const RealtimeProvider = ({ children }) => {
         auth: { token: socketToken },
       });
 
-      socket.off("connect").on("connect", () => {
-        console.log(`Socket connected: ${socket.id}`);
-        fetchLastNotifications();
-        fetchUnreadCount();
+      // On connect
+      socket.on("connect", () => {
+        socket.emit("getLastNotifications", (notifs) =>
+          setLastNotifications(notifs)
+        );
+        socket.emit("getAllNotifications", (notifs) =>
+          setAllNotifications(notifs)
+        );
+        socket.emit("notifications:getUnreadCount", setUnreadCount);
       });
 
-      socket
-        .off("disconnect")
-        .on("disconnect", () => console.log("Socket disconnected"));
-
-      // Listen for new notification
-      socket.off("notification").on("notification", (notif) => {
-        setNotifications((prev) => [notif, ...prev].slice(0, 5));
-        setHasNewNotification(true);
+      // New notification
+      socket.on("notification:new", (notif) => {
+        setLastNotifications((prev) => [notif, ...prev].slice(0, 5));
+        setAllNotifications((prev) => [notif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
       });
 
-      // Listen for updates from mark read/all read
-      socket
-        .off("notifications:update")
-        .on("notifications:update", (notifs) => {
-          setNotifications(notifs.slice(0, 5));
-          fetchUnreadCount();
-        });
+      // Updates (mark read / mark all read)
+      socket.on(
+        "notifications:update",
+        ({ allNotifications, lastNotifications }) => {
+          setAllNotifications(allNotifications);
+          setLastNotifications(lastNotifications);
+          const unread = allNotifications.filter((n) => !n.isRead).length;
+          setUnreadCount(unread);
+        }
+      );
 
       socketRef.current = socket;
     } catch (err) {
       console.error("Socket connection error:", err);
     }
-  }, [serverUrl, fetchLastNotifications, fetchUnreadCount]);
+  }, [serverUrl]);
 
   useEffect(() => {
     connectSocket();
     return () => socketRef.current?.disconnect();
   }, [connectSocket]);
 
-  const markAllAsRead = useCallback(() => {
-    socketRef.current?.emit("notifications:markAllRead", (res) => {
-      if (res?.success) {
-        setHasNewNotification(false);
-        fetchLastNotifications();
-      } else {
-        console.error("Failed to mark all notifications as read");
-      }
+  const markNotificationAsRead = useCallback((notifId) => {
+    socketRef.current?.emit("notifications:markRead", notifId, (res) => {
+      if (!res?.success) console.error("Failed");
     });
-  }, [fetchLastNotifications]);
+  }, []);
 
-  const markNotificationAsRead = useCallback(
-    (notifId) => {
-      socketRef.current?.emit("notifications:markRead", notifId, (res) => {
-        if (res?.success) {
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === notifId ? { ...n, isRead: true } : n))
-          );
-          fetchUnreadCount();
-        } else {
-          console.error("Failed to mark notification as read");
-        }
-      });
-    },
-    [fetchUnreadCount]
-  );
+  const markAllNotificationsAsRead = useCallback(() => {
+    socketRef.current?.emit("notifications:markAllRead", (res) => {
+      if (!res?.success) console.error("Failed");
+    });
+  }, []);
 
   return (
     <RealtimeContext.Provider
       value={{
-        notifications,
-        markAllAsRead,
-        hasNewNotification,
+        allNotifications,
+        lastNotifications,
+        unreadCount,
         markNotificationAsRead,
+        markAllNotificationsAsRead,
       }}
     >
       {children}

@@ -7,14 +7,7 @@ import Bell from "../components/icons/bell";
 import Ellipse from "../components/icons/ellipse";
 import Button from "../components/button";
 
-const NotificationPopover = ({
-  notifications,
-  hasNew,
-  markAsRead,
-  title,
-  data,
-  data2,
-}) => {
+const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
   const t = useTranslations();
   const router = useRouter();
 
@@ -27,7 +20,7 @@ const NotificationPopover = ({
           className="relative cursor-pointer"
         >
           <Bell color="#C3C3C3" />
-          {hasNew && (
+          {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-color-61 w-3 h-3 rounded-full"></span>
           )}
         </button>
@@ -48,6 +41,12 @@ const NotificationPopover = ({
                 className={`bg-color-9 ${
                   notif.isRead ? "" : "border-[2px] border-color-61"
                 } rounded-10 py-3 px-5 space-y-2 mb-2 cursor-pointer`}
+                onClick={() => {
+                  // if (notif.relatedUrl) {
+                  //   router.push(notif.relatedUrl);
+                  // }
+                  markAsRead(notif.notificationId);
+                }}
               >
                 <div className="flex justify-between items-center">
                   <div className="text-white text-[18px] font-bold">

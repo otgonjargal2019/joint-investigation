@@ -30,7 +30,7 @@ const Header = () => {
   const t = useTranslations();
 
   // const { unreadUsersCount } = useMessenger();
-  const { notifications, hasNewNotification, markNotificationAsRead } =
+  const { lastNotifications, unreadCount, markNotificationAsRead } =
     useRealTime();
 
   const { user } = useAuth();
@@ -152,21 +152,9 @@ const Header = () => {
           </button>
 
           <NotificationPopover
-            notifications={notifications}
-            hasNew={hasNewNotification}
+            notifications={lastNotifications}
+            unreadCount={unreadCount}
             markAsRead={markNotificationAsRead}
-            title="사건 종료"
-            data={[
-              { label: "사건번호", value: "3254" },
-              { label: "사건 명", value: "웹툰 A 무단 복제사건" },
-              { label: "변경 일시", value: "2024-02-09 18:32:44" },
-            ]}
-            data2={[
-              { label: "사건번호", value: "3254" },
-              { label: "사건 명", value: "영화 B 무단 스트리밍 사건" },
-              { label: "수사 기록 명", value: "관련자 제보" },
-              { label: "업데이트 일시", value: "2024-01-05 13:22:09" },
-            ]}
           />
         </div>
 
