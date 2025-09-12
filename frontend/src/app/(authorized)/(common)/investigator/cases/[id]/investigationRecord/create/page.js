@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { useParams } from "next/navigation";
@@ -10,7 +11,7 @@ import Cancel from "@/shared/components/icons/cancel";
 import CreateDoc from "@/shared/components/icons/createDoc";
 import CheckRectangle from "@/shared/components/icons/checkRectangle";
 import CaseForm from "@/shared/widgets/caseForm";
-import { useEffect } from "react";
+import { useCaseById } from "@/entities/case";
 
 const IncidentCreatePage = () => {
   const t = useTranslations();
@@ -23,6 +24,12 @@ const IncidentCreatePage = () => {
 
   const params = useParams();
   const caseId = params.id;
+
+  const {
+    data: caseData,
+    isLoading,
+    error
+  } = useCaseById({ id: caseId });
 
   useEffect(() => {
     reset({
