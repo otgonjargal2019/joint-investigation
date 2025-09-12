@@ -281,7 +281,7 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .selectFrom(headquarter)
                 .leftJoin(department).on(department.headquarter.id.eq(headquarter.id))
                 .leftJoin(users)
-                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR))
+                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)))
                         .and(users.status.eq(Users.USER_STATUS.APPROVED)
                                 .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
                 .where(builder)
@@ -313,7 +313,7 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         return queryFactory
                 .selectFrom(department)
                 .leftJoin(users)
-                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR))
+                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)))
                         .and(users.status.eq(Users.USER_STATUS.APPROVED)
                                 .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
                 .where(builder)
