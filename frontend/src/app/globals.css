@@ -175,3 +175,12 @@ button.header-btn.popover {
 button.header-btn.active {
   @apply text-color-4 bg-color-61;
 }
+
+/* hide scrollbar but allow scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}

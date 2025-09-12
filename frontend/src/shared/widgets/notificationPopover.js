@@ -41,77 +41,47 @@ const NotificationPopover = ({
           alignOffset={0}
           className="rounded-20 bg-color-4 shadow p-4 w-[419px] h-[425px] z-50"
         >
-          {notifications?.map((notif) => (
-            <div
-              key={notif.notificationId}
-              className={`bg-color-9 ${
-                notif.isRead ? "" : "border-[2px] border-color-61"
-              } rounded-10 py-3 px-5 space-y-2`}
-            >
-              <div className="flex justify-between items-center">
-                <div className="text-white text-[18px] font-bold">
-                  {notif.title}
+          <div className="w-full h-full overflow-y-auto scrollbar-hide">
+            {notifications?.map((notif) => (
+              <div
+                key={notif.notificationId}
+                className={`bg-color-9 ${
+                  notif.isRead ? "" : "border-[2px] border-color-61"
+                } rounded-10 py-3 px-5 space-y-2 mb-2 cursor-pointer`}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="text-white text-[18px] font-bold">
+                    {notif.title}
+                  </div>
+                  <div>{!notif.isRead && <Ellipse />}</div>
                 </div>
-                <div>{!notif.isRead && <Ellipse />}</div>
+                <div className="grid grid-cols-[100px_1fr] gap-x-4 gap-y-1">
+                  {notif?.content &&
+                    Object.entries(JSON.parse(notif.content)).map(
+                      ([label, value], idx) => (
+                        <React.Fragment key={`${label}-${idx}`}>
+                          <div className="text-color-43 text-[16px] font-medium">
+                            {label}
+                          </div>
+                          <div className="text-color-59 text-[16px] font-normal">
+                            {value}
+                          </div>
+                        </React.Fragment>
+                      )
+                    )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {/* <div className="bg-color-9 border-[2px] border-color-61 rounded-10 py-3 px-5 space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="text-white text-[18px] font-bold">{title}</div>
-              <div>
-                <Ellipse />
-              </div>
+            <div className="flex justify-center pt-6">
+              <Button
+                size="extraSmall"
+                variant="dark2"
+                onClick={() => router.push("/notification")}
+              >
+                {t("see-more")}
+              </Button>
             </div>
-
-            <dl
-              className="grid gap-x-4 gap-y-1"
-              style={{ gridTemplateColumns: "100px 200px" }}
-            >
-              {data.map((item, index) => (
-                <React.Fragment key={index}>
-                  <dt className="text-color-43 text-[16px] font-medium">
-                    {item.label}
-                  </dt>
-                  <dd className="text-color-59 text-[16px] font-normal">
-                    {item.value}
-                  </dd>
-                </React.Fragment>
-              ))}
-            </dl>
-          </div>
-          <div className="bg-color-9 rounded-10 mt-2.5 py-3 px-5 space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="text-white text-[18px] font-bold">
-                신규 수사 기록 추가
-              </div>
-            </div>
-
-            <dl
-              className="grid gap-x-4 gap-y-1"
-              style={{ gridTemplateColumns: "100px 200px" }}
-            >
-              {data2.map((item, index) => (
-                <React.Fragment key={index}>
-                  <dt className="text-color-43 text-[16px] font-medium">
-                    {item.label}
-                  </dt>
-                  <dd className="text-color-59 text-[16px] font-normal">
-                    {item.value}
-                  </dd>
-                </React.Fragment>
-              ))}
-            </dl>
-          </div> */}
-          <div className="flex justify-center pt-6">
-            <Button
-              size="extraSmall"
-              variant="dark2"
-              onClick={() => router.push("/notification")}
-            >
-              {t("see-more")}
-            </Button>
           </div>
 
           <Popover.Arrow className="fill-color-4" />

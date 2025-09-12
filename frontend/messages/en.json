@@ -242,5 +242,6 @@
     "approved": "Active",
     "waiting-to-change": "Pending Update",
     "rejected": "Refused"
-  }
+  },
+  "no-nofication": "no notification"
 }

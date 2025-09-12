@@ -242,5 +242,6 @@
     "approved": "정상",
     "waiting-to-change": "정보 변경 대기",
     "rejected": "거절"
-  }
+  },
+  "no-nofication": "알림이 없습니다"
 }
