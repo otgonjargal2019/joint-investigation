@@ -49,7 +49,7 @@ function IncidentDetailPage() {
   });
 
   const onClickNew = () => {
-    router.push(`/investigator/cases/create?caseId=${params.id}`);
+    router.push(`/investigator/cases/${params.id}/investigationRecord/create`);
   };
 
   // Define investigation records table columns

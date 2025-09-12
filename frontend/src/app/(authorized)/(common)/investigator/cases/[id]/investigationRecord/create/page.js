@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
+import { useParams } from "next/navigation";
 
 import PageTitle from "@/shared/components/pageTitle/page";
 import Button from "@/shared/components/button";
@@ -20,6 +21,9 @@ const IncidentCreatePage = () => {
     formState: { errors },
   } = useForm();
 
+  const params = useParams();
+  const caseId = params.id;
+
   useEffect(() => {
     reset({
       securityLevel: "option3",
@@ -28,6 +32,8 @@ const IncidentCreatePage = () => {
         "성명불상자가 저작권자의 이용허락 없이 해외의 동영상 공유 플랫폼 사이트에 업로드한 영상저작물에 팝업창 제공방식으로 링크를 제공하는 다시 보기 링크 사이트를 개설하여 운영·관리함 ",
     });
   }, []);
+
+  console.log("caseId", caseId);
 
   return (
     <div className="flex justify-center">
