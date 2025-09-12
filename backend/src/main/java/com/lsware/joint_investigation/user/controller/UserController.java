@@ -319,8 +319,22 @@ public class UserController {
 
     public static FilterProvider getUserFilter() {
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
-                .filterOutAllExcept("userId", "role", "loginId", "nameKr", "nameEn", "email", "phone", "countryId", "headquarterId",
-                            "departmentId", "status");
+                .filterOutAllExcept(
+                    "userId",
+                    "role",
+                    "loginId",
+                    "nameKr",
+                    "nameEn",
+                    "email",
+                    "phone",
+                    "countryId",
+                    "headquarterId",
+                    "departmentId",
+                    "status",
+                    "countryName",
+                    "headquarterName",
+                    "departmentName"
+                );
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }

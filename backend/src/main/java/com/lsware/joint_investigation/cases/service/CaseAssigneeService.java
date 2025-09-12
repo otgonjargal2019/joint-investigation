@@ -96,6 +96,15 @@ public class CaseAssigneeService {
 
         List<CaseAssignee> assignments = caseAssigneeRepository.findByCaseIdWithUserDetails(caseId);
 
+        // Force loading of lazy user details
+        if (!assignments.isEmpty()) {
+            if (assignments.get(0).getUser() != null) {
+                assignments.get(0).getUser().getCountry();
+                assignments.get(0).getUser().getHeadquarter();
+                assignments.get(0).getUser().getDepartment();
+            }
+        }
+
         return assignments.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());

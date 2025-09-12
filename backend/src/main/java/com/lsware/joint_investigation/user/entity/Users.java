@@ -68,6 +68,19 @@ public class Users {
     @Column(name = "department_id", nullable = false)
     private Long departmentId;
 
+    // Relationships to organizational entities
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id", insertable = false, updatable = false)
+    private Country country;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "headquarter_id", insertable = false, updatable = false)
+    private Headquarter headquarter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", insertable = false, updatable = false)
+    private Department department;
+
     // Many-to-many relationship with Cases through CaseAssignee
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<CaseAssignee> caseAssignments = new ArrayList<>();
@@ -93,6 +106,16 @@ public class Users {
         dto.setRole(this.role);
         dto.setStatus(this.status);
         dto.setCreatedAt(this.createdAt);
+        // Set organizational names if entities are loaded
+        if (this.country != null) {
+            dto.setCountryName(this.country.getName());
+        }
+        if (this.headquarter != null) {
+            dto.setHeadquarterName(this.headquarter.getName());
+        }
+        if (this.department != null) {
+            dto.setDepartmentName(this.department.getName());
+        }
         if (this.createdAt != null) {
             dto.setCreatedAtFormatted(this.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         }

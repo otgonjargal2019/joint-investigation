@@ -40,19 +40,26 @@ public interface CaseAssigneeRepository extends JpaRepository<CaseAssignee, Case
     void deleteByCaseId(UUID caseId);
 
     /**
-     * Find case assignees with user details
+     * Find case assignees with user details including organizational information
      */
     @Query("SELECT ca FROM CaseAssignee ca " +
            "JOIN FETCH ca.user u " +
+           "JOIN FETCH u.country c " +
+           "JOIN FETCH u.headquarter h " +
+           "JOIN FETCH u.department d " +
            "WHERE ca.caseId = :caseId " +
            "ORDER BY ca.assignedAt DESC")
     List<CaseAssignee> findByCaseIdWithUserDetails(@Param("caseId") UUID caseId);
 
     /**
-     * Find case assignees with case details for a user
+     * Find case assignees with case details for a user, including organizational information
      */
     @Query("SELECT ca FROM CaseAssignee ca " +
            "JOIN FETCH ca.caseInstance c " +
+           "JOIN FETCH ca.user u " +
+           "JOIN FETCH u.country co " +
+           "JOIN FETCH u.headquarter h " +
+           "JOIN FETCH u.department d " +
            "WHERE ca.userId = :userId " +
            "ORDER BY ca.assignedAt DESC")
     List<CaseAssignee> findByUserIdWithCaseDetails(@Param("userId") UUID userId);
