@@ -160,6 +160,16 @@ io.on("connection", (socket) => {
     }
   });
 
+  // --- Delete all notifications ---
+  socket.on("notifications:deleteAll", async (ack) => {
+    await Notification.destroy({ where: { userId: socket.userId } });
+    socket.emit("notifications:update", {
+      allNotifications: [],
+      lastNotifications: [],
+    });
+    ack?.({ success: true });
+  });
+
   // Unread count
   socket.on("notifications:getUnreadCount", async (ack) => {
     try {

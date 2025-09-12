@@ -57,8 +57,7 @@ export const RealtimeProvider = ({ children }) => {
         ({ allNotifications, lastNotifications }) => {
           setAllNotifications(allNotifications);
           setLastNotifications(lastNotifications);
-          const unread = allNotifications.filter((n) => !n.isRead).length;
-          setUnreadCount(unread);
+          socket.emit("notifications:getUnreadCount", setUnreadCount);
         }
       );
 
@@ -85,6 +84,12 @@ export const RealtimeProvider = ({ children }) => {
     });
   }, []);
 
+  const deleteAllNotifications = useCallback(() => {
+    socketRef.current?.emit("notifications:deleteAll", (res) => {
+      if (!res?.success) console.error("Failed to delete all notifications");
+    });
+  }, []);
+
   return (
     <RealtimeContext.Provider
       value={{
@@ -93,6 +98,7 @@ export const RealtimeProvider = ({ children }) => {
         unreadCount,
         markNotificationAsRead,
         markAllNotificationsAsRead,
+        deleteAllNotifications,
       }}
     >
       {children}

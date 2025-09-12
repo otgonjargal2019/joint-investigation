@@ -17,8 +17,8 @@ function NotificationPage() {
     allNotifications,
     markNotificationAsRead,
     markAllNotificationsAsRead,
+    deleteAllNotifications,
   } = useRealTime();
-  console.log("allNotifications:", allNotifications);
 
   return (
     <div>
@@ -31,7 +31,7 @@ function NotificationPage() {
                 className="gap-3"
                 variant="white"
                 size="mediumWithShadow"
-                // onClick={onDeleteAll}
+                onClick={deleteAllNotifications}
               >
                 <RemoveArrow /> {t("delete-whole-thing")}
               </Button>
@@ -40,7 +40,7 @@ function NotificationPage() {
                 className="gap-3"
                 variant="white"
                 size="mediumWithShadow"
-                onClick={() => markAllNotificationsAsRead()}
+                onClick={markAllNotificationsAsRead}
               >
                 <CheckCircle /> {t("full-reading")}
               </Button>
