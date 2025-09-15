@@ -117,6 +117,10 @@ function CaseListPage() {
           {
             key: "infringementType",
             title: t("incident.infringement-type"),
+            render: (value) => {
+              if (!value) return '';
+              return t(`case_details.case_infringement_type.${value}`);
+            }
           },
           {
             key: "status",

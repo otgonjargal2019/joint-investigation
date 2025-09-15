@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.entity.Case;
+import com.lsware.joint_investigation.cases.entity.Case.CASE_INFRINGEMENT_TYPE;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.dto.UserDto;
@@ -19,7 +20,7 @@ public class CaseDto {
     private String caseName;
     private String caseOutline;
     private String contentType;
-    private String infringementType;
+    private CASE_INFRINGEMENT_TYPE infringementType;
     private String relatedCountries;
     private Integer priority;
     private Integer number;

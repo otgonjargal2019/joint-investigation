@@ -11,10 +11,21 @@
     "RESEARCHER": "연구원",
     "COPYRIGHT_HOLDER": "저작권자"
   },
-  "case_status": {
-    "OPEN": "진행중",
-    "ON_HOLD": "미해결",
-    "CLOSED": "수사종료"
+  "case_details": {
+    "case_status": {
+      "OPEN": "진행중",
+      "ON_HOLD": "미해결",
+      "CLOSED": "수사종료"
+    },
+    "case_infringement_type": {
+      "PLATFORMS_SITES": "플랫폼/사이트",
+      "LINK_SITES": "링크 사이트",
+      "WEBHARD_P2P": "웹하드/P2P",
+      "TORRENTS": "토렌트",
+      "SNS": "SNS",
+      "COMMUNITIES": "커뮤니티",
+      "OTHER": "기타(ISD 등)"
+    }
   },
   "incident": {
     "case-number": "사건번호",
