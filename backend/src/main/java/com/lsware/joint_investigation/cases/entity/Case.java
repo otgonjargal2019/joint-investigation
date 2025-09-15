@@ -32,8 +32,19 @@ public class Case {
     @Column(name = "content_type")
     private String contentType;
 
+    public enum CASE_INFRINGEMENT_TYPE {
+        PLATFORMS_SITES,
+        LINK_SITES,
+        WEBHARD_P2P,
+        TORRENTS,
+        SNS,
+        COMMUNITIES,
+        OTHER
+    }
+
     @Column(name = "infringement_type")
-    private String infringementType;
+    @Enumerated(EnumType.STRING)
+    private CASE_INFRINGEMENT_TYPE infringementType;
 
     @Column(name = "related_countries")
     private String relatedCountries;

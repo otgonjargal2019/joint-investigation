@@ -11,13 +11,13 @@ const StatusTag = ({ status }) => {
 
   switch (status) {
     case "OPEN":
-      text = t(`case_status.${status}`);
+      text = t(`case_details.case_status.${status}`);
       break;
     case "ON_HOLD":
-      text = t(`case_status.${status}`);
+      text = t(`case_details.case_status.${status}`);
       break;
     case "CLOSED":
-      text = t(`case_status.${status}`);
+      text = t(`case_details.case_status.${status}`);
       break;
     default:
       break;

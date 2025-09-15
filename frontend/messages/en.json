@@ -11,10 +11,21 @@
     "RESEARCHER": "Researcher",
     "COPYRIGHT_HOLDER": "Copyright Holder"
   },
-  "case_status": {
-    "OPEN": "Open",
-    "ON_HOLD": "On Hold",
-    "CLOSED": "Closed"
+  "case_details": {
+    "case_status": {
+      "OPEN": "Open",
+      "ON_HOLD": "On Hold",
+      "CLOSED": "Closed"
+    },
+    "case_infringement_type": {
+      "PLATFORMS_SITES": "Platforms/Sites",
+      "LINK_SITES": "Link Sites",
+      "WEBHARD_P2P": "Webhard/P2P",
+      "TORRENTS": "Torrents",
+      "SNS": "SNS",
+      "COMMUNITIES": "Communities",
+      "OTHER": "Other (ISD, etc.)"
+    }
   },
   "incident": {
     "case-number": "Case Number",
@@ -40,7 +51,7 @@
       "CLOSED": "closed"
     }
   },
-  "case": "",
+  "case": "case",
   "total": "total",
   "see-more": "see more",
   "date": "date",

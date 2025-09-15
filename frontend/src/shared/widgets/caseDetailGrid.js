@@ -53,7 +53,7 @@ function CaseDetailGrid({ item }) {
 			<GrayDiv>{t("case-detail.content-type")}</GrayDiv>
 			<WhiteDiv>{item?.contentType}</WhiteDiv>
 			<GrayDiv>{t("case-detail.types-of-copyright-infringement")}</GrayDiv>
-			<WhiteDiv>{item?.infringementType}</WhiteDiv>
+			<WhiteDiv>{item?.infringementType ? t(`case_details.case_infringement_type.${item?.infringementType}`) : ""}</WhiteDiv>
 			<WhiteDiv className="row-span-3 border-l text-[18px]">
 				{item?.etc}
 			</WhiteDiv>

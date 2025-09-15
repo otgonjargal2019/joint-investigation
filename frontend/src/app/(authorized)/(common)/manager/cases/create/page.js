@@ -37,17 +37,6 @@ const contentTypeOptions = [
   { label: "Other", value: "Other" }
 ];
 
-const infringementTypeOptions = [
-  { label: "Copyright Violation", value: "Copyright Violation" },
-  { label: "Trademark Infringement", value: "Trademark Infringement" },
-  { label: "Patent Infringement", value: "Patent Infringement" },
-  { label: "Trade Secret Theft", value: "Trade Secret Theft" },
-  { label: "Design Right Violation", value: "Design Right Violation" },
-  { label: "Unauthorized Distribution", value: "Unauthorized Distribution" },
-  { label: "Counterfeit Goods", value: "Counterfeit Goods" },
-  { label: "Other IP Violation", value: "Other IP Violation" }
-];
-
 function CreateNewCase() {
   const {
     control,
@@ -56,6 +45,16 @@ function CreateNewCase() {
     formState: { errors },
   } = useForm();
   const t = useTranslations();
+
+  const infringementTypeOptions = [
+    { value: "PLATFORMS_SITES", label: t("case_details.case_infringement_type.PLATFORMS_SITES") },
+    { value: "LINK_SITES", label: t("case_details.case_infringement_type.LINK_SITES") },
+    { value: "WEBHARD_P2P", label: t("case_details.case_infringement_type.WEBHARD_P2P") },
+    { value: "TORRENTS", label: t("case_details.case_infringement_type.TORRENTS") },
+    { value: "SNS", label: t("case_details.case_infringement_type.SNS") },
+    { value: "COMMUNITIES", label: t("case_details.case_infringement_type.COMMUNITIES") },
+    { value: "OTHER", label: t("case_details.case_infringement_type.OTHER") }
+  ];
 
   const tabs = [t("enter-incident-info"), t("assign-investigator")];
   const [activeTab, setActiveTab] = useState(0);
