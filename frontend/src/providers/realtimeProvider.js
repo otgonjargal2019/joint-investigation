@@ -17,9 +17,28 @@ export const RealtimeProvider = ({ children }) => {
     process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
   );
 
-  const [allNotifications, setAllNotifications] = useState([]);
   const [lastNotifications, setLastNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pages, setPages] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+
+  // -------------------- PAGINATION --------------------
+  const fetchNextPage = useCallback(() => {
+    if (!hasMore || !socketRef.current) return;
+
+    const allNotifs = pages.flat();
+    const lastNotif = allNotifs[allNotifs.length - 1];
+    const before = lastNotif?.createdAt || null;
+
+    socketRef.current.emit(
+      "notifications:getPage",
+      { before, limit: 20 },
+      (newNotifs) => {
+        if (!newNotifs.length) setHasMore(false);
+        setPages((prev) => [...prev, newNotifs]);
+      }
+    );
+  }, [pages, hasMore]);
 
   const connectSocket = useCallback(async () => {
     if (socketRef.current?.connected) return;
@@ -35,37 +54,30 @@ export const RealtimeProvider = ({ children }) => {
 
       // On connect
       socket.on("connect", () => {
-        socket.emit("getLastNotifications", (notifs) =>
+        socket.emit("notifications:getLast5", (notifs) =>
           setLastNotifications(notifs)
         );
-        socket.emit("getAllNotifications", (notifs) =>
-          setAllNotifications(notifs)
-        );
         socket.emit("notifications:getUnreadCount", setUnreadCount);
+
+        if (pages.length === 0) fetchNextPage();
       });
 
       // New notification
       socket.on("notification:new", (notif) => {
         setLastNotifications((prev) => [notif, ...prev].slice(0, 5));
-        setAllNotifications((prev) => [notif, ...prev]);
+        setPages((prev) => {
+          if (!prev.length) return [[notif]];
+          const firstPage = [notif, ...prev[0]];
+          return [firstPage, ...prev.slice(1)];
+        });
         setUnreadCount((prev) => prev + 1);
       });
-
-      // Updates (mark read / mark all read)
-      socket.on(
-        "notifications:update",
-        ({ allNotifications, lastNotifications }) => {
-          setAllNotifications(allNotifications);
-          setLastNotifications(lastNotifications);
-          socket.emit("notifications:getUnreadCount", setUnreadCount);
-        }
-      );
 
       socketRef.current = socket;
     } catch (err) {
       console.error("Socket connection error:", err);
     }
-  }, [serverUrl]);
+  }, [serverUrl, pages]);
 
   useEffect(() => {
     connectSocket();
@@ -74,31 +86,73 @@ export const RealtimeProvider = ({ children }) => {
 
   const markNotificationAsRead = useCallback((notifId) => {
     socketRef.current?.emit("notifications:markRead", notifId, (res) => {
-      if (!res?.success) console.error("Failed");
+      if (!res?.success) {
+        console.error("Failed to mark notification as read");
+        return;
+      }
+
+      setPages((prevPages) =>
+        prevPages.map((page) =>
+          page.map((notif) =>
+            notif.notificationId === notifId
+              ? { ...notif, isRead: true }
+              : notif
+          )
+        )
+      );
+      setLastNotifications((prev) =>
+        prev.map((notif) =>
+          notif.notificationId === notifId ? { ...notif, isRead: true } : notif
+        )
+      );
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
     });
   }, []);
 
   const markAllNotificationsAsRead = useCallback(() => {
     socketRef.current?.emit("notifications:markAllRead", (res) => {
-      if (!res?.success) console.error("Failed");
+      if (!res?.success) {
+        console.error("Failed to mark all notifications as read");
+        return;
+      }
+
+      setPages((prevPages) =>
+        prevPages.map((page) =>
+          page.map((notif) => ({ ...notif, isRead: true }))
+        )
+      );
+      setLastNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+      setUnreadCount(0);
     });
   }, []);
 
   const deleteAllNotifications = useCallback(() => {
     socketRef.current?.emit("notifications:deleteAll", (res) => {
-      if (!res?.success) console.error("Failed to delete all notifications");
+      if (!res?.success) {
+        console.error("Failed to delete all notifications");
+        return;
+      }
+
+      setPages([]);
+      setLastNotifications([]);
+      setUnreadCount(0);
+      setHasMore(false);
     });
   }, []);
 
   return (
     <RealtimeContext.Provider
       value={{
-        allNotifications,
         lastNotifications,
         unreadCount,
+        pages,
+        hasMore,
+        fetchNextPage,
+        deleteAllNotifications,
         markNotificationAsRead,
         markAllNotificationsAsRead,
-        deleteAllNotifications,
       }}
     >
       {children}
