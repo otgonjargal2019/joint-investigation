@@ -13,18 +13,7 @@ export const UserInfoProvider = ({ children }) => {
 
   useEffect(() => {
     if (!data) return;
-    const headquarter = Array.isArray(data?.listHeadquarter)
-      ? data.listHeadquarter.find(h => h.id === data.userData?.headquarterId)
-      : null;
-
-    const department = Array.isArray(data?.listDepartments)
-      ? data.listDepartments.find(d => d.id === data.userData?.departmentId)
-      : null;
-    setUserInfo({
-      ...data?.userData,
-      headquarterName: headquarter?.name || null,
-      departmentName: department?.name || null
-    });
+    setUserInfo(data.userData);
   }, [data]);
 
 

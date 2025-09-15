@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -42,7 +41,9 @@ import com.lsware.joint_investigation.user.repository.DepartmentRepository;
 import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.lsware.joint_investigation.user.repository.UserStatusHistoryRepository;
-
+import com.lsware.joint_investigation.user.dto.CountryDto;
+import com.lsware.joint_investigation.user.dto.DepartmentDto;
+import com.lsware.joint_investigation.user.dto.HeadquarterDto;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,32 +83,33 @@ public class UserController {
     private AuthService authenticationService;
 
     @GetMapping("/me")
-    public ResponseEntity<HashMap<String, Object>> me(Authentication authentication) {
+    public ResponseEntity<MappingJacksonValue> me(Authentication authentication) {
         if (authentication.isAuthenticated()) {
             CustomUser userDetail = (CustomUser) authentication.getPrincipal();
             HashMap<String, Object> response = new HashMap<String, Object>();
             response.put("userId", userDetail.getId());
             Optional<Users> me = userRepository.findByUserId(userDetail.getId());
             if (me.isPresent()) {
-                List<Country> listCountry = countryRepository.findAll();
-                List<Headquarter> listHeadquarter = headquarterRepository.findAll();
-                List<Department> listDepartments = departmentRepository.findAll();
+                List<CountryDto> listCountry = countryRepository.findAll().stream()
+                        .map(Country::toDto)
+                        .collect(Collectors.toList());
+                List<HeadquarterDto> listHeadquarter = headquarterRepository.findAll().stream()
+                        .map(Headquarter::toDto)
+                        .collect(Collectors.toList());
+                List<DepartmentDto> listDepartments = departmentRepository.findAll().stream()
+                        .map(Department::toDto)
+                        .collect(Collectors.toList());
 
-                response.put("loginId", me.get().getLoginId());
-                response.put("nameKr", me.get().getNameKr());
-                response.put("nameEn", me.get().getNameEn());
-                response.put("phone", me.get().getPhone());
-                response.put("email", me.get().getEmail());
-                response.put("avatar", me.get().getProfileImageUrl());
-
-                response.put("listCountry", listCountry);
+                response.put("listCountry",     listCountry);
                 response.put("listHeadquarter", listHeadquarter);
                 response.put("listDepartments", listDepartments);
-                response.put("userData", me.get());
+                response.put("userData",        me.get().toDto());
             } else {
                 return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
             }
-            return ResponseEntity.ok(response);
+            MappingJacksonValue mapping = new MappingJacksonValue(response);
+            mapping.setFilters(UserController.getUserFilter());
+            return ResponseEntity.ok(mapping);
         }
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
@@ -333,7 +335,8 @@ public class UserController {
                     "status",
                     "countryName",
                     "headquarterName",
-                    "departmentName"
+                    "departmentName",
+                    "profileImageUrl"
                 );
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);

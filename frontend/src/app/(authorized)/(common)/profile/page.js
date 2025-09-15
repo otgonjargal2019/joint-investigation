@@ -65,11 +65,12 @@ function Membership() {
       return;
     }
     const filtered = data.listHeadquarter
-      .filter(hq => hq.country?.id == data?.userData.countryId)
+      .filter(hq => hq.countryId == data?.userData.countryId)
       .map(hq => ({
         label: hq.name,
         value: hq.id
       }));
+
     setHeadquarterOptions(filtered);
 
     setValue("phone1", data?.userData.phone?.split("-")[0] || "");
@@ -105,9 +106,8 @@ function Membership() {
       setDepartmentOptions([]);
       return;
     }
-
     const filteredDept = data.listDepartments
-      .filter(dp => dp.headquarter?.id == selectedQuarterCode)
+      .filter(dp => dp.headquarterId == selectedQuarterCode)
       .map(dp => ({
         label: dp.name,
         value: dp.id

@@ -2,7 +2,7 @@ package com.lsware.joint_investigation.organisationalData.controller;
 
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.organisationalData.dto.CombinedOrganizationalDataDto;
-import com.lsware.joint_investigation.organisationalData.dto.CountryDto;
+import com.lsware.joint_investigation.user.dto.CountryDto;
 import com.lsware.joint_investigation.organisationalData.dto.CountryOrganizationTreeDto;
 import com.lsware.joint_investigation.organisationalData.dto.ForeignInvAdminTreeDto;
 import com.lsware.joint_investigation.organisationalData.service.OrganizationalDataService;

@@ -23,6 +23,7 @@ public class UserDto {
     private String phone;
     private Users.USER_STATUS status;
     private Role role;
+    private String profileImageUrl;
     private Long countryId;
     private Long headquarterId;
     private Long departmentId;
