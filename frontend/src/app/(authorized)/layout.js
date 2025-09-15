@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getUserFromCookie } from "@/app/actions/auth";
 import { AuthProvider } from "@/providers/authProviders";
 import { RealtimeProvider } from "@/providers/realtimeProvider";
-import { UserInfoProvider } from "@/providers/userInfoProviders";
+// import { UserInfoProvider } from "@/providers/userInfoProviders";
 // import { MessengerProvider } from "@/providers/messengerProvider";
 
 export default async function AuthorizedLayout({ children }) {
@@ -16,11 +16,11 @@ export default async function AuthorizedLayout({ children }) {
 
   return (
     <AuthProvider initialUser={user}>
-      <UserInfoProvider>
-        {/* <MessengerProvider> */}
-        <RealtimeProvider>{children}</RealtimeProvider>
-        {/* </MessengerProvider> */}
-      </UserInfoProvider>
+      {/* <UserInfoProvider> */}
+      {/* <MessengerProvider> */}
+      <RealtimeProvider>{children}</RealtimeProvider>
+      {/* </MessengerProvider> */}
+      {/* </UserInfoProvider> */}
     </AuthProvider>
   );
 }
