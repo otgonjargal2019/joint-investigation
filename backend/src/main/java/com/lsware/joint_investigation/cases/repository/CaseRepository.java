@@ -20,6 +20,7 @@ import com.lsware.joint_investigation.util.QuerydslHelper;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -213,9 +214,13 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
             )
             .where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
             .orderBy(
-                // Order by latest investigation record date if exists, otherwise by case updated date
-                qRecord.createdAt.desc().nullsLast(),
-                qCase.updatedAt.desc()
+                // Order by the maximum value between investigation record updatedAt and case updatedAt
+                Expressions.dateTimeTemplate(
+                    java.time.LocalDateTime.class,
+                    "GREATEST({0}, {1})",
+                    qRecord.updatedAt.coalesce(qCase.updatedAt),
+                    qCase.updatedAt
+                ).desc()
             )
             .limit(3)
             .fetch();
