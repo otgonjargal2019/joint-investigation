@@ -14,19 +14,33 @@ import Modal from "@/shared/components/modal";
 import PageTitle from "@/shared/components/pageTitle/page";
 import SuccessNotice from "@/shared/components/successNotice";
 import { USERSTATUS } from "@/shared/dictionary";
-import { profileQuery, useProfile, useDeleteProfileImg, useChangePassword } from "@/entities/profile";
+import {
+  userQuery,
+  useCreateUser,
+  useDeleteProfileImg,
+  useChangePassword,
+} from "@/entities/user";
 import { toast } from "react-toastify";
 import { useCheckEmail } from "@/entities/auth/auth.mutation";
-import {
-  profileFormSchema, changePassFormSchema
-} from "@/entities/auth";
+import { profileFormSchema, changePassFormSchema } from "@/entities/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 function Membership() {
   const t = useTranslations();
   const router = useRouter();
-  const { register: registerProfile, formState: { errors: profileErrors }, trigger, handleSubmit: handleSubmitProfile, watch, setValue } = useForm({resolver: zodResolver(profileFormSchema)});
-  const { register: registerChangepass, formState: { errors: changepassErrors }, handleSubmit: handleSubmitChangepass } = useForm({resolver: zodResolver(changePassFormSchema)});
+  const {
+    register: registerProfile,
+    formState: { errors: profileErrors },
+    trigger,
+    handleSubmit: handleSubmitProfile,
+    watch,
+    setValue,
+  } = useForm({ resolver: zodResolver(profileFormSchema) });
+  const {
+    register: registerChangepass,
+    formState: { errors: changepassErrors },
+    handleSubmit: handleSubmitChangepass,
+  } = useForm({ resolver: zodResolver(changePassFormSchema) });
 
   const [error, setError] = useState(true);
   const [profileImg, setProfileImg] = useState(null);
@@ -36,8 +50,8 @@ function Membership() {
   const [countryName, setCountryName] = useState(null);
   const headquarterSet = useRef(false);
   const departmentSet = useRef(false);
-  const { data } = useQuery(profileQuery.getProfile());
-  const profileMutation = useProfile();
+  const { data } = useQuery(userQuery.getUserProfile());
+  const profileMutation = useCreateUser();
   const checkEmailMutation = useCheckEmail();
   const deleteProfileImgMutation = useDeleteProfileImg();
   const changePasswordMutation = useChangePassword();
@@ -50,13 +64,15 @@ function Membership() {
   const [departmentOptions, setDepartmentOptions] = useState([]);
 
   useEffect(() => {
-    if(data?.userData?.status === USERSTATUS.WAITING_TO_CHANGE){
+    if (data?.userData?.status === USERSTATUS.WAITING_TO_CHANGE) {
       setSubmitted(true);
       return;
     }
 
-    if(data?.listCountry?.length) {
-      const country = data.listCountry.find(c => c.id === data?.userData.countryId);
+    if (data?.listCountry?.length) {
+      const country = data.listCountry.find(
+        (c) => c.id === data?.userData.countryId
+      );
       setCountryName(country?.name || null);
     }
 
@@ -65,16 +81,19 @@ function Membership() {
       return;
     }
     const filtered = data.listHeadquarter
-      .filter(hq => hq.countryId == data?.userData.countryId)
-      .map(hq => ({
+      .filter((hq) => hq.countryId == data?.userData.countryId)
+      .map((hq) => ({
         label: hq.name,
-        value: hq.id
+        value: hq.id,
       }));
 
     setHeadquarterOptions(filtered);
 
     setValue("phone1", data?.userData.phone?.split("-")[0] || "");
-    setValue("phone2", data?.userData.phone?.split("-").slice(1).join("-") || "");
+    setValue(
+      "phone2",
+      data?.userData.phone?.split("-").slice(1).join("-") || ""
+    );
     setValue("email", data?.userData.email?.split("@")[0] || "");
     setValue("email2", data?.userData.email?.split("@")[1] || "");
     setProfileImg(data?.userData.profileImageUrl || null);
@@ -82,21 +101,19 @@ function Membership() {
 
   useEffect(() => {
     if (headquarterOptions.length > 0) {
-      if(!headquarterSet.current) {
+      if (!headquarterSet.current) {
         setValue("headquarterId", String(data?.userData.headquarterId));
         headquarterSet.current = true;
-      }else
-        setValue("headquarterId", String(headquarterOptions[0].value));
+      } else setValue("headquarterId", String(headquarterOptions[0].value));
     }
   }, [headquarterOptions]);
 
   useEffect(() => {
-    if(departmentOptions.length) {
-      if(!departmentSet.current) {
+    if (departmentOptions.length) {
+      if (!departmentSet.current) {
         setValue("departmentId", String(data?.userData.departmentId));
         departmentSet.current = true;
-      }else
-        setValue("departmentId", String(departmentOptions[0].value));
+      } else setValue("departmentId", String(departmentOptions[0].value));
     }
   }, [departmentOptions]);
 
@@ -107,10 +124,10 @@ function Membership() {
       return;
     }
     const filteredDept = data.listDepartments
-      .filter(dp => dp.headquarterId == selectedQuarterCode)
-      .map(dp => ({
+      .filter((dp) => dp.headquarterId == selectedQuarterCode)
+      .map((dp) => ({
         label: dp.name,
-        value: dp.id
+        value: dp.id,
       }));
     setDepartmentOptions(filteredDept);
   }, [selectedQuarterCode]);
@@ -120,19 +137,21 @@ function Membership() {
       countryId: data?.userData?.countryId,
       headquarterId: values.headquarterId,
       departmentId: values.departmentId,
-      phone: values.phone1 && values.phone2 ? `${values.phone1}-${values.phone2}` : null,
-      email: values.email && values.email2 ? `${values.email}@${values.email2}` : null,
-      profileImg: uploadImg
+      phone:
+        values.phone1 && values.phone2
+          ? `${values.phone1}-${values.phone2}`
+          : null,
+      email:
+        values.email && values.email2
+          ? `${values.email}@${values.email2}`
+          : null,
+      profileImg: uploadImg,
     };
 
     profileMutation.mutate(payload, {
       onSuccess: (res) => {
-        const {message, success} = res.data;
-        if (success){
-          toast.success(`${message}`, {
-            autoClose: 3000,
-            position: "top-center",
-          });
+        const { success } = res.data;
+        if (success) {
           setSubmitted(true);
         }
       },
@@ -154,7 +173,7 @@ function Membership() {
     const email = watch("email");
     const email2 = watch("email2");
     const reqData = {
-      email: `${email}@${email2}`
+      email: `${email}@${email2}`,
     };
 
     checkEmailMutation.mutate(reqData, {
@@ -198,13 +217,13 @@ function Membership() {
   const onChangePwd = async (formData) => {
     const payload = {
       currentPassword: formData.password,
-      newPassword: formData.confirmPassword
+      newPassword: formData.confirmPassword,
     };
 
     changePasswordMutation.mutate(payload, {
       onSuccess: (res) => {
-        const {message, success} = res.data;
-        if (success){
+        const { message, success } = res.data;
+        if (success) {
           toast.success(`${message}`, {
             autoClose: 3000,
             position: "top-center",
@@ -241,7 +260,10 @@ function Membership() {
               onBtnClick={() => router.push("/")}
             />
           ) : (
-            <form className="space-y-4 mt-12" onSubmit={handleSubmitProfile(onSubmit)}>
+            <form
+              className="space-y-4 mt-12"
+              onSubmit={handleSubmitProfile(onSubmit)}
+            >
               <div
                 className="grid gap-4"
                 style={{ gridTemplateColumns: "120px 600px" }}
@@ -373,7 +395,11 @@ function Membership() {
                   />
                   <Button
                     size="small2"
-                    variant={!profileErrors.email && !profileErrors.email2 ? "neon" : "gray3"}
+                    variant={
+                      !profileErrors.email && !profileErrors.email2
+                        ? "neon"
+                        : "gray3"
+                    }
                     className="min-w-[135px]"
                     onClick={handleCheckEmail}
                   >
@@ -382,15 +408,19 @@ function Membership() {
                 </div>
                 <div />
                 <p className="text-color-86 text-[16px] font-normal">
-                  {Object.keys(profileErrors).length > 0 && t("error-msg.enter-all-membership-info")}
+                  {Object.keys(profileErrors).length > 0 &&
+                    t("error-msg.enter-all-membership-info")}
                 </p>
                 <div />
                 <Button
                   type="submit"
                   size="small3"
-                  variant={Object.keys(profileErrors).length == 0 ? "neon" : "gray2"} 
-                  disabled={Object.keys(profileErrors).length > 0}>
-                    {t("request-modification-member-info")}
+                  variant={
+                    Object.keys(profileErrors).length == 0 ? "neon" : "gray2"
+                  }
+                  disabled={Object.keys(profileErrors).length > 0}
+                >
+                  {t("request-modification-member-info")}
                 </Button>
               </div>
             </form>
@@ -404,7 +434,10 @@ function Membership() {
             {t("change-password")}
           </h2>
         </div>
-        <form onSubmit={handleSubmitChangepass(onChangePwd)} className="space-y-4">
+        <form
+          onSubmit={handleSubmitChangepass(onChangePwd)}
+          className="space-y-4"
+        >
           <div
             className="grid gap-4"
             style={{ gridTemplateColumns: "120px 380px" }}
@@ -413,14 +446,14 @@ function Membership() {
               {t("form.current-password")}
             </Label>
             <Input
-                register={registerChangepass}
-                name="password"
-                type="password"
-                showError={false}
-                variant="form"
-                placeholder={t("placeholder.password")}
-                error={changepassErrors.password}
-              />
+              register={registerChangepass}
+              name="password"
+              type="password"
+              showError={false}
+              variant="form"
+              placeholder={t("placeholder.password")}
+              error={changepassErrors.password}
+            />
             <Label color="gray" className="text-right mt-2">
               {t("form.new-password")}
             </Label>
@@ -452,7 +485,7 @@ function Membership() {
             />
           </div>
           <div className="flex justify-center">
-            <Button type="submit" size="medium" >
+            <Button type="submit" size="medium">
               {t("change")}
             </Button>
           </div>

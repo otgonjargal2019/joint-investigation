@@ -99,11 +99,10 @@ public class UserController {
                 List<DepartmentDto> listDepartments = departmentRepository.findAll().stream()
                         .map(Department::toDto)
                         .collect(Collectors.toList());
-
-                response.put("listCountry",     listCountry);
+                response.put("listCountry", listCountry);
                 response.put("listHeadquarter", listHeadquarter);
                 response.put("listDepartments", listDepartments);
-                response.put("userData",        me.get().toDto());
+                response.put("userData", me.get().toDto());
             } else {
                 return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
             }
@@ -322,22 +321,21 @@ public class UserController {
     public static FilterProvider getUserFilter() {
         SimpleBeanPropertyFilter userFilter = SimpleBeanPropertyFilter
                 .filterOutAllExcept(
-                    "userId",
-                    "role",
-                    "loginId",
-                    "nameKr",
-                    "nameEn",
-                    "email",
-                    "phone",
-                    "countryId",
-                    "headquarterId",
-                    "departmentId",
-                    "status",
-                    "countryName",
-                    "headquarterName",
-                    "departmentName",
-                    "profileImageUrl"
-                );
+                        "userId",
+                        "role",
+                        "loginId",
+                        "nameKr",
+                        "nameEn",
+                        "email",
+                        "phone",
+                        "countryId",
+                        "headquarterId",
+                        "departmentId",
+                        "status",
+                        "countryName",
+                        "headquarterName",
+                        "departmentName",
+                        "profileImageUrl");
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }

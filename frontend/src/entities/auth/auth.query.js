@@ -7,8 +7,8 @@ export const signupQuery = {
     queryOptions({
       queryKey: [...signupQuery.all()],
       queryFn: async () => {
-        const response = await axiosInstance.get(`/api/auth/signup`);
+        const response = await axiosInstance.get(`/api/organizational-data`);
         return response.data;
-      }
-    })
+      },
+    }),
 };

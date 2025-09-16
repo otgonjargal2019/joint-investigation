@@ -53,7 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/api/user/avatar",
                 "/web/",
                 "/files/download/",
-                "/api/admin/statistic/register/contactus");
+                "/api/admin/statistic/register/contactus",
+                "/api/organizational-data");
 
         for (String urlException : urlExceptions) {
             if (request.getRequestURI().startsWith(urlException)) {
