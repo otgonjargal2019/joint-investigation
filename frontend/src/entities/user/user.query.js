@@ -23,4 +23,13 @@ export const userQuery = {
       },
       enabled: !!userId,
     }),
+
+  getUserProfile: () =>
+    queryOptions({
+      queryKey: [...userQuery.all()],
+      queryFn: async () => {
+        const response = await axiosInstance.get(`/api/user/me`);
+        return response.data;
+      },
+    }),
 };

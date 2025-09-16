@@ -2,12 +2,18 @@ package com.lsware.joint_investigation.organisationalData.controller;
 
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.organisationalData.dto.CombinedOrganizationalDataDto;
-import com.lsware.joint_investigation.organisationalData.dto.CountryDto;
+import com.lsware.joint_investigation.user.dto.CountryDto;
 import com.lsware.joint_investigation.organisationalData.dto.CountryOrganizationTreeDto;
 import com.lsware.joint_investigation.organisationalData.dto.ForeignInvAdminTreeDto;
 import com.lsware.joint_investigation.organisationalData.service.OrganizationalDataService;
+import com.lsware.joint_investigation.user.entity.Country;
+import com.lsware.joint_investigation.user.entity.Department;
+import com.lsware.joint_investigation.user.entity.Headquarter;
 import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
+import com.lsware.joint_investigation.user.repository.CountryRepository;
+import com.lsware.joint_investigation.user.repository.DepartmentRepository;
+import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -30,10 +38,14 @@ public class OrganizationalDataController {
 
     private final OrganizationalDataService organizationalDataService;
     private final UserRepository userRepository;
+    private final CountryRepository countryRepository;
+    private final HeadquarterRepository headquarterRepository;
+    private final DepartmentRepository departmentRepository;
 
     /**
      * Combined API: Get complete organizational data for INV_ADMIN
-     * Returns both current country organizational structure and foreign INV_ADMIN users
+     * Returns both current country organizational structure and foreign INV_ADMIN
+     * users
      * Only accessible by INV_ADMIN role
      */
     @GetMapping("/complete-tree")
@@ -54,7 +66,7 @@ public class OrganizationalDataController {
 
             // Verify the user has INV_ADMIN role
             if (!currentUser.getRole().equals(Role.INV_ADMIN)) {
-                log.warn("Access denied for user {} - role {} is not INV_ADMIN", 
+                log.warn("Access denied for user {} - role {} is not INV_ADMIN",
                         customUser.getId(), currentUser.getRole());
                 return ResponseEntity.status(403).build();
             }
@@ -67,17 +79,17 @@ public class OrganizationalDataController {
 
             CombinedOrganizationalDataDto result = organizationalDataService
                     .getCombinedOrganizationalData(currentUserCountryId);
-            log.info("Successfully retrieved complete organizational tree for user {} from country {}", 
+            log.info("Successfully retrieved complete organizational tree for user {} from country {}",
                     customUser.getId(), currentUserCountryId);
             return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
-            log.error("Invalid argument in getCompleteOrganizationalTree for user {}: {}", 
-                     customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
+            log.error("Invalid argument in getCompleteOrganizationalTree for user {}: {}",
+                    customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error("Unexpected error in getCompleteOrganizationalTree for user {}: {}", 
-                     customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
+            log.error("Unexpected error in getCompleteOrganizationalTree for user {}: {}",
+                    customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -90,8 +102,8 @@ public class OrganizationalDataController {
         CustomUser customUser = null;
         try {
             customUser = (CustomUser) authentication.getPrincipal();
-            log.debug("getCurrentCountryOrganizationTree called by user {} with searchWord: {}", 
-                     customUser.getId(), searchWord);
+            log.debug("getCurrentCountryOrganizationTree called by user {} with searchWord: {}",
+                    customUser.getId(), searchWord);
 
             // Get full user information from repository
             Optional<Users> currentUserOpt = userRepository.findByUserId(customUser.getId());
@@ -104,7 +116,7 @@ public class OrganizationalDataController {
 
             // Verify the user has INV_ADMIN role
             if (!currentUser.getRole().equals(Role.INV_ADMIN)) {
-                log.warn("Access denied for user {} - role {} is not INV_ADMIN", 
+                log.warn("Access denied for user {} - role {} is not INV_ADMIN",
                         customUser.getId(), currentUser.getRole());
                 return ResponseEntity.status(403).build();
             }
@@ -117,17 +129,18 @@ public class OrganizationalDataController {
 
             CountryOrganizationTreeDto result = organizationalDataService
                     .getCurrentCountryOrganizationTree(currentUserCountryId, searchWord);
-            log.info("Successfully retrieved current country organizational tree for user {} from country {} with searchWord: '{}'", 
+            log.info(
+                    "Successfully retrieved current country organizational tree for user {} from country {} with searchWord: '{}'",
                     customUser.getId(), currentUserCountryId, searchWord);
             return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
-            log.error("Invalid argument in getCurrentCountryOrganizationTree for user {} with searchWord '{}': {}", 
-                     customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
+            log.error("Invalid argument in getCurrentCountryOrganizationTree for user {} with searchWord '{}': {}",
+                    customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error("Unexpected error in getCurrentCountryOrganizationTree for user {} with searchWord '{}': {}", 
-                     customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
+            log.error("Unexpected error in getCurrentCountryOrganizationTree for user {} with searchWord '{}': {}",
+                    customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -146,8 +159,8 @@ public class OrganizationalDataController {
         CustomUser customUser = null;
         try {
             customUser = (CustomUser) authentication.getPrincipal();
-            log.debug("getForeignInvAdminsTree called by user {} with searchWord: {}", 
-                     customUser.getId(), searchWord);
+            log.debug("getForeignInvAdminsTree called by user {} with searchWord: {}",
+                    customUser.getId(), searchWord);
 
             // Get full user information from repository
             Optional<Users> currentUserOpt = userRepository.findByUserId(customUser.getId());
@@ -160,7 +173,7 @@ public class OrganizationalDataController {
 
             // Verify the user has INV_ADMIN role
             if (!currentUser.getRole().equals(Role.INV_ADMIN)) {
-                log.warn("Access denied for user {} - role {} is not INV_ADMIN", 
+                log.warn("Access denied for user {} - role {} is not INV_ADMIN",
                         customUser.getId(), currentUser.getRole());
                 return ResponseEntity.status(403).build();
             }
@@ -173,17 +186,18 @@ public class OrganizationalDataController {
 
             List<ForeignInvAdminTreeDto> result = organizationalDataService
                     .getForeignInvAdminsTree(currentUserCountryId, searchWord, searchWord);
-            log.info("Successfully retrieved foreign INV_ADMIN tree for user {} from country {} with searchWord: '{}'. Found {} countries", 
+            log.info(
+                    "Successfully retrieved foreign INV_ADMIN tree for user {} from country {} with searchWord: '{}'. Found {} countries",
                     customUser.getId(), currentUserCountryId, searchWord, result.size());
             return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
-            log.error("Invalid argument in getForeignInvAdminsTree for user {} with searchWord '{}': {}", 
-                     customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
+            log.error("Invalid argument in getForeignInvAdminsTree for user {} with searchWord '{}': {}",
+                    customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error("Unexpected error in getForeignInvAdminsTree for user {} with searchWord '{}': {}", 
-                     customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
+            log.error("Unexpected error in getForeignInvAdminsTree for user {} with searchWord '{}': {}",
+                    customUser != null ? customUser.getId() : "unknown", searchWord, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -202,14 +216,28 @@ public class OrganizationalDataController {
             log.debug("getAllCountries called by user {}", customUser.getId());
 
             List<CountryDto> countries = organizationalDataService.getAllCountries();
-            log.info("Successfully retrieved {} countries for user {}", 
+            log.info("Successfully retrieved {} countries for user {}",
                     countries.size(), customUser.getId());
             return ResponseEntity.ok(countries);
 
         } catch (Exception e) {
-            log.error("Unexpected error in getAllCountries for user {}: {}", 
-                     customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
+            log.error("Unexpected error in getAllCountries for user {}: {}",
+                    customUser != null ? customUser.getId() : "unknown", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<Map<String, Object>> getOrganizationalData() {
+        Map<String, Object> response = new HashMap<>();
+
+        List<Country> listCountry = countryRepository.findAll();
+        List<Headquarter> listHeadquarter = headquarterRepository.findAll();
+        List<Department> listDepartments = departmentRepository.findAll();
+
+        response.put("listCountry", listCountry);
+        response.put("listHeadquarter", listHeadquarter);
+        response.put("listDepartments", listDepartments);
+        return ResponseEntity.ok(response);
     }
 }

@@ -100,8 +100,8 @@ public class AuthController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
 
-            if("ADMIN_CONFRIMATION_NEEDED".equals(ex.getMessage()))
-                errorResponse.put("message", "ADMIN_CONFRIMATION_NEEDED");
+            if ("ADMIN_CONFIRMATION_NEEDED".equals(ex.getMessage()))
+                errorResponse.put("message", "ADMIN_CONFIRMATION_NEEDED");
             else
                 errorResponse.put("message", "Authentication failed. Invalid credentials.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
@@ -149,20 +149,6 @@ public class AuthController {
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-    }
-
-    @GetMapping("/signup")
-    public ResponseEntity<Map<String, Object>> getSignup() {
-        Map<String, Object> response = new HashMap<>();
-
-        List<Country> listCountry = countryRepository.findAll();
-        List<Headquarter> listHeadquarter = headquarterRepository.findAll();
-        List<Department> listDepartments = departmentRepository.findAll();
-
-        response.put("listCountry", listCountry);
-        response.put("listHeadquarter", listHeadquarter);
-        response.put("listDepartments", listDepartments);
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup")

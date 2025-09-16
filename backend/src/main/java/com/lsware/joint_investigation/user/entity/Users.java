@@ -103,6 +103,7 @@ public class Users {
         dto.setCountryId(this.countryId);
         dto.setHeadquarterId(this.headquarterId);
         dto.setDepartmentId(this.departmentId);
+        dto.setProfileImageUrl(this.profileImageUrl);
         dto.setRole(this.role);
         dto.setStatus(this.status);
         dto.setCreatedAt(this.createdAt);

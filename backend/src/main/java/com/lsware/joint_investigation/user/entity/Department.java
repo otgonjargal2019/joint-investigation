@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lsware.joint_investigation.user.dto.DepartmentDto;
 
 @Entity
 @Table(name = "department")
@@ -40,4 +41,14 @@ public class Department {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public DepartmentDto toDto() {
+        DepartmentDto dto = new DepartmentDto();
+        dto.setId(this.id);
+        dto.setUuid(this.uuid);
+        dto.setCountryId(this.country != null ? this.country.getId() : null);
+        dto.setHeadquarterId(this.headquarter != null ? this.headquarter.getId() : null);
+        dto.setName(this.name);
+        dto.setCreatedAt(this.createdAt);
+        return dto;
+    }
 }
