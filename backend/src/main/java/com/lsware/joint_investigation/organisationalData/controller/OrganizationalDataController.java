@@ -227,7 +227,7 @@ public class OrganizationalDataController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<Map<String, Object>> getOrganizationalData() {
         Map<String, Object> response = new HashMap<>();
 
