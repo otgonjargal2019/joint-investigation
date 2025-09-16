@@ -1,4 +1,4 @@
-package com.lsware.joint_investigation.organisationalData.dto;
+package com.lsware.joint_investigation.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

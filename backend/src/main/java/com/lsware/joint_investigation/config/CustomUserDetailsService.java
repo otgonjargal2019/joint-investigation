@@ -23,13 +23,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         Users user = userRepository.findByLoginId(loginId)
-            .map(u -> {
-                if (u.getStatus() == Users.USER_STATUS.PENDING) {
-                    throw new AdminNotCommittedException("ADMIN_CONFRIMATION_NEEDED");
-                }
-                return u;
-            })
-            .orElseThrow(() -> new UsernameNotFoundException("LoginID not found"));
+                .map(u -> {
+                    if (u.getStatus() == Users.USER_STATUS.PENDING) {
+                        throw new AdminNotCommittedException("ADMIN_CONFIRMATION_NEEDED");
+                    }
+                    return u;
+                })
+                .orElseThrow(() -> new UsernameNotFoundException("LoginID not found"));
 
         // Create authorities collection with ROLE_ prefix
         Collection<GrantedAuthority> authorities = new ArrayList<>();
