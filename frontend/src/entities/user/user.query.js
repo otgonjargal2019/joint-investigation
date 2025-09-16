@@ -23,4 +23,13 @@ export const userQuery = {
       },
       enabled: !!userId,
     }),
+
+  getUserDashboard: () =>
+    queryOptions({
+      queryKey: [...userQuery.all()],
+      queryFn: async () => {
+        const response = await axiosInstance.get(`/api/dashboard/main`);
+        return response.data;
+      },
+    }),
 };

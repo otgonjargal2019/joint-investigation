@@ -2,17 +2,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-
+import { useQuery } from "@tanstack/react-query";
 import ProfileCard from "@/shared/widgets/profileCard";
 import DonutChart from "@/shared/components/pieChart";
 import CaseCard from "@/shared/components/caseCard";
 import Notice from "@/shared/components/notice";
-import {
-  caseData,
-  noticeData,
-  noticeData2,
-} from "@/shared/widgets/mockData/homepage";
+import { caseData } from "@/shared/widgets/mockData/homepage";
 import { useAuth } from "@/providers/authProviders";
+import { userQuery } from "@/entities/user/user.query";
 
 export default function Home() {
   const { user } = useAuth();
@@ -22,6 +19,8 @@ export default function Home() {
   const router = useRouter();
 
   const [isLoading, setLoading] = useState(true);
+  const { data } = useQuery(userQuery.getUserDashboard());
+  const researchLink = "/research";
 
   const { noticeLink, investigationInfoLink, incidentLink } = useMemo(() => {
     if (user?.role === "admin") {
@@ -54,6 +53,18 @@ export default function Home() {
       setLoading(false);
     }, 3000);
   }, []);
+
+  const onClickNoticeRow = (row) => {
+    if (row && row?.postId) {
+      router.push(`/notice/${row.postId}`);
+    }
+  };
+
+  const onClickResearchRow = (row) => {
+    if (row && row?.postId) {
+      router.push(`/research/${row.postId}`);
+    }
+  };
 
   return (
     <div className="px-0">
@@ -139,8 +150,13 @@ export default function Home() {
             </button>
           </div>
           <div className="bg-white p-6 rounded-20 space-y-4 shadow-md mt-3">
-            {noticeData.map((item, idx) => (
-              <Notice key={idx} text={item.text} date={item.date} />
+            {data?.lastPosts?.map((item, idx) => (
+              <Notice
+                key={idx}
+                text={item.title}
+                date={item.createdAtStr}
+                onClick={() => onClickNoticeRow(item)}
+              />
             ))}
           </div>
         </div>
@@ -151,14 +167,19 @@ export default function Home() {
             </h2>
             <button
               className="text-color-27 text-[18px] font-medium cursor-pointer"
-              onClick={() => router.push(investigationInfoLink)}
+              onClick={() => router.push(researchLink)}
             >
               {t("see-more")}+
             </button>
           </div>
           <div className="bg-white p-6 rounded-20 space-y-4 shadow-md mt-3">
-            {noticeData2.map((item, idx) => (
-              <Notice key={idx} text={item.text} date={item.date} />
+            {data?.lastResearchs?.map((item, idx) => (
+              <Notice
+                key={idx}
+                text={item.title}
+                date={item.createdAtStr}
+                onClick={() => onClickResearchRow(item)}
+              />
             ))}
           </div>
         </div>
