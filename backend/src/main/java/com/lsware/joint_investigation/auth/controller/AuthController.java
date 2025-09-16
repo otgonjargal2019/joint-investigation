@@ -87,7 +87,7 @@ public class AuthController {
             cookie.setHttpOnly(true);
             cookie.setSecure(false); // true in production with HTTPS
             cookie.setPath("/");
-            cookie.setMaxAge(60 * 60); // 1 hour
+            cookie.setMaxAge(60 * 60 * 10); // 10 hour
             response.addCookie(cookie);
 
             // Response JSON (no token)
