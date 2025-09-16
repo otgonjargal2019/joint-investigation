@@ -100,8 +100,8 @@ public class AuthController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
 
-            if ("ADMIN_CONFRIMATION_NEEDED".equals(ex.getMessage()))
-                errorResponse.put("message", "ADMIN_CONFRIMATION_NEEDED");
+            if ("ADMIN_CONFIRMATION_NEEDED".equals(ex.getMessage()))
+                errorResponse.put("message", "ADMIN_CONFIRMATION_NEEDED");
             else
                 errorResponse.put("message", "Authentication failed. Invalid credentials.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);

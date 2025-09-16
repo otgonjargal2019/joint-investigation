@@ -25,7 +25,7 @@ function LoginPage() {
     watch,
     setValue,
     handleSubmit,
-    setError
+    setError,
   } = useForm({ resolver: zodResolver(loginFormSchema) });
   //const [error, setError] = useState(true);
 
@@ -47,17 +47,16 @@ function LoginPage() {
         }
       },
       onError: (err) => {
-        console.log('EERRRR', err);
-        if (err.response?.data?.message == "ADMIN_CONFRIMATION_NEEDED") {
+        if (err.response?.data?.message == "ADMIN_CONFIRMATION_NEEDED") {
           toast.warning(t("auth.admin-approve-msg"), {
             autoClose: 3000,
             position: "top-center",
           });
         } else {
-          setError("root",{
+          setError("root", {
             type: "manual",
             message: err.response.data.message,
-          })
+          });
         }
       },
     });
