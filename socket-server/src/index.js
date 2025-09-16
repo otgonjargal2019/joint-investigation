@@ -81,8 +81,8 @@ io.on("connection", (socket) => {
 
   //-------------------------notification start-----------------------------------------
 
-  // Send last 5 notifications
-  socket.on("getLastNotifications", async (ack) => {
+  // Get last 5 notifications
+  socket.on("notifications:getLast5", async (ack) => {
     try {
       const notifications = await Notification.findAll({
         where: { userId: socket.userId },
@@ -96,16 +96,22 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Fetch all notifications
-  socket.on("getAllNotifications", async (ack) => {
+  // Paginated notifications
+  socket.on("notifications:getPage", async ({ before, limit = 20 }, ack) => {
     try {
+      const where = { userId: socket.userId };
+      if (before) where.createdAt = { [Op.lt]: before };
+
       const notifications = await Notification.findAll({
-        where: { userId: socket.userId },
+        where,
         order: [["createdAt", "DESC"]],
+        limit,
+        raw: true,
       });
+
       ack?.(notifications);
     } catch (err) {
-      console.error("Failed to get all notifications:", err);
+      console.error("Failed to get notifications page:", err);
       ack?.([]);
     }
   });
@@ -118,17 +124,6 @@ io.on("connection", (socket) => {
 
       notif.isRead = true;
       await notif.save();
-
-      const allNotifications = await Notification.findAll({
-        where: { userId: socket.userId },
-        order: [["createdAt", "DESC"]],
-      });
-      const lastNotifications = allNotifications.slice(0, 5);
-
-      socket.emit("notifications:update", {
-        allNotifications,
-        lastNotifications,
-      });
 
       ack?.({ success: true, notification: notif });
     } catch (err) {
@@ -144,15 +139,7 @@ io.on("connection", (socket) => {
         { isRead: true },
         { where: { userId: socket.userId, isRead: false } }
       );
-      const allNotifications = await Notification.findAll({
-        where: { userId: socket.userId },
-        order: [["createdAt", "DESC"]],
-      });
-      const lastNotifications = allNotifications.slice(0, 5);
-      socket.emit("notifications:update", {
-        allNotifications,
-        lastNotifications,
-      });
+
       ack?.({ success: true });
     } catch (err) {
       console.error(err);
@@ -163,10 +150,7 @@ io.on("connection", (socket) => {
   // --- Delete all notifications ---
   socket.on("notifications:deleteAll", async (ack) => {
     await Notification.destroy({ where: { userId: socket.userId } });
-    socket.emit("notifications:update", {
-      allNotifications: [],
-      lastNotifications: [],
-    });
+
     ack?.({ success: true });
   });
 
@@ -182,6 +166,7 @@ io.on("connection", (socket) => {
       ack?.(0);
     }
   });
+
   //-------------------------notification end-----------------------------------------
 
   // Handle chat users
