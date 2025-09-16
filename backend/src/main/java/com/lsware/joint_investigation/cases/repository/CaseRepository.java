@@ -185,4 +185,50 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 
         return new PageImpl<>(cases, pageable, total != null ? total : 0);
     }
+
+    /**
+     * Find the most recent 3 updated cases for a specific assignee
+     * @param userId The ID of the assigned user
+     * @return List of the 3 most recently updated cases assigned to the user
+     */
+    public List<Case> findRecentAssignedCases(UUID userId) {
+        QCase qCase = QCase.case$;
+        QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+        QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+
+        // Get latest investigation record subquery for each case
+        var latestRecordSubquery = queryFactory
+            .select(qRecord.createdAt.max())
+            .from(qRecord)
+            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+
+        // Main query to get cases with their latest investigation records
+        List<Tuple> results = queryFactory
+            .select(qCase, qRecord)
+            .from(qCase)
+            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+            .leftJoin(qRecord).on(
+                qRecord.caseInstance.caseId.eq(qCase.caseId)
+                .and(qRecord.createdAt.eq(latestRecordSubquery))
+            )
+            .where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+            .orderBy(
+                // Order by latest investigation record date if exists, otherwise by case updated date
+                qRecord.createdAt.desc().nullsLast(),
+                qCase.updatedAt.desc()
+            )
+            .limit(3)
+            .fetch();
+
+        return results.stream()
+            .map(tuple -> {
+                Case caseEntity = tuple.get(qCase);
+                InvestigationRecord record = tuple.get(qRecord);
+                if (record != null) {
+                    caseEntity.setLatestRecord(record);
+                }
+                return caseEntity;
+            })
+            .toList();
+    }
 }

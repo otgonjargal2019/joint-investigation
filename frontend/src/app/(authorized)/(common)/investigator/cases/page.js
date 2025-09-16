@@ -20,6 +20,17 @@ const tabs = [
   { label: "종료 사건", value: 2 },
 ];
 
+const COLOR_MAP = {
+  "PLATFORMS_SITES": "bg-color-91",
+  "LINK_SITES": "bg-color-107",
+  "WEBHARD_P2P": "bg-color-106",
+  "TORRENTS": "bg-color-90",
+  "SNS": "bg-color-93",
+  "COMMUNITIES": "bg-color-6",
+  "OTHER": "bg-color-105",
+  "DEFAULT": "black",
+}
+
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
 // Helper function to safely get nested object values
@@ -97,16 +108,17 @@ function IncidentPage() {
         {t("subtitle.recent-investigation")}
       </h3>
       <div className="w-full flex gap-6 justify-between">
-        {caseData.map((item, idx) => (
+        {casesResponse?.recentCases?.map(item => (
           <CaseCard
-            key={idx}
+            key={item.caseId}
             size={"big"}
-            label={item.label}
-            code={item.code}
-            desc={item.desc}
-            color={item.color}
-            country={item.country}
+            label={item?.infringementType ? t(`case_details.case_infringement_type.${item?.infringementType}`) : ""}
+            code={`#${item.number}. ${item.caseId}`}
+            desc={item.caseName}
+            color={`${COLOR_MAP[item?.infringementType || "DEFAULT"]}`}
+            country={item.relatedCountries}
             isLoading={isLoading}
+            onClick={() => onClickRow(item)}
           />
         ))}
       </div>
