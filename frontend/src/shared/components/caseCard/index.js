@@ -12,11 +12,12 @@ const CaseCard = ({
   color,
   country,
   isLoading = true,
+  onClick,
 }) => {
   const t = useTranslations();
 
   return (
-    <div className="case-card-wrapper w-full flex bg-white rounded-10 shadow-md overflow-hidden">
+    <div className="case-card-wrapper w-full flex bg-white rounded-10 shadow-md overflow-hidden cursor-pointer" onClick={onClick}>
       {isLoading ? (
         <>
           <div

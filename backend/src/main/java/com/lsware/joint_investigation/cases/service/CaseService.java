@@ -119,6 +119,7 @@ public class CaseService {
 	public MappingJacksonValue getAssignedCases(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
 		// Fetch cases where the user is assigned through case_assignees table
 		var casePage = caseRepository.findAssignedCases(userId, name, status, pageable);
+		List<Case> recentCases = caseRepository.findRecentAssignedCases(userId);
 
 		// Convert to DTOs
 		var caseDtos = casePage.getContent().stream()
@@ -127,6 +128,7 @@ public class CaseService {
 
 		// Create response map with pagination info
 		Map<String, Object> response = Map.of(
+			"recentCases", recentCases.stream().map(Case::toDto).collect(Collectors.toList()),
 			"rows", caseDtos,
 			"total", casePage.getTotalElements(),
 			"totalPages", casePage.getTotalPages(),

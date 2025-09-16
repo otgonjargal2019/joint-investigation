@@ -20,6 +20,7 @@ import com.lsware.joint_investigation.util.QuerydslHelper;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -184,5 +185,55 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
             .fetchOne();
 
         return new PageImpl<>(cases, pageable, total != null ? total : 0);
+    }
+
+    /**
+     * Find the most recent 3 updated cases for a specific assignee
+     * @param userId The ID of the assigned user
+     * @return List of the 3 most recently updated cases assigned to the user
+     */
+    public List<Case> findRecentAssignedCases(UUID userId) {
+        QCase qCase = QCase.case$;
+        QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+        QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+
+        // Get latest investigation record subquery for each case
+        var latestRecordSubquery = queryFactory
+            .select(qRecord.createdAt.max())
+            .from(qRecord)
+            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+
+        // Main query to get cases with their latest investigation records
+        List<Tuple> results = queryFactory
+            .select(qCase, qRecord)
+            .from(qCase)
+            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+            .leftJoin(qRecord).on(
+                qRecord.caseInstance.caseId.eq(qCase.caseId)
+                .and(qRecord.createdAt.eq(latestRecordSubquery))
+            )
+            .where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+            .orderBy(
+                // Order by the maximum value between investigation record updatedAt and case updatedAt
+                Expressions.dateTimeTemplate(
+                    java.time.LocalDateTime.class,
+                    "GREATEST({0}, {1})",
+                    qRecord.updatedAt.coalesce(qCase.updatedAt),
+                    qCase.updatedAt
+                ).desc()
+            )
+            .limit(3)
+            .fetch();
+
+        return results.stream()
+            .map(tuple -> {
+                Case caseEntity = tuple.get(qCase);
+                InvestigationRecord record = tuple.get(qRecord);
+                if (record != null) {
+                    caseEntity.setLatestRecord(record);
+                }
+                return caseEntity;
+            })
+            .toList();
     }
 }
