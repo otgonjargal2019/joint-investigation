@@ -46,6 +46,7 @@ import com.lsware.joint_investigation.user.repository.DepartmentRepository;
 import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.lsware.joint_investigation.user.repository.UserStatusHistoryRepository;
+import com.lsware.joint_investigation.util.Constant;
 import com.lsware.joint_investigation.util.Email;
 import com.lsware.joint_investigation.user.dto.CountryDto;
 import com.lsware.joint_investigation.user.dto.DepartmentDto;
@@ -100,7 +101,6 @@ public class UserController {
 
     @Autowired
     private EmailService emailService;
-
 
     @GetMapping("/me")
     public ResponseEntity<MappingJacksonValue> me(Authentication authentication) {
@@ -319,6 +319,16 @@ public class UserController {
         history.setReason((reason == null || reason.isBlank()) ? null : reason.trim());
 
         userStatusHistoryRepository.save(history);
+
+        // Email for denied user signup
+        if (oldStatus == Users.USER_STATUS.PENDING && request.getHistoryStatus() == Users.USER_STATUS.REJECTED) {
+            String mailSubject = Constant.SUBJECT_SIGNUP_DENIED;
+            String templateName = Constant.MAIL_TEMPLATE_SIGNUP_DENIED;
+            Map<String, Object> objectMap = new HashMap<String, Object>();
+            objectMap.put("reason", reason);
+            sendEmail(mailSubject, templateName, user.getEmail(),
+                    objectMap);
+        }
 
         // Call notifyUser
         if (oldStatus == Users.USER_STATUS.WAITING_TO_CHANGE) {
