@@ -28,12 +28,14 @@ import com.lsware.joint_investigation.common.util.CustomResponseException;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.config.customException.FileNotStoredException;
 import com.lsware.joint_investigation.file.service.FileService;
+import com.lsware.joint_investigation.notification.service.NotificationService;
 import com.lsware.joint_investigation.user.dto.UpdateUserRoleRequest;
 import com.lsware.joint_investigation.user.dto.UpdateUserStatusRequest;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.Country;
 import com.lsware.joint_investigation.user.entity.Department;
 import com.lsware.joint_investigation.user.entity.Headquarter;
+import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.UserStatusHistory;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.CountryRepository;
@@ -44,7 +46,11 @@ import com.lsware.joint_investigation.user.repository.UserStatusHistoryRepositor
 import com.lsware.joint_investigation.user.dto.CountryDto;
 import com.lsware.joint_investigation.user.dto.DepartmentDto;
 import com.lsware.joint_investigation.user.dto.HeadquarterDto;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -81,6 +87,9 @@ public class UserController {
 
     @Autowired
     private AuthService authenticationService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping("/me")
     public ResponseEntity<MappingJacksonValue> me(Authentication authentication) {
@@ -300,6 +309,31 @@ public class UserController {
 
         userStatusHistoryRepository.save(history);
 
+        // Call notifyUser
+        if (oldStatus == Users.USER_STATUS.WAITING_TO_CHANGE) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String formattedDateTime = LocalDateTime.now().format(formatter);
+            Map<String, String> contentMap = new LinkedHashMap<>();
+            String title = "";
+
+            if (request.getHistoryStatus() == Users.USER_STATUS.APPROVED) {
+                title = "회원 정보 변경 승인";
+                contentMap.put("승인 일시", formattedDateTime);
+
+            } else if (request.getHistoryStatus() == Users.USER_STATUS.REJECTED) {
+                title = "회원 정보 변경 거절";
+                contentMap.put("승인 일시", formattedDateTime);
+                contentMap.put("사유", (reason == null || reason.isBlank()) ? "" : reason.trim());
+
+            }
+
+            notificationService.notifyUser(
+                    request.getUserId(),
+                    title,
+                    contentMap,
+                    "/profile");
+        }
+
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Status history created successfully", user.getUserId(),
                         null));
@@ -311,8 +345,26 @@ public class UserController {
         Users user = userRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        Role oldRole = user.getRole();
         user.setRole(request.getRole());
         userRepository.save(user);
+
+        // Call notifyUser
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = LocalDateTime.now().format(formatter);
+        Map<String, String> contentMap = new LinkedHashMap<>();
+
+        contentMap.put("승인 일시", formattedDateTime);
+        contentMap.put(
+                "상세",
+                String.format("계정 권한이 %s 에서 %s 으로 변경되었습니다.", oldRole, request.getRole()));
+
+        notificationService.notifyUser(
+                request.getUserId(),
+                "계정 권한 변동",
+                contentMap,
+                "/profile");
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Role updated successfully", user.getUserId(), null));
