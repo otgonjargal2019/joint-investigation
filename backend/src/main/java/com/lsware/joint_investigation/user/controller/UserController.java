@@ -96,12 +96,12 @@ public class UserController {
                 List<HeadquarterDto> listHeadquarter = headquarterRepository.findAll().stream()
                         .map(Headquarter::toDto)
                         .collect(Collectors.toList());
-                List<DepartmentDto> listDepartments = departmentRepository.findAll().stream()
+                List<DepartmentDto> listDepartment = departmentRepository.findAll().stream()
                         .map(Department::toDto)
                         .collect(Collectors.toList());
                 response.put("listCountry", listCountry);
                 response.put("listHeadquarter", listHeadquarter);
-                response.put("listDepartments", listDepartments);
+                response.put("listDepartment", listDepartment);
                 response.put("userData", me.get().toDto());
             } else {
                 return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();

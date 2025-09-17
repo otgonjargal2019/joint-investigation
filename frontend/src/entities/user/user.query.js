@@ -24,10 +24,9 @@ export const userQuery = {
       enabled: !!userId,
     }),
 
-
   getUserDashboard: () =>
     queryOptions({
-      queryKey: [...userQuery.all()],
+      queryKey: [...userQuery.all(), "dashboard"],
       queryFn: async () => {
         const response = await axiosInstance.get(`/api/dashboard/main`);
         return response.data;
@@ -36,7 +35,7 @@ export const userQuery = {
 
   getUserProfile: () =>
     queryOptions({
-      queryKey: [...userQuery.all()],
+      queryKey: [...userQuery.all(), "profileInfo"],
       queryFn: async () => {
         const response = await axiosInstance.get(`/api/user/me`);
         return response.data;
