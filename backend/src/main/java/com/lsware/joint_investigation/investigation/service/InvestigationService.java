@@ -56,7 +56,7 @@ public class InvestigationService {
 	 * @param request The create investigation record request
 	 * @return The created investigation record DTO
 	 */
-	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR')")
+	@PreAuthorize("hasRole('RESEARCHER') or hasRole('INVESTIGATOR')")
 	@Transactional
 	public InvestigationRecordDto createInvestigationRecord(CreateInvestigationRecordRequest request) {
 		// Validate request
@@ -66,7 +66,7 @@ public class InvestigationService {
 		if (request.getRecordName() == null || request.getRecordName().trim().isEmpty()) {
 			throw new IllegalArgumentException("Record name is required");
 		}
-		if (request.getSecurityLevel() == null || request.getSecurityLevel().trim().isEmpty()) {
+		if (request.getSecurityLevel() == null) {
 			throw new IllegalArgumentException("Security level is required");
 		}
 
@@ -150,7 +150,7 @@ public class InvestigationService {
 		if (request.getContent() != null) {
 			existingRecord.setContent(request.getContent());
 		}
-		if (request.getSecurityLevel() != null && !request.getSecurityLevel().trim().isEmpty()) {
+		if (request.getSecurityLevel() != null && request.getSecurityLevel() != null) {
 			existingRecord.setSecurityLevel(request.getSecurityLevel());
 		}
 		if (request.getNumber() != null) {

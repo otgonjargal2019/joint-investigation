@@ -20,7 +20,7 @@ public class InvestigationRecordDto {
     private CaseDto caseInstance;
     private String recordName;
     private String content;
-    private String securityLevel;
+    private Integer securityLevel;
     private Integer number;
     private PROGRESS_STATUS progressStatus;
     private REVIEW_STATUS reviewStatus;

@@ -44,9 +44,9 @@ public class InvestigationRecord {
     private String content;
 
     @Column(name = "security_level", nullable = false)
-    private String securityLevel;
+    private Integer securityLevel;
 
-    @Column(name = "number")
+    @Column(name = "number", insertable = false, updatable = false)
     private Integer number;
 
     @Column(name = "progress_status")

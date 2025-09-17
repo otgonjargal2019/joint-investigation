@@ -18,7 +18,7 @@ public class CreateInvestigationRecordRequest {
     
     private String content;
     
-    private String securityLevel;
+    private Integer securityLevel;
     
     private Integer number;
     

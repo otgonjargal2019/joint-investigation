@@ -16,7 +16,7 @@ public class UpdateInvestigationRecordRequest {
     
     private String content;
     
-    private String securityLevel;
+    private Integer securityLevel;
     
     private Integer number;
     
