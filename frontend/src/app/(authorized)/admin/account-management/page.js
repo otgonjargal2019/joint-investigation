@@ -87,7 +87,7 @@ function AcountManagementPage() {
     no: (page - 1) * pageSize + index + 1,
     affiliation: `${user.headquarterName} -> ${user.departmentName}`,
   }));
-  const totalPages = data?.meta?.totalPages || 1;
+  const totalPages = data?.meta?.totalPages;
 
   return (
     <div className="space-y-10">
