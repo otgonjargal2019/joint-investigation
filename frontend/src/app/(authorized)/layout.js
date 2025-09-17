@@ -4,7 +4,6 @@ import { getUserFromCookie } from "@/app/actions/auth";
 import { AuthProvider } from "@/providers/authProviders";
 import { RealtimeProvider } from "@/providers/realtimeProvider";
 import { UserInfoProvider } from "@/providers/userInfoProviders";
-// import { MessengerProvider } from "@/providers/messengerProvider";
 
 export default async function AuthorizedLayout({ children }) {
   console.log("AuthorizedLayout--->");
@@ -17,9 +16,7 @@ export default async function AuthorizedLayout({ children }) {
   return (
     <AuthProvider initialUser={user}>
       <UserInfoProvider>
-      {/* <MessengerProvider> */}
-      <RealtimeProvider>{children}</RealtimeProvider>
-      {/* </MessengerProvider> */}
+        <RealtimeProvider>{children}</RealtimeProvider>
       </UserInfoProvider>
     </AuthProvider>
   );

@@ -11,7 +11,6 @@ import Logo from "../../components/icons/logo";
 import Indent from "../../components/icons/indent";
 import LogOut from "../../components/icons/logOut";
 import Openbook from "../../components/icons/openbook";
-import UserSmall from "../../components/icons/userSmall";
 import Dashboard from "../../components/icons/dashboard";
 import PaperPlane from "../../components/icons/paperplane";
 import UsersSmaller from "../../components/icons/usersSmaller";
@@ -20,7 +19,6 @@ import Layers from "../../components/icons/layers";
 import { useAuth } from "@/providers/authProviders";
 import { useUserInfo } from "@/providers/userInfoProviders";
 import { logout } from "@/app/actions/auth";
-// import { useMessenger } from "@/providers/messengerProvider";
 import { useRealTime } from "@/providers/realtimeProvider";
 import { ROLES } from "@/shared/dictionary";
 
@@ -31,17 +29,18 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const t = useTranslations();
 
-  // const { unreadUsersCount } = useMessenger();
-  const { lastNotifications, unreadCount, markNotificationAsRead } =
-    useRealTime();
+  const {
+    lastNotifications,
+    unreadNotifCount,
+    markNotificationAsRead,
+    unreadUsersCount,
+  } = useRealTime();
 
   const { user } = useAuth();
   if (!user) return null;
 
   const { userInfo } = useUserInfo();
   const isActive = (path) => pathname.startsWith(path);
-
-  // console.log("header dotroos role:", user.role);
 
   const incidentLink = useMemo(() => {
     if (user?.role === ROLES.PLATFORM_ADMIN || user?.role === ROLES.INV_ADMIN) {
@@ -147,16 +146,16 @@ const Header = () => {
             onClick={() => router.push("/messenger")}
           >
             <PaperPlane color="#C3C3C3" size={24} />
-            {/* {unreadUsersCount > 0 && (
+            {unreadUsersCount > 0 && (
               <span className="absolute -top-2 -right-3 bg-color-17 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {unreadUsersCount}
               </span>
-            )} */}
+            )}
           </button>
 
           <NotificationPopover
             notifications={lastNotifications}
-            unreadCount={unreadCount}
+            unreadCount={unreadNotifCount}
             markAsRead={markNotificationAsRead}
           />
         </div>

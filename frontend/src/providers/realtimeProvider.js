@@ -1,4 +1,5 @@
 "use client";
+
 import {
   createContext,
   useContext,
@@ -9,18 +10,31 @@ import {
 } from "react";
 import { io } from "socket.io-client";
 
+import { useAuth } from "./authProviders";
+
 const RealtimeContext = createContext();
 
 export const RealtimeProvider = ({ children }) => {
+  const { user } = useAuth();
   const socketRef = useRef(null);
   const [serverUrl] = useState(
     process.env.NEXT_PUBLIC_SOCKET_API_URL || "http://localhost:3001"
   );
 
+  // -------------------- NOTIFICATION STATE --------------------
   const [lastNotifications, setLastNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [pages, setPages] = useState([]);
   const [hasMore, setHasMore] = useState(true);
+
+  // -------------------- MESSENGER STATE --------------------
+  const [unreadUsers, setUnreadUsers] = useState(new Set());
+  const [unreadUsersCount, setUnreadUsersCount] = useState(0);
+
+  // Update unread count whenever unreadUsers changes
+  useEffect(() => {
+    setUnreadUsersCount(unreadUsers.size);
+  }, [unreadUsers]);
 
   // -------------------- PAGINATION --------------------
   const fetchNextPage = useCallback(() => {
@@ -57,7 +71,7 @@ export const RealtimeProvider = ({ children }) => {
         socket.emit("notifications:getLast5", (notifs) =>
           setLastNotifications(notifs)
         );
-        socket.emit("notifications:getUnreadCount", setUnreadCount);
+        socket.emit("notifications:getUnreadCount", setUnreadNotifCount);
 
         if (pages.length === 0) fetchNextPage();
       });
@@ -70,14 +84,40 @@ export const RealtimeProvider = ({ children }) => {
           const firstPage = [notif, ...prev[0]];
           return [firstPage, ...prev.slice(1)];
         });
-        setUnreadCount((prev) => prev + 1);
+        setUnreadNotifCount((prev) => prev + 1);
+      });
+
+      // Attach event listeners
+      socket.on("directMessage", async (msg) => {
+        if (msg.recipientId === user.userId) {
+          if (msg.senderId !== user.userId) {
+            setUnreadUsers((prev) => {
+              const updated = new Set(prev);
+              if (!msg.isRead) updated.add(msg.senderId);
+              return updated;
+            });
+
+            socket.emit("getChatUsers", (users) => {
+              socket.emit("refreshUserList", users);
+            });
+          }
+        }
+      });
+
+      socket.emit("getChatUsers", (users) => {
+        const unreadSet = new Set();
+        users.forEach((u) => {
+          if (u.hasUnreadMessages) unreadSet.add(u.userId);
+        });
+        setUnreadUsers(unreadSet);
+        socket.emit("refreshUserList", users);
       });
 
       socketRef.current = socket;
     } catch (err) {
       console.error("Socket connection error:", err);
     }
-  }, [serverUrl, pages]);
+  }, [serverUrl, pages, user?.userId]);
 
   useEffect(() => {
     connectSocket();
@@ -105,7 +145,7 @@ export const RealtimeProvider = ({ children }) => {
           notif.notificationId === notifId ? { ...notif, isRead: true } : notif
         )
       );
-      setUnreadCount((prev) => Math.max(prev - 1, 0));
+      setUnreadNotifCount((prev) => Math.max(prev - 1, 0));
     });
   }, []);
 
@@ -124,7 +164,7 @@ export const RealtimeProvider = ({ children }) => {
       setLastNotifications((prev) =>
         prev.map((notif) => ({ ...notif, isRead: true }))
       );
-      setUnreadCount(0);
+      setUnreadNotifCount(0);
     });
   }, []);
 
@@ -137,8 +177,20 @@ export const RealtimeProvider = ({ children }) => {
 
       setPages([]);
       setLastNotifications([]);
-      setUnreadCount(0);
+      setUnreadNotifCount(0);
       setHasMore(false);
+    });
+  }, []);
+
+  // Handle marking messages as read
+  const markMessagesAsRead = useCallback((peerId) => {
+    if (!socketRef.current || !peerId) return;
+
+    socketRef.current.emit("markMessagesAsRead", { peerId });
+    setUnreadUsers((prev) => {
+      const updated = new Set(prev);
+      updated.delete(peerId);
+      return updated;
     });
   }, []);
 
@@ -146,13 +198,18 @@ export const RealtimeProvider = ({ children }) => {
     <RealtimeContext.Provider
       value={{
         lastNotifications,
-        unreadCount,
+        unreadNotifCount,
         pages,
         hasMore,
         fetchNextPage,
         deleteAllNotifications,
         markNotificationAsRead,
         markAllNotificationsAsRead,
+        socket: socketRef.current,
+        unreadUsersCount,
+        unreadUsers,
+        setUnreadUsers,
+        markMessagesAsRead,
       }}
     >
       {children}
