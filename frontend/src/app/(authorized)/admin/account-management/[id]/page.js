@@ -43,6 +43,7 @@ const UserDetailPage = ({ params }) => {
     getValues,
     setValue,
     formState: { errors },
+    watch,
   } = useForm();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -168,11 +169,14 @@ const UserDetailPage = ({ params }) => {
     }
   };
 
+  const selectedRole = watch("role");
+  const isButtonDisabled = !user || selectedRole === user.role || !selectedRole;
+
   const rejectTitle =
     user?.status === USERSTATUS.PENDING
       ? "회원가입 거절"
       : "회원 정보 변경 거절";
-  console.log(waitingUserInfo);
+
   return (
     <div className="flex justify-center">
       <div className="space-y-5">
@@ -222,6 +226,7 @@ const UserDetailPage = ({ params }) => {
             userInfo={user}
             register={register}
             onSubmit={onChangeRole}
+            isButtonDisabled={isButtonDisabled}
           />
         )}
 

@@ -4,7 +4,12 @@ import Button from "@/shared/components/button";
 import SelectBox from "@/shared/components/form/select";
 import { ROLES } from "@/shared/dictionary";
 
-const UserDetailWithRoleChange = ({ userInfo, register, onSubmit }) => {
+const UserDetailWithRoleChange = ({
+  userInfo,
+  register,
+  onSubmit,
+  isButtonDisabled,
+}) => {
   const t = useTranslations();
 
   return (
@@ -96,7 +101,12 @@ const UserDetailWithRoleChange = ({ userInfo, register, onSubmit }) => {
                 ]}
                 showError={false}
               />
-              <Button variant="gray2" size="adminForm" onClick={onSubmit}>
+              <Button
+                variant="yellow"
+                size="adminForm"
+                onClick={onSubmit}
+                disabled={isButtonDisabled}
+              >
                 {t("change-authority")}
               </Button>
             </div>

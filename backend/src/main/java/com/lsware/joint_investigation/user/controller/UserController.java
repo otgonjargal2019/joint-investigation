@@ -335,7 +335,9 @@ public class UserController {
                         "countryName",
                         "headquarterName",
                         "departmentName",
-                        "profileImageUrl");
+                        "profileImageUrl",
+                        "createdAt",
+                        "createdAtFormatted");
 
         return new SimpleFilterProvider().addFilter("UserFilter", userFilter);
     }
