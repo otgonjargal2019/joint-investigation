@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.posts.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,5 +24,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
         // Previous post: the one created **before** the given post
         Optional<Post> findFirstByBoardTypeAndCreatedAtBeforeOrderByCreatedAtDesc(
                         BOARD_TYPE boardType, LocalDateTime createdAt);
+
+        List<Post> findTop4ByBoardTypeOrderByCreatedAtDesc(BOARD_TYPE boardType);
 
 }
