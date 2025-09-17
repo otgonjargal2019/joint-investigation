@@ -3,8 +3,10 @@
 import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useRef, useEffect, useMemo } from "react";
 
+import { postSchema } from "@/entities/post";
 import Button from "@/shared/components/button";
 import Label from "@/shared/components/form/label";
 import Input from "@/shared/components/form/input";
@@ -29,7 +31,15 @@ const Form = ({
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState([]);
   const [content, setContent] = useState();
 
-  const { register, handleSubmit, setValue, watch } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(postSchema),
+  });
 
   useEffect(() => {
     if (mode === "edit" && defaultValues) {
@@ -72,13 +82,17 @@ const Form = ({
   const title = watch("title");
 
   const isDisabled = useMemo(() => {
-    const titleEmpty = !title?.trim();
-    const contentEmpty = !content?.trim();
-    const noNewFiles = newFiles.length === 0;
+    // const titleEmpty = !title?.trim();
+    // const contentEmpty = !content?.trim();
+    // const noNewFiles = newFiles.length === 0;
 
-    if (mode === "create") {
-      return titleEmpty && contentEmpty && noNewFiles;
-    } else if (mode === "edit") {
+    // if (mode === "create") {
+    //    return titleEmpty && contentEmpty && noNewFiles;
+    //    return titleEmpty || (contentEmpty && noNewFiles);
+    //    return false;
+    // }
+
+    if (mode === "edit") {
       const titleUnchanged = title === defaultValues?.title;
       const contentUnchanged = content === defaultValues?.content;
       const filesUnchanged =
@@ -107,7 +121,12 @@ const Form = ({
           <Label variant="thinner" className="pl-4">
             {t("title")}
           </Label>
-          <Input name="title" register={register} variant="rectangle" />
+          <Input
+            name="title"
+            register={register}
+            variant="rectangle"
+            error={errors.title}
+          />
         </FormField>
 
         <FormField>

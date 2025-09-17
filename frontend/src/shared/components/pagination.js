@@ -4,6 +4,8 @@ import RightArrow from "./icons/rightArrow";
 import LeftArrow from "./icons/leftArrow";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (!totalPages || totalPages === 0) return null;
+
   const getPageNumbers = () => {
     const delta = 2;
     const range = [];
