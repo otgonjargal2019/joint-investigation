@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -28,6 +30,7 @@ import com.lsware.joint_investigation.common.util.CustomResponseException;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.config.customException.FileNotStoredException;
 import com.lsware.joint_investigation.file.service.FileService;
+import com.lsware.joint_investigation.mail.service.EmailService;
 import com.lsware.joint_investigation.user.dto.UpdateUserRoleRequest;
 import com.lsware.joint_investigation.user.dto.UpdateUserStatusRequest;
 import com.lsware.joint_investigation.user.dto.UserDto;
@@ -41,6 +44,7 @@ import com.lsware.joint_investigation.user.repository.DepartmentRepository;
 import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.lsware.joint_investigation.user.repository.UserStatusHistoryRepository;
+import com.lsware.joint_investigation.util.Email;
 import com.lsware.joint_investigation.user.dto.CountryDto;
 import com.lsware.joint_investigation.user.dto.DepartmentDto;
 import com.lsware.joint_investigation.user.dto.HeadquarterDto;
@@ -81,6 +85,12 @@ public class UserController {
 
     @Autowired
     private AuthService authenticationService;
+
+    @Autowired
+    private SpringTemplateEngine templateEngine;
+
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("/me")
     public ResponseEntity<MappingJacksonValue> me(Authentication authentication) {
@@ -367,6 +377,36 @@ public class UserController {
             }
         }
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
+    }
+
+    private void sendEmail(String mailSubject, String templateName, String emailEntered,
+            Map<String, Object> objectMap) {
+
+        // CONTEXT,HTML
+        Context context = new Context();
+        context.setVariables(objectMap);
+
+        String html = templateEngine.process(templateName, context);
+        String[] s = { emailEntered };
+
+        // NEW EMAIL
+        Email email = new Email();
+        email.setRecipientList(s);
+        email.setSubject(mailSubject);
+        email.setContent(html);
+        emailService.sendEmailHtml(email);
+    }
+
+    @PostMapping("/testemail")
+    public ResponseEntity<HashMap<String, Object>> testEmail() {
+
+        String mailSubject = "[JOINT-INVESTIGATION] EMAIL VERIFICATION";
+        String templateName = "mail_template1";
+        Map<String, Object> objectMap = new HashMap<String, Object>();
+        objectMap.put("reason", "Sorry bro");
+        sendEmail(mailSubject, templateName, "batzorigtchimeddorj@gmail.com", objectMap);
+
+        return ResponseEntity.status(HttpStatusCode.valueOf(200)).build();
     }
 
 }
