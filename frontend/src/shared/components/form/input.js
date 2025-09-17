@@ -32,12 +32,12 @@ const Input = ({
         {...register(name, { onBlur })}
         placeholder={placeholder}
         className={clsx(
-          "w-full focus:ring-2 focus:ring-blue-500 outline-none",
+          "w-full outline-none",
           variants[variant],
-          error && "border-color-86",
           disabled && "bg-color-71 cursor-not-allowed",
           className
         )}
+        style={error ? { borderColor: "var(--color-color-86)" } : {}}
         disabled={disabled}
         readOnly={readOnly}
         defaultValue={defaultValue}

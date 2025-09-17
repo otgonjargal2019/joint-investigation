@@ -81,7 +81,7 @@ function NoticeManagementPage() {
     }
   };
 
-  const totalPages = data?.meta?.totalPages || 1;
+  const totalPages = data?.meta?.totalPages;
 
   const notices = (data?.data || []).map((item, index) => ({
     postId: item.postId,

@@ -1,10 +1,13 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 
 import { Table, Thead, Tbody, Tr, Th, Td } from "../components/table";
 
 function SimpleDataTable({ columns, data, onClickRow }) {
+  const hasData = Array.isArray(data) && data.length > 0;
+  const t = useTranslations();
   return (
     <Table>
       <Thead>
@@ -15,7 +18,7 @@ function SimpleDataTable({ columns, data, onClickRow }) {
         </Tr>
       </Thead>
       <Tbody>
-        {Array.isArray(data) &&
+        {hasData ? (
           data.map((row, rowIndex) => (
             <Tr key={rowIndex} hover={true} onClick={() => onClickRow?.(row)}>
               {columns.map((col) => {
@@ -34,7 +37,14 @@ function SimpleDataTable({ columns, data, onClickRow }) {
                 );
               })}
             </Tr>
-          ))}
+          ))
+        ) : (
+          <Tr>
+            <Td colSpan={columns.length} textAlign="text-center">
+              {t("no-data")}
+            </Td>
+          </Tr>
+        )}
       </Tbody>
     </Table>
   );

@@ -49,7 +49,7 @@ function ResearchListPage() {
     no: (page - 1) * pageSize + index + 1,
   }));
 
-  const totalPages = data?.meta?.totalPages || 1;
+  const totalPages = data?.meta?.totalPages;
 
   return (
     <div>

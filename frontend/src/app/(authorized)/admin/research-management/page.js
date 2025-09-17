@@ -69,7 +69,7 @@ function ResearchManagementPage() {
     );
   };
 
-  const totalPages = data?.meta?.totalPages || 1;
+  const totalPages = data?.meta?.totalPages;
   const updatedData = (data?.data || []).map((item, index) => ({
     postId: item.postId,
     title: item.title,
