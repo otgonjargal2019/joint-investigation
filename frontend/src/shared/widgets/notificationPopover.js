@@ -32,19 +32,19 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
           align="center"
           sideOffset={38}
           alignOffset={0}
-          className="rounded-20 bg-color-4 shadow p-4 w-[419px] h-[425px] z-50"
+          className="rounded-20 bg-color-4 shadow w-[419px] h-[425px] p-4 z-50 flex flex-col"
         >
-          <div className="w-full h-full overflow-y-auto scrollbar-hide">
+          <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2">
             {notifications?.map((notif) => (
               <div
                 key={notif.notificationId}
                 className={`bg-color-9 ${
                   notif.isRead ? "" : "border-[2px] border-color-61"
-                } rounded-10 py-3 px-5 space-y-2 mb-2 cursor-pointer`}
+                } rounded-10 py-3 px-5 cursor-pointer`}
                 onClick={() => {
-                  // if (notif.relatedUrl) {
-                  //   router.push(notif.relatedUrl);
-                  // }
+                  if (notif.relatedUrl) {
+                    router.push(notif.relatedUrl);
+                  }
                   markAsRead(notif.notificationId);
                 }}
               >
@@ -71,16 +71,16 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
                 </div>
               </div>
             ))}
+          </div>
 
-            <div className="flex justify-center pt-6">
-              <Button
-                size="extraSmall"
-                variant="dark2"
-                onClick={() => router.push("/notification")}
-              >
-                {t("see-more")}
-              </Button>
-            </div>
+          <div className="flex justify-center pt-2">
+            <Button
+              size="extraSmall"
+              variant="dark2"
+              onClick={() => router.push("/notification")}
+            >
+              {t("see-more")}
+            </Button>
           </div>
 
           <Popover.Arrow className="fill-color-4" />
