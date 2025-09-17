@@ -114,7 +114,7 @@ function LoginPage() {
           </FormField>
 
           <p className="h-[28px] ml-[66px] text-color-100 text-[19.2px] font-normal leading-[19.2px] mb-4">
-            {Object.keys(errors).length > 0 && t("error-msg.id-pass-not-match")}
+            {errors.root && t("error-msg.id-pass-not-match")}
           </p>
 
           <div className="flex flex-col justify-center gap-4 mt-4">

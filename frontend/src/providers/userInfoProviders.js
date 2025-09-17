@@ -8,16 +8,24 @@ const UserInfoContext = createContext();
 
 export const UserInfoProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(null);
+  const [listCountry, setListCountry] = useState([]);
+  const [listHeadquarter, setListHeadquarter] = useState([]);
+  const [listDepartment, setListDepartment] = useState([]);
 
   const { data } = useQuery(userQuery.getUserProfile());
 
   useEffect(() => {
     if (!data) return;
     setUserInfo(data.userData);
+    setListCountry(data.listCountry || []);
+    setListHeadquarter(data.listHeadquarter || []);
+    setListDepartment(data.listDepartment || []);
   }, [data]);
 
   return (
-    <UserInfoContext.Provider value={{ userInfo }}>
+    <UserInfoContext.Provider
+      value={{ userInfo, listCountry, listHeadquarter, listDepartment }}
+    >
       {children}
     </UserInfoContext.Provider>
   );

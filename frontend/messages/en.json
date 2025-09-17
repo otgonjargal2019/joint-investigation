@@ -254,5 +254,6 @@
     "waiting-to-change": "Pending Update",
     "rejected": "Refused"
   },
-  "no-more-notification": "no more notification"
+  "no-more-notification": "no more notification",
+  "no-data": "No Data"
 }

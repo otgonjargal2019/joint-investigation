@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
 import Label from "@/shared/components/form/label";
@@ -15,7 +14,6 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import SuccessNotice from "@/shared/components/successNotice";
 import { USERSTATUS } from "@/shared/dictionary";
 import {
-  userQuery,
   useCreateUser,
   useDeleteProfileImg,
   useChangePassword,
@@ -24,6 +22,7 @@ import { toast } from "react-toastify";
 import { useCheckEmail } from "@/entities/auth/auth.mutation";
 import { profileFormSchema, changePassFormSchema } from "@/entities/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useUserInfo } from "@/providers/userInfoProviders";
 
 function Membership() {
   const t = useTranslations();
@@ -48,40 +47,37 @@ function Membership() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [countryName, setCountryName] = useState(null);
+  const [headquarterOptions, setHeadquarterOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
   const headquarterSet = useRef(false);
   const departmentSet = useRef(false);
-  const { data } = useQuery(userQuery.getUserProfile());
   const profileMutation = useCreateUser();
   const checkEmailMutation = useCheckEmail();
   const deleteProfileImgMutation = useDeleteProfileImg();
   const changePasswordMutation = useChangePassword();
-  // Watch selected country
-  //const selectedCountryCode = watch("countryId");
   const selectedQuarterCode = watch("headquarterId");
 
-  // Filter headquarters by selected country using state/effect
-  const [headquarterOptions, setHeadquarterOptions] = useState([]);
-  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const { userInfo, listCountry, listDepartment, listHeadquarter } =
+    useUserInfo();
 
   useEffect(() => {
-    if (data?.userData?.status === USERSTATUS.WAITING_TO_CHANGE) {
+    if (!userInfo) return;
+    if (userInfo?.userData?.status === USERSTATUS.WAITING_TO_CHANGE) {
       setSubmitted(true);
       return;
     }
 
-    if (data?.listCountry?.length) {
-      const country = data.listCountry.find(
-        (c) => c.id === data?.userData.countryId
-      );
+    if (listCountry?.length) {
+      const country = listCountry.find((c) => c.id === userInfo.countryId);
       setCountryName(country?.name || null);
     }
 
-    if (!data?.listHeadquarter) {
+    if (!listHeadquarter) {
       setHeadquarterOptions([]);
       return;
     }
-    const filtered = data.listHeadquarter
-      .filter((hq) => hq.countryId == data?.userData.countryId)
+    const filtered = listHeadquarter
+      .filter((hq) => hq.countryId == userInfo.countryId)
       .map((hq) => ({
         label: hq.name,
         value: hq.id,
@@ -89,20 +85,17 @@ function Membership() {
 
     setHeadquarterOptions(filtered);
 
-    setValue("phone1", data?.userData.phone?.split("-")[0] || "");
-    setValue(
-      "phone2",
-      data?.userData.phone?.split("-").slice(1).join("-") || ""
-    );
-    setValue("email", data?.userData.email?.split("@")[0] || "");
-    setValue("email2", data?.userData.email?.split("@")[1] || "");
-    setProfileImg(data?.userData.profileImageUrl || null);
-  }, [data]);
+    setValue("phone1", userInfo.phone?.split("-")[0] || "");
+    setValue("phone2", userInfo.phone?.split("-").slice(1).join("-") || "");
+    setValue("email", userInfo.email?.split("@")[0] || "");
+    setValue("email2", userInfo.email?.split("@")[1] || "");
+    setProfileImg(userInfo.profileImageUrl || null);
+  }, [userInfo]);
 
   useEffect(() => {
     if (headquarterOptions.length > 0) {
       if (!headquarterSet.current) {
-        setValue("headquarterId", String(data?.userData.headquarterId));
+        setValue("headquarterId", String(userInfo.headquarterId));
         headquarterSet.current = true;
       } else setValue("headquarterId", String(headquarterOptions[0].value));
     }
@@ -111,7 +104,7 @@ function Membership() {
   useEffect(() => {
     if (departmentOptions.length) {
       if (!departmentSet.current) {
-        setValue("departmentId", String(data?.userData.departmentId));
+        setValue("departmentId", String(userInfo.departmentId));
         departmentSet.current = true;
       } else setValue("departmentId", String(departmentOptions[0].value));
     }
@@ -119,11 +112,11 @@ function Membership() {
 
   // Filter departments by selected headquarter using state/effect
   useEffect(() => {
-    if (!data?.listDepartments) {
+    if (!listDepartment) {
       setDepartmentOptions([]);
       return;
     }
-    const filteredDept = data.listDepartments
+    const filteredDept = listDepartment
       .filter((dp) => dp.headquarterId == selectedQuarterCode)
       .map((dp) => ({
         label: dp.name,
@@ -134,7 +127,7 @@ function Membership() {
 
   const onSubmit = async (values) => {
     const payload = {
-      countryId: data?.userData?.countryId,
+      countryId: userInfo?.countryId,
       headquarterId: values.headquarterId,
       departmentId: values.departmentId,
       phone:
@@ -272,7 +265,7 @@ function Membership() {
                   {t("form.id")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
-                  {data?.loginId}
+                  {userInfo?.loginId}
                 </div>
                 <Label color="gray" className="text-right ">
                   {t("form.password")}
@@ -317,9 +310,9 @@ function Membership() {
                   {t("form.name")}
                 </Label>
                 <div className="text-left text-color-24 text-[20px] font-normal">
-                  {data?.userData?.nameKr}
+                  {userInfo?.nameKr}
                   <span className="mx-4">|</span>
-                  {data?.userData?.nameEn}
+                  {userInfo?.nameEn}
                 </div>
                 <Label color="gray" className="text-right">
                   {t("form.nation")}
