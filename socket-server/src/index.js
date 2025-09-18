@@ -20,6 +20,7 @@ app.get("/", (req, res) => res.send("Socket.IO server running!"));
 // Listen for REST-triggered notification pushes
 app.post("/notify-user", async (req, res) => {
   const { userId, title, content, relatedUrl } = req.body;
+  console.log("NOTIFY USER DUUUDAGDAV>>>>>>>>>>>>>>>>>>>>>>>>>>>>", req.body);
   if (!userId || !title)
     return res.status(400).json({ error: "Missing fields" });
 
@@ -223,6 +224,7 @@ io.on("connection", (socket) => {
             lastMessage: lastMsg?.content || null,
             lastMessageTime: lastMsg?.createdAt || null,
             hasUnreadMessages: unreadCount > 0,
+            profileImageUrl: user.profileImageUrl,
           };
         })
       );

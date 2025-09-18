@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 
@@ -139,8 +140,11 @@ export default function MessengerPage() {
 
     // Mark messages as read through the provider
     markMessagesAsRead(peer.userId);
+    setSearchText("");
 
     if (!socket) return;
+
+    socket.emit("getChatUsers", (res) => setUsers(res));
 
     socket.emit("getHistory", { peerId: peer.userId, limit }, (res) => {
       if (!res) return;
@@ -281,7 +285,7 @@ export default function MessengerPage() {
       )
     : [];
 
-  console.log("filteredMessages:", filteredMessages);
+  console.log("users:", users);
 
   return (
     <div className="messenger">
@@ -317,13 +321,23 @@ export default function MessengerPage() {
                 }`}
                 onClick={() => handleSelectPeer(u)}
               >
-                <div className="w-[17px]">
+                <div className="w-[15px] flex-shrink-0">
                   {unreadUsers.has(u.userId) && (
                     <Ellipse color="#564CDF" width={15} height={15} />
                   )}
                 </div>
-                <div>
-                  <Circle width={60} />
+                <div className="w-[60px] flex-shrink-0">
+                  {u?.profileImageUrl ? (
+                    <Image
+                      src={u.profileImageUrl}
+                      alt={u.displayName || "user image"}
+                      width={60}
+                      height={60}
+                      className="rounded-full object-cover"
+                    />
+                  ) : (
+                    <Circle width={60} />
+                  )}
                 </div>
                 <div className="w-full">
                   <div className="flex justify-between items-start">
@@ -421,34 +435,36 @@ export default function MessengerPage() {
             </div>
 
             {/* Send message */}
-            <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 min-h-[62px] max-h-[62px] items-start py-2 bg-white">
-              <textarea
-                className="flex-1 outline-none placeholder-color-35 text-[16px] text-color-4 resize-none py-2 h-[50px] overflow-y-auto"
-                placeholder="메시지를 입력하세요."
-                value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    if (e.shiftKey) {
-                      // Allow new line with Shift+Enter
-                      return;
-                    } else {
-                      // Prevent default Enter behavior and send message
-                      e.preventDefault();
-                      handleSend();
+            {selectedPeer && (
+              <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 min-h-[62px] max-h-[62px] items-start py-2 bg-white">
+                <textarea
+                  className="flex-1 outline-none placeholder-color-35 text-[16px] text-color-4 resize-none py-2 h-[50px] overflow-y-auto"
+                  placeholder="메시지를 입력하세요."
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (e.shiftKey) {
+                        // Allow new line with Shift+Enter
+                        return;
+                      } else {
+                        // Prevent default Enter behavior and send message
+                        e.preventDefault();
+                        handleSend();
+                      }
                     }
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="bg-color-20 text-white px-4 py-2 rounded-5 hover:bg-color-30 transition-colors mt-1"
-                onClick={handleSend}
-                aria-label="Send message"
-              >
-                <PaperPlane />
-              </button>
-            </div>
+                  }}
+                />
+                <button
+                  type="button"
+                  className="bg-color-20 text-white px-4 py-2 rounded-5 transition-colors mt-1"
+                  onClick={handleSend}
+                  aria-label="Send message"
+                >
+                  <PaperPlane />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
