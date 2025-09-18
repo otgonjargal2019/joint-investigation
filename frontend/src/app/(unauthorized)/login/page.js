@@ -26,7 +26,10 @@ function LoginPage() {
     setValue,
     handleSubmit,
     setError,
-  } = useForm({ resolver: zodResolver(loginFormSchema) });
+  } = useForm({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: { stayLoggedIn: true },
+  });
   //const [error, setError] = useState(true);
 
   const t = useTranslations();
@@ -34,7 +37,11 @@ function LoginPage() {
   const loginMutation = useSignIn();
 
   const onSubmit = async (values) => {
-    loginMutation.mutate(values, {
+    const payload = {
+      ...values,
+      loginId: values.loginId?.trim(),
+    };
+    loginMutation.mutate(payload, {
       onSuccess: (res) => {
         const { message, success } = res.data;
         if (success) {

@@ -34,6 +34,7 @@ public class UserDto {
 
     private LocalDateTime createdAt;
     private String createdAtFormatted;
+    private boolean stayLoggedIn;
 
     @JsonIgnore
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
