@@ -140,11 +140,8 @@ export default function MessengerPage() {
 
     // Mark messages as read through the provider
     markMessagesAsRead(peer.userId);
-    setSearchText("");
 
     if (!socket) return;
-
-    socket.emit("getChatUsers", (res) => setUsers(res));
 
     socket.emit("getHistory", { peerId: peer.userId, limit }, (res) => {
       if (!res) return;
@@ -284,8 +281,6 @@ export default function MessengerPage() {
             m.recipientId === currentUserId)
       )
     : [];
-
-  console.log("users:", users);
 
   return (
     <div className="messenger">
