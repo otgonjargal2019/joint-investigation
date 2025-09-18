@@ -171,7 +171,20 @@ public class UserController {
                 userStatusHistoryRepository.save(history);
 
                 userRepository.updateUserStatusById(userDetail.getId(), Users.USER_STATUS.WAITING_TO_CHANGE.name());
-                // userRepository.updateProfileByUserId(userDetail.getId(), profile, avatar);
+
+                List<Users> adminList = userRepository.findByRole(Role.PLATFORM_ADMIN);
+                if (adminList.size() > 0) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    String formattedDateTime = LocalDateTime.now().format(formatter);
+                    Map<String, String> contentMap = new LinkedHashMap<>();
+                    contentMap.put("ID", me.get().getLoginId());
+                    contentMap.put("성명", me.get().getNameKr());
+                    contentMap.put("요청 일시", formattedDateTime);
+
+                    for (Users admin : adminList)
+                        notificationService.notifyUser(admin.getUserId(), "회원 정보 변경 승인", contentMap, null);
+                }
+
                 response.put("success", true);
                 response.put("message", "Profile updated successfully");
                 return ResponseEntity.ok(response);

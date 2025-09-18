@@ -9,17 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.lsware.joint_investigation.auth.service.AuthService;
 import com.lsware.joint_investigation.config.CustomUser;
+import com.lsware.joint_investigation.notification.service.NotificationService;
 import com.lsware.joint_investigation.user.dto.UserDto;
-import com.lsware.joint_investigation.user.entity.Country;
-import com.lsware.joint_investigation.user.entity.Department;
-import com.lsware.joint_investigation.user.entity.Headquarter;
 import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.entity.Users.USER_STATUS;
@@ -34,7 +31,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Map;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @RestController
@@ -63,6 +62,9 @@ public class AuthController {
 
     @Autowired
     DepartmentRepository departmentRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> authenticate(@RequestBody UserDto userDto,
@@ -185,6 +187,19 @@ public class AuthController {
             user.setHeadquarterId(Long.valueOf(userDto.getHeadquarterId()));
             user.setDepartmentId(Long.valueOf(userDto.getDepartmentId()));
             userRepository.save(user);
+
+            List<Users> adminList = userRepository.findByRole(Role.PLATFORM_ADMIN);
+            if (adminList.size() > 0) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                String formattedDateTime = LocalDateTime.now().format(formatter);
+                Map<String, String> contentMap = new LinkedHashMap<>();
+                contentMap.put("ID", userDto.getLoginId());
+                contentMap.put("성명", userDto.getNameKr());
+                contentMap.put("요청 일시", formattedDateTime);
+
+                for (Users admin : adminList)
+                    notificationService.notifyUser(admin.getUserId(), "신규 계정 등록", contentMap, null);
+            }
 
             response.put("success", true);
             response.put("message", "Signup successful");

@@ -180,4 +180,15 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
                 .where(builder)
                 .fetch();
     }
+
+    public List<Users> findByRole(Role role) {
+        if (role == null) {
+            return List.of();
+        }
+
+        return queryFactory
+                .selectFrom(users)
+                .where(users.role.eq(role))
+                .fetch();
+    }
 }
