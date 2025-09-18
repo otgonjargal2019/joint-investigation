@@ -1,10 +1,10 @@
-package com.lsware.joint_investigation.file.dto;
+package com.lsware.joint_investigation.investigation.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.lsware.joint_investigation.file.entity.AttachFile;
+import com.lsware.joint_investigation.investigation.entity.AttachFile;
 import com.lsware.joint_investigation.user.dto.UserDto;
 
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.lsware.joint_investigation.file.repository;
+package com.lsware.joint_investigation.investigation.repository;
 
 import java.util.List;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.lsware.joint_investigation.file.entity.AttachFile;
+import com.lsware.joint_investigation.investigation.entity.AttachFile;
 
 @Repository
 public interface AttachFileRepository extends JpaRepository<AttachFile, UUID> {

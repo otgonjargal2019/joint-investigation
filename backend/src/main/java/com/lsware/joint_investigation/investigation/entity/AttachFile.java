@@ -1,10 +1,9 @@
-package com.lsware.joint_investigation.file.entity;
+package com.lsware.joint_investigation.investigation.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.user.entity.Users;
 
 import jakarta.persistence.Column;
@@ -80,7 +79,7 @@ public class AttachFile {
         REPORT
     }
 
-    public com.lsware.joint_investigation.file.dto.AttachFileDto toDto() {
-        return com.lsware.joint_investigation.file.dto.AttachFileDto.fromEntity(this);
+    public com.lsware.joint_investigation.investigation.dto.AttachFileDto toDto() {
+        return com.lsware.joint_investigation.investigation.dto.AttachFileDto.fromEntity(this);
     }
 }

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.dto.CaseDto;
-import com.lsware.joint_investigation.file.dto.AttachFileDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;

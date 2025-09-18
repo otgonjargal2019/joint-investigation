@@ -3,7 +3,6 @@ package com.lsware.joint_investigation.investigation.dto;
 import java.util.List;
 import java.util.UUID;
 
-import com.lsware.joint_investigation.file.dto.CreateAttachFileRequest;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
 

@@ -10,11 +10,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.lsware.joint_investigation.investigation.repository.AttachFileRepository;
 import com.lsware.joint_investigation.investigation.repository.InvestigationRecordRepository;
+import com.lsware.joint_investigation.investigation.entity.AttachFile;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.CreateAttachFileRequest;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
 import com.lsware.joint_investigation.cases.entity.Case;
@@ -22,9 +25,6 @@ import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.lsware.joint_investigation.config.CustomUser;
-import com.lsware.joint_investigation.file.entity.AttachFile;
-import com.lsware.joint_investigation.file.repository.AttachFileRepository;
-import com.lsware.joint_investigation.file.dto.CreateAttachFileRequest;
 import com.lsware.joint_investigation.file.service.FileService;
 
 import org.springframework.beans.factory.annotation.Autowired;

@@ -95,7 +95,7 @@ public class InvestigationRecord {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "investigationRecord")
-    private List<com.lsware.joint_investigation.file.entity.AttachFile> attachedFiles;
+    private List<com.lsware.joint_investigation.investigation.entity.AttachFile> attachedFiles;
 
     public InvestigationRecordDto toDto() {
         InvestigationRecordDto dto = new InvestigationRecordDto();

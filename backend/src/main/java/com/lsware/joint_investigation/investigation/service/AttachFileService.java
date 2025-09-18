@@ -1,4 +1,4 @@
-package com.lsware.joint_investigation.file.service;
+package com.lsware.joint_investigation.investigation.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lsware.joint_investigation.file.dto.AttachFileDto;
-import com.lsware.joint_investigation.file.dto.CreateAttachFileRequest;
-import com.lsware.joint_investigation.file.dto.UpdateAttachFileRequest;
-import com.lsware.joint_investigation.file.entity.AttachFile;
-import com.lsware.joint_investigation.file.repository.AttachFileRepository;
+import com.lsware.joint_investigation.investigation.dto.AttachFileDto;
+import com.lsware.joint_investigation.investigation.dto.CreateAttachFileRequest;
+import com.lsware.joint_investigation.investigation.dto.UpdateAttachFileRequest;
+import com.lsware.joint_investigation.investigation.entity.AttachFile;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
+import com.lsware.joint_investigation.investigation.repository.AttachFileRepository;
 import com.lsware.joint_investigation.investigation.repository.InvestigationRecordRepository;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;

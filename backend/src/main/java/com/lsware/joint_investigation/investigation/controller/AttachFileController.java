@@ -1,4 +1,4 @@
-package com.lsware.joint_investigation.file.controller;
+package com.lsware.joint_investigation.investigation.controller;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lsware.joint_investigation.file.dto.AttachFileDto;
-import com.lsware.joint_investigation.file.dto.CreateAttachFileRequest;
-import com.lsware.joint_investigation.file.dto.UpdateAttachFileRequest;
-import com.lsware.joint_investigation.file.entity.AttachFile;
-import com.lsware.joint_investigation.file.service.AttachFileService;
+import com.lsware.joint_investigation.investigation.dto.AttachFileDto;
+import com.lsware.joint_investigation.investigation.dto.CreateAttachFileRequest;
+import com.lsware.joint_investigation.investigation.dto.UpdateAttachFileRequest;
+import com.lsware.joint_investigation.investigation.entity.AttachFile;
+import com.lsware.joint_investigation.investigation.service.AttachFileService;
 
 import jakarta.persistence.EntityNotFoundException;
 
