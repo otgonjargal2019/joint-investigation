@@ -3,13 +3,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+
+import { ROLES } from "@/shared/dictionary";
 import ProfileCard from "@/shared/widgets/profileCard";
 import DonutChart from "@/shared/components/pieChart";
 import CaseCard from "@/shared/components/caseCard";
 import Notice from "@/shared/components/notice";
 import { caseData } from "@/shared/widgets/mockData/homepage";
-import { useAuth } from "@/providers/authProviders";
 import { userQuery } from "@/entities/user/user.query";
+import { useAuth } from "@/providers/authProviders";
+import { useRealTime } from "@/providers/realtimeProvider";
 
 export default function Home() {
   const { user } = useAuth();
@@ -20,31 +23,20 @@ export default function Home() {
 
   const [isLoading, setLoading] = useState(true);
   const { data } = useQuery(userQuery.getUserDashboard());
-  const researchLink = "/research";
 
-  const { noticeLink, investigationInfoLink, incidentLink } = useMemo(() => {
-    if (user?.role === "admin") {
+  const { unreadUsersCount, unreadNotifCount } = useRealTime();
+
+  const { noticeLink, researchLink } = useMemo(() => {
+    if (user?.role === ROLES.PLATFORM_ADMIN) {
       return {
         noticeLink: "/admin/notice-management",
-        investigationInfoLink: "/admin/investigation-info-management",
-        incidentLink: "/manager/incident",
-      };
-    } else if (user?.role === "manager") {
-      return {
-        noticeLink: "/notice",
-        investigationInfoLink: "/investigation-information",
-        incidentLink: "/manager/incident",
-      };
-    } else if (user?.role === "investigator") {
-      return {
-        noticeLink: "/notice",
-        investigationInfoLink: "/investigation-information",
-        incidentLink: "/investigator/incident",
+        researchLink: "/admin/research-management",
       };
     }
+
     return {
-      noticeLink: "/",
-      investigationInfoLink: "/",
+      noticeLink: "/notice",
+      researchLink: "/research",
     };
   }, [user?.role]);
 
@@ -56,13 +48,13 @@ export default function Home() {
 
   const onClickNoticeRow = (row) => {
     if (row && row?.postId) {
-      router.push(`/notice/${row.postId}`);
+      router.push(`${noticeLink}/${row.postId}`);
     }
   };
 
   const onClickResearchRow = (row) => {
     if (row && row?.postId) {
-      router.push(`/research/${row.postId}`);
+      router.push(`${researchLink}/${row.postId}`);
     }
   };
 
@@ -76,8 +68,8 @@ export default function Home() {
           <div className="">
             <ProfileCard
               name={"고광천"}
-              unreadMessages={12}
-              unreadNotifications={5}
+              unreadMessages={unreadUsersCount}
+              unreadNotifications={unreadNotifCount}
               department={"온라인 보호부"}
               headquarters={"침해 대응 본부"}
             />
@@ -90,7 +82,7 @@ export default function Home() {
             </h2>
             <button
               className="text-color-27 text-[18px] font-medium cursor-pointer"
-              onClick={() => router.push(incidentLink)}
+              onClick={() => router.push("/")}
             >
               {t("see-more")}+
             </button>
@@ -199,51 +191,3 @@ export default function Home() {
     </div>
   );
 }
-
-/* <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer> */
