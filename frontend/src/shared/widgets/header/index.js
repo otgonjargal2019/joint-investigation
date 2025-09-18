@@ -169,7 +169,7 @@ const Header = () => {
           </button>
           <div className="hidden sm:block">
             <div className="text-white text-[20px] font-medium">
-              {user?.name}
+              {userInfo?.nameKr}
             </div>
             <div
               className="
