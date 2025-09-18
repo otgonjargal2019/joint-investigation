@@ -153,7 +153,8 @@
     "contact-info": "Please enter your contact information.",
     "headquarter": "Please enter the headquarters.",
     "department": "Please enter the department.",
-    "chat-search": "chatrooms, searching for participants"
+    "chat-search": "chatrooms, searching for participants",
+    "message": "Enter your message here..."
   },
   "header": {
     "title": "International Cooperation and Investigation Platform",
@@ -245,7 +246,10 @@
   },
   "prompt": {
     "are-you-sure-to-delete": "Do you really want to delete this post?",
-    "deleted-post-cannot-be-recovered": "Deleted posts cannot be recovered."
+    "deleted-post-cannot-be-recovered": "Deleted posts cannot be recovered.",
+    "write-the-reason-for-rejection": "Please write down the reason for rejection",
+    "rejection-of-membership": "Rejection of Membership",
+    "refuse-to-change-membership-information": "Refuse to change membership information"
   },
   "submitting": "Submitting",
   "user-status": {

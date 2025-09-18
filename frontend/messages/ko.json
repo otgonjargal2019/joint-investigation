@@ -154,7 +154,8 @@
     "contact-info": "연락처를 입력해주세요.",
     "headquarter": "본부를 입력해주세요.",
     "department": "부서를 입력해주세요.",
-    "chat-search": "대화방, 참여자 검색"
+    "chat-search": "대화방, 참여자 검색",
+    "message": "여기에 메시지를 입력하세요..."
   },
   "header": {
     "title": "국제공조수사플랫폼",
@@ -245,7 +246,10 @@
   },
   "prompt": {
     "are-you-sure-to-delete": "해당 게시글을 삭제하시겠습나까?",
-    "deleted-post-cannot-be-recovered": "삭제한 게시글은 복구할 수 없습니다."
+    "deleted-post-cannot-be-recovered": "삭제한 게시글은 복구할 수 없습니다.",
+    "write-the-reason-for-rejection": "거절 사유를 작성해주세요",
+    "rejection-of-membership": "회원가입 거절",
+    "refuse-to-change-membership-information": "회원 정보 변경 거절"
   },
   "submitting": "제출 중",
   "user-status": {

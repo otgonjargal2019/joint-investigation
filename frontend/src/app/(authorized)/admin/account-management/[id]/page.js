@@ -174,8 +174,8 @@ const UserDetailPage = ({ params }) => {
 
   const rejectTitle =
     user?.status === USERSTATUS.PENDING
-      ? "회원가입 거절"
-      : "회원 정보 변경 거절";
+      ? t("prompt.rejection-of-membership")
+      : t("prompt.refuse-to-change-membership-information");
 
   return (
     <div className="flex justify-center">
@@ -245,13 +245,13 @@ const UserDetailPage = ({ params }) => {
           </h3>
 
           <div className="bg-color-77 rounded-20 text-color-24 text-[20px] font-normal text-center p-4 py-5">
-            거절 사유를 작성해주세요
+            {t("prompt.write-the-reason-for-rejection")}
           </div>
           <Textarea
             name="reason"
             register={register}
             error={errors.reason}
-            placeholder="Enter your message here..."
+            placeholder={t("placeholder.message")}
             variant="formBig"
             className="h-[200px]"
             showError={false}
