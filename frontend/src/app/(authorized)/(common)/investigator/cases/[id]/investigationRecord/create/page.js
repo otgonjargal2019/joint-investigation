@@ -162,9 +162,11 @@ const IncidentCreatePage = () => {
     const statusMap = {
       'option1': 'PRE_INVESTIGATION',
       'option2': 'INVESTIGATION', 
-      'option3': 'REVIEW',
-      'option4': 'PROSECUTION',
-      'option5': 'CLOSED'
+      'option3': 'TRANSFER',
+      'option4': 'ANALYZING',
+      'option5': 'REPORT_INVESTIGATION',
+      'option6': 'DISPOSE',
+      'option7': 'ON_HOLD'
     };
     return statusMap[statusOption] || 'PRE_INVESTIGATION';
   };
