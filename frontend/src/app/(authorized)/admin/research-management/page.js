@@ -2,6 +2,7 @@
 
 import { toast } from "react-toastify";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import * as Popover from "@radix-ui/react-popover";
@@ -32,6 +33,7 @@ const tableColumns = [
 
 function ResearchManagementPage() {
   const t = useTranslations();
+  const router = useRouter();
 
   const [openPopover, setOpenPopover] = useState(null);
   const [page, setPage] = useState(1);
@@ -67,6 +69,12 @@ function ResearchManagementPage() {
         },
       }
     );
+  };
+
+  const onClickRow = (row) => {
+    if (row && row?.postId) {
+      router.push(`/admin/research-management/${row.postId}`);
+    }
   };
 
   const totalPages = data?.meta?.totalPages;
@@ -131,7 +139,7 @@ function ResearchManagementPage() {
         <SimpleDataTable
           columns={tableColumns}
           data={updatedData}
-          // onClickRow={onClickRow}
+          onClickRow={onClickRow}
         />
         <Pagination
           currentPage={page}
