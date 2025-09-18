@@ -1,9 +1,11 @@
 package com.lsware.joint_investigation.investigation.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.dto.CaseDto;
+import com.lsware.joint_investigation.file.dto.AttachFileDto;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
@@ -30,6 +32,7 @@ public class InvestigationRecordDto {
     private LocalDateTime reviewedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<AttachFileDto> attachedFiles;
 
     public InvestigationRecord toEntity() {
         InvestigationRecord entity = new InvestigationRecord();

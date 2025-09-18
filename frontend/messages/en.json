@@ -234,7 +234,8 @@
     "detailed-progress-status": "detailed progress status",
     "investigation-content": "investigation content",
     "investigative-report": "investigative report",
-    "digital-evidence": "digital evidence"
+    "digital-evidence": "digital evidence",
+    "validation-enter-record-name": "Enter investigation record name"
   },
   "enter-incident-info": "enter incident info",
   "edit-incident-info": "edit incident info",

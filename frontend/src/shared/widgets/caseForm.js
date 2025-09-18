@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import RadioBox from "@/shared/components/form/radio";
 import Textarea from "@/shared/components/form/textarea";
+import Input from "@/shared/components/form/input";
 import QuestionMarkCircle from "../components/icons/questionMarkCircle";
 import AttachedFile from "../components/icons/attachedFile";
 
@@ -119,11 +120,18 @@ const CaseForm = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-[150px_1fr] grid-rows-[46px_46px_97px_250px] mt-8">
+      <div className="grid grid-cols-[150px_1fr] grid-rows-[86px_46px_97px_250px] mt-8">
         <TitleDiv className="border-t">
           {t("case-form.investigation-record-name")}
         </TitleDiv>
-        <TextDiv className="border-t border-r">{data.item1}</TextDiv>
+        <TextDiv className="border-t border-r">
+          <Input
+            name="recordName"
+            register={(name) => register(name, { required: t("case-form.validation-enter-record-name") })}
+            error={errors.recordName}
+            placeholder={t("case-form.validation-enter-record-name")}
+          />
+        </TextDiv>
         <TitleDiv className="gap-2">
           {t("case-form.security-level")} <QuestionMarkCircle />
         </TitleDiv>

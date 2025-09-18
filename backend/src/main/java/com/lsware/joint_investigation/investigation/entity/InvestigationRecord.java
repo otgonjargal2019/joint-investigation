@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.investigation.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.entity.Case;
@@ -16,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,7 +36,7 @@ public class InvestigationRecord {
     private UUID recordId;
 
     @ManyToOne
-    @JoinColumn(name="case_id", nullable=false)
+    @JoinColumn(name = "case_id", nullable = false)
     private Case caseInstance;
 
     @Column(name = "record_name", nullable = false)
@@ -92,6 +94,9 @@ public class InvestigationRecord {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "investigationRecord")
+    private List<com.lsware.joint_investigation.file.entity.AttachFile> attachedFiles;
+
     public InvestigationRecordDto toDto() {
         InvestigationRecordDto dto = new InvestigationRecordDto();
         dto.setRecordId(this.recordId);
@@ -100,7 +105,7 @@ public class InvestigationRecord {
         }
         // this makes recurstion of Dto conversion
         // if (this.caseInstance != null) {
-        //     dto.setCaseInstance(this.caseInstance.toDto());
+        // dto.setCaseInstance(this.caseInstance.toDto());
         // }
         dto.setRecordName(this.recordName);
         dto.setContent(this.content);
@@ -118,6 +123,14 @@ public class InvestigationRecord {
         dto.setReviewedAt(this.reviewedAt);
         dto.setCreatedAt(this.createdAt);
         dto.setUpdatedAt(this.updatedAt);
+
+        // Convert attached files to DTOs
+        if (this.attachedFiles != null && !this.attachedFiles.isEmpty()) {
+            dto.setAttachedFiles(this.attachedFiles.stream()
+                    .map(file -> file.toDto())
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+
         return dto;
     }
 }

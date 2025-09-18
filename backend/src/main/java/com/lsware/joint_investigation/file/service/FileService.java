@@ -209,4 +209,55 @@ public class FileService {
         return fileUrl;
     }
 
+    public String storeInvestigationFile(MultipartFile file, String fileType) throws CustomResponseException {
+        String fileName = TextUtil.appendSuffix(
+                file.getOriginalFilename().replaceAll("\\s+", "_"),
+                "_" + System.currentTimeMillis());
+
+        try {
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(s3Endpoint, s3Region))
+                    .withPathStyleAccessEnabled(pathStyleAccessEnabled)
+                    .withCredentials(
+                            new AWSStaticCredentialsProvider(new BasicAWSCredentials(s3AccessKey, s3SecretKey)))
+                    .build();
+
+            String bucketName = s3Buckets.getInvestigation();
+
+            // Check and create bucket if it doesn't exist
+            if (!s3Client.doesBucketExistV2(bucketName)) {
+                try {
+                    s3Client.createBucket(bucketName);
+                } catch (AmazonS3Exception e) {
+                    throw new CustomResponseException("Failed to create investigation bucket: " + bucketName, e);
+                }
+            }
+
+            // Create a folder structure based on file type (evidence or report)
+            String folderPath = fileType.toLowerCase() + "/";
+            String s3Key = folderPath + fileName;
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(file.getContentType());
+            metadata.setContentLength(file.getBytes().length);
+            metadata.setContentEncoding("UTF-8");
+            metadata.addUserMetadata("file-type", fileType);
+
+            PutObjectRequest request = new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata);
+            s3Client.putObject(request);
+
+            URL downloadUrl = s3Client.getUrl(bucketName, s3Key);
+            return URLDecoder.decode(downloadUrl.toString(), StandardCharsets.UTF_8);
+
+        } catch (AmazonS3Exception e) {
+            throw new CustomResponseException("S3 error during investigation file upload: " + e.getErrorMessage(), e);
+        } catch (SdkClientException e) {
+            throw new CustomResponseException("S3 client error (network or credentials issue).", e);
+        } catch (IOException e) {
+            throw new CustomResponseException("Error reading investigation file for upload.", e);
+        } catch (Exception e) {
+            throw new CustomResponseException("Unexpected error uploading investigation file to S3/MinIO.", e);
+        }
+    }
+
 }

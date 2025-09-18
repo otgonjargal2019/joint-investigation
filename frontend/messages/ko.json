@@ -234,7 +234,8 @@
     "detailed-progress-status": "상세 진행 현황",
     "investigation-content": "수사 내용",
     "investigative-report": "수사 보고서",
-    "digital-evidence": "디지털 증거물"
+    "digital-evidence": "디지털 증거물",
+    "validation-enter-record-name": "수사 기록명을 입력해주세요."
   },
   "enter-incident-info": "사건 정보 입력",
   "edit-incident-info": "사건 정보 수정",
