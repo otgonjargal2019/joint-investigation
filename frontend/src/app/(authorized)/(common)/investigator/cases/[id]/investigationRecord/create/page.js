@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 import PageTitle from "@/shared/components/pageTitle/page";
 import Button from "@/shared/components/button";
@@ -27,7 +28,7 @@ const IncidentCreatePage = () => {
     defaultValues: {
       recordName: "",
       securityLevel: "option3",
-      progressStatus: "option1",
+      progressStatus: "PRE_INVESTIGATION",
       overview: ""
     }
   });
@@ -52,7 +53,7 @@ const IncidentCreatePage = () => {
     reset({
       recordName: "",
       securityLevel: "option3",
-      progressStatus: "option1",
+      progressStatus: "PRE_INVESTIGATION",
       overview: "",
     });
   }, [reset]);
@@ -136,13 +137,20 @@ const IncidentCreatePage = () => {
       });
 
       // Show success message
-      alert(t("Investigation record created successfully"));
-      
+      toast.success(t('incident.saved-successfully'), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+
       // Navigate back to case detail
       router.push(`/investigator/cases/${caseId}`);
     } catch (error) {
       console.error('Failed to create investigation record:', error);
-      
+
       // Show error message
       const errorMessage = error?.response?.data?.message || error?.message || "Failed to create investigation record";
       alert(`${t("Error")}: ${errorMessage}`);
@@ -213,7 +221,7 @@ const IncidentCreatePage = () => {
                 disabled={createInvestigationRecordMutation.isPending}
               >
                 <CheckRectangle />
-                {createInvestigationRecordMutation.isPending ? t("creating...") : t("registering")}
+                {/* {createInvestigationRecordMutation.isPending ? t("creating...") : t("registering")} */}
               </Button>
             </div>
           </div>

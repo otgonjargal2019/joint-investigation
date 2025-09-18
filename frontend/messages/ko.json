@@ -46,10 +46,13 @@
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "사전조사",
       "INVESTIGATION": "디지털 증거물 수집중",
-      "REVIEW": "검토중",
+      "TRANSFER": "디지털 증거 이송",
+      "ANALYZING": "디지털 증거 분석 중",
+      "REPORT_INVESTIGATION": "디지털 증거 보고 조사",
       "DISPOSE": "디지털 증거물 파기",
-      "CLOSED": "종료"
-    }
+      "ON_HOLD": "미해결"
+    },
+    "saved-successfully": "성공적으로 저장되었습니다"
   },
   "case": "건",
   "total": "총",

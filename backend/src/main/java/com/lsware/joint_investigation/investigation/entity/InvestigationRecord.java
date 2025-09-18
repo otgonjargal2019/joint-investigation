@@ -58,9 +58,11 @@ public class InvestigationRecord {
     public enum PROGRESS_STATUS {
         PRE_INVESTIGATION,
         INVESTIGATION,
-        REVIEW,
-        PROSECUTION,
-        CLOSED
+        TRANSFER,
+        ANALYZING,
+        REPORT_INVESTIGATION,
+        DISPOSE,
+        ON_HOLD
     }
 
     @Column(name = "REVIEW_STATUS", nullable = false)

@@ -7,6 +7,7 @@ import Textarea from "@/shared/components/form/textarea";
 import Input from "@/shared/components/form/input";
 import QuestionMarkCircle from "../components/icons/questionMarkCircle";
 import AttachedFile from "../components/icons/attachedFile";
+import { PROGRESS_STATUS } from "@/entities/investigation/model/constants";
 
 const options = [
   { label: "1", value: "option1" },
@@ -15,16 +16,6 @@ const options = [
   { label: "4", value: "option4" },
   { label: "5", value: "option5" },
   { label: "6", value: "option6" },
-];
-
-const options2 = [
-  { label: "사전 조사", value: "option1" },
-  { label: "디지털 증거 수집 중", value: "option2" },
-  { label: "디지털 증거 이송", value: "option3" },
-  { label: "디지털 증거 분석 중", value: "option4" },
-  { label: "디지털 증거 보고 조사", value: "option5" },
-  { label: "디지털 증거 파기", value: "option6" },
-  { label: "미해결", value: "option7" },
 ];
 
 const TitleDiv = ({ children, className }) => (
@@ -80,6 +71,18 @@ const CaseForm = ({
   const textWriter = t("case-form.writer");
   const textReviewer = t("case-form.reviewer");
 
+  const options2 = Object.values(PROGRESS_STATUS).map(status => ({value: status, label: t(`incident.PROGRESS_STATUS.${status}`) })) || [];
+
+  let item7 = "";
+  if (headerInfo.item7) {
+    const date = new Date(headerInfo.item7);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    item7 = `${year}-${month}-${day}`;
+  }
+
+
   return (
     <div>
       <div className="flex justify-between">
@@ -113,7 +116,7 @@ const CaseForm = ({
           <TextDivBolder className="border-t border-r">
             {headerInfo.item6}
           </TextDivBolder>
-          <TextDivBolder className="">{headerInfo.item7}</TextDivBolder>
+          <TextDivBolder className="">{item7}</TextDivBolder>
           <TextDivBolder className="border-r ">
             {headerInfo.item8}
           </TextDivBolder>

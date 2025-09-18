@@ -46,10 +46,13 @@
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "Pre investigation",
       "INVESTIGATION": "investigation",
-      "REVIEW": "review",
+      "TRANSFER": "transfer",
+      "ANALYZING": "analysing",
+      "REPORT_INVESTIGATION": "report investigation",
       "DISPOSE": "dispose",
-      "CLOSED": "closed"
-    }
+      "ON_HOLD": "on hold"
+    },
+    "saved-successfully": "Saved successfully"
   },
   "case": "case",
   "total": "total",
