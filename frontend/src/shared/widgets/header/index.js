@@ -169,7 +169,7 @@ const Header = () => {
           </button>
           <div className="hidden sm:block">
             <div className="text-white text-[20px] font-medium">
-              {userInfo?.nameKr}
+              {userInfo?.nameKr || userInfo?.nameEn}
             </div>
             <div
               className="
@@ -226,7 +226,7 @@ const Header = () => {
               <UserAvatar avatar={userInfo?.profileImageUrl} size={50} />
               <div>
                 <div className="text-white text-[18px] font-medium">
-                  {user?.name}
+                  {userInfo?.nameKr || userInfo?.nameEn}
                 </div>
                 <div className="text-color-51 text-[13px] font-medium">
                   {/* {user.headquarters} • {user.department} */}
