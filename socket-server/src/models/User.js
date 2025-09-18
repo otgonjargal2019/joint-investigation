@@ -27,6 +27,11 @@ User.init(
       allowNull: true,
       field: "name_en",
     },
+    profileImageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: "profile_image_url",
+    },
   },
   {
     sequelize,
