@@ -13,8 +13,8 @@ import { axiosInstance } from "@/shared/api/baseAxiosApi";
  * }>}
  */
 export const useInvestigationRecords = ({
-  sortBy = "recordName",
-  sortDirection = "asc",
+  sortBy = "createdAt",
+  sortDirection = "desc",
   page = 0,
   size = 10,
   progressStatus,

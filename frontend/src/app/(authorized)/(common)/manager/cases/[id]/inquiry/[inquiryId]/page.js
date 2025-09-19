@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import Button from "@/shared/components/button";
 import PageTitle from "@/shared/components/pageTitle/page";
@@ -16,11 +16,13 @@ import { useInvestigationRecord } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
   const params = useParams();
-  const incidentId = params.id;
+  const caseId = params.id;
   const inquiryId = params.inquiryId;
 
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
+
+  const router = useRouter();
 
   // Fetch investigation record data
   const {
@@ -47,6 +49,10 @@ const InquiryDetailPage = () => {
       });
     }
   }, [investigationRecord, reset]);
+
+  const navigateBack = () => {
+    router.push(`/manager/cases/${caseId}`);
+  };
 
   // Show loading state
   if (isLoading) {
@@ -83,7 +89,7 @@ const InquiryDetailPage = () => {
         <PageTitle title={t("case-detail.inquiry-of-investigation-records")} />
         <div className="flex justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Button variant="white" size="mediumWithShadow" className="gap-3">
+            <Button variant="white" size="mediumWithShadow" className="gap-3" onClick={navigateBack}>
               <ChevronLeft />
               {t("go-back")}
             </Button>
