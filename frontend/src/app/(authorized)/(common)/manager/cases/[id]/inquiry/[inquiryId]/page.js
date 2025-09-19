@@ -12,6 +12,7 @@ import CheckCircle from "@/shared/components/icons/checkCircle";
 import CancelCircle from "@/shared/components/icons/cancelCircle";
 import CaseForm from "@/shared/widgets/caseForm";
 import Modal from "@/shared/components/modal";
+import { useInvestigationRecord } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
   const params = useParams();
@@ -20,6 +21,13 @@ const InquiryDetailPage = () => {
 
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
+
+  // Fetch investigation record data
+  const {
+    data: investigationRecord,
+    isLoading,
+    error
+  } = useInvestigationRecord(inquiryId);
 
   const t = useTranslations();
   const {
@@ -30,13 +38,44 @@ const InquiryDetailPage = () => {
   } = useForm();
 
   useEffect(() => {
-    reset({
-      securityLevel: "option3",
-      progressStatus: "option1",
-      overview:
-        "성명불상자가 저작권자의 이용허락 없이 해외의 동영상 공유 플랫폼 사이트에 업로드한 영상저작물에 팝업창 제공방식으로 링크를 제공하는 다시 보기 링크 사이트를 개설하여 운영·관리함 ",
-    });
-  }, []);
+    if (investigationRecord) {
+      reset({
+        securityLevel: `option${investigationRecord.securityLevel || 3}`,
+        progressStatus: investigationRecord.progressStatus || "PRE_INVESTIGATION",
+        overview: investigationRecord.content || "",
+        recordName: investigationRecord.recordName || "",
+      });
+    }
+  }, [investigationRecord, reset]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">{t("loading")}</div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-red-500">
+          {t("Error loading investigation record")}: {error.message}
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state
+  if (!investigationRecord) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">{t("Investigation record not found")}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center">
@@ -80,25 +119,28 @@ const InquiryDetailPage = () => {
             register={register}
             watch={watch}
             errors={errors}
+            readonly={true}
             headerInfo={{
-              item1: "2024-02-28",
-              item2: "156",
-              item3: "사건 B",
-              item4: "고광천",
-              item5: "고광천",
-              item6: "김철수",
-              item7: "test1",
-              item8: "test2",
+              item1: investigationRecord?.caseInstance?.creationDate || investigationRecord?.createdAt?.split('T')[0] || "",
+              item2: investigationRecord?.caseInstance?.caseNumber || investigationRecord?.number || "",
+              item3: investigationRecord?.caseInstance?.caseName || "",
+              item4: investigationRecord?.creator?.nameKr || "",
+              item5: investigationRecord?.creator?.nameKr || "",
+              item6: investigationRecord?.reviewer?.nameKr || "",
+              item7: investigationRecord?.updatedAt || "",
+              item8: investigationRecord?.reviewedAt || "",
             }}
             data={{
-              item1: "사건 B 목격자 관련 제보",
+              item1: investigationRecord?.recordName || "사건 B 목격자 관련 제보",
             }}
-            report={[{ name: "sample2.mp4", size: "40.5KB" }]}
-            digitalEvidence={[
-              { name: "sample3.mp4", size: "40.5KB" },
-              { name: "sample4.mp4", size: "41.5KB" },
-              { name: "sample5.mp4", size: "42.5KB" },
-            ]}
+            report={investigationRecord?.attachedFiles?.filter(file => file.fileType === 'REPORT').map(file => ({
+              name: file.fileName,
+              size: file.fileSize ? `${(file.fileSize / 1024).toFixed(1)}KB` : "Unknown"
+            })) || []}
+            digitalEvidence={investigationRecord?.attachedFiles?.filter(file => file.fileType === 'EVIDENCE').map(file => ({
+              name: file.fileName,
+              size: file.fileSize ? `${(file.fileSize / 1024).toFixed(1)}KB` : "Unknown"
+            })) || []}
           />
         </div>
       </div>

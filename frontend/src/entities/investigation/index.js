@@ -1,4 +1,4 @@
-export { useInvestigationRecords } from './api/investigationRecord.query';
+export { useInvestigationRecords, useInvestigationRecord } from './api/investigationRecord.query';
 export {
   useCreateInvestigationRecord,
   useCreateInvestigationRecordWithFiles,

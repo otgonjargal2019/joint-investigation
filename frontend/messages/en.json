@@ -239,7 +239,8 @@
     "investigation-content": "investigation content",
     "investigative-report": "investigative report",
     "digital-evidence": "digital evidence",
-    "validation-enter-record-name": "Enter investigation record name"
+    "validation-enter-record-name": "Enter investigation record name",
+    "no-content": "No content"
   },
   "enter-incident-info": "enter incident info",
   "edit-incident-info": "edit incident info",

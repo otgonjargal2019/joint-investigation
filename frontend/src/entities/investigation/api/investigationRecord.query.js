@@ -41,3 +41,24 @@ export const useInvestigationRecords = ({
     },
   });
 };
+
+/**
+ * Hook for fetching a single investigation record by ID
+ * @param {string} recordId - UUID of the investigation record
+ * @param {boolean} enabled - Whether the query should run
+ * @returns {import('@tanstack/react-query').UseQueryResult<import('../model/types').InvestigationRecord>}
+ */
+export const useInvestigationRecord = (recordId, { enabled = true } = {}) => {
+  return useQuery({
+    queryKey: ["investigationRecord", recordId],
+    queryFn: async () => {
+      if (!recordId) {
+        throw new Error("Record ID is required");
+      }
+
+      const { data } = await axiosInstance.get(`/investigation-records/${recordId}`);
+      return data;
+    },
+    enabled: enabled && Boolean(recordId),
+  });
+};
