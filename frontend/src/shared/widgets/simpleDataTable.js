@@ -12,8 +12,8 @@ function SimpleDataTable({ columns, data, onClickRow }) {
     <Table>
       <Thead>
         <Tr variant="head">
-          {columns.map((col) => (
-            <Th key={col.key}>{col.title}</Th>
+          {columns.map((col, colIndex) => (
+            <Th key={`${col.key}_${colIndex}`}>{col.title}</Th>
           ))}
         </Tr>
       </Thead>
@@ -21,10 +21,10 @@ function SimpleDataTable({ columns, data, onClickRow }) {
         {hasData ? (
           data.map((row, rowIndex) => (
             <Tr key={rowIndex} hover={true} onClick={() => onClickRow?.(row)}>
-              {columns.map((col) => {
+              {columns.map((col, colIndex) => {
                 return (
                   <Td
-                    key={col.key}
+                    key={`${col.key}_${colIndex}`}
                     textAlign={col.textAlign}
                     onClick={
                       col.key === "action"
