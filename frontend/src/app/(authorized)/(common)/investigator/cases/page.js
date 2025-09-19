@@ -12,8 +12,6 @@ import { useMyAssignedCase } from "@/entities/case";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
 import TagProgressStatus from "@/shared/components/tagProgressStatus";
 
-import { caseData } from "@/shared/widgets/mockData/homepage";
-
 const tabs = [
   { label: "전체", value: 0 },
   { label: "진행중인 사건", value: 1 },

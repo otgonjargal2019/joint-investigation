@@ -106,7 +106,8 @@ const IncidentCreatePage = () => {
       // Prepare investigation record data
       const recordData = {
         recordName: formData.recordName.trim(),
-        progressStatus: mapProgressStatus(formData.progressStatus),
+        content: formData.overview || "",
+        progressStatus: formData.progressStatus,
         securityLevel: parseInt(formData.securityLevel?.replace('option', '')) || 3,
         overview: formData.overview || "",
         caseId: caseId
@@ -157,26 +158,10 @@ const IncidentCreatePage = () => {
     }
   };
 
-  // Helper function to map progress status
-  const mapProgressStatus = (statusOption) => {
-    const statusMap = {
-      'option1': 'PRE_INVESTIGATION',
-      'option2': 'INVESTIGATION',
-      'option3': 'TRANSFER',
-      'option4': 'ANALYZING',
-      'option5': 'REPORT_INVESTIGATION',
-      'option6': 'DISPOSE',
-      'option7': 'ON_HOLD'
-    };
-    return statusMap[statusOption] || 'PRE_INVESTIGATION';
-  };
-
   // Cancel handler
   const handleCancel = () => {
     router.push(`/investigator/cases/${caseId}`);
   };
-
-  console.log("caseId", caseId);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
