@@ -8,10 +8,6 @@ import "./pieChart.css";
 export default function DonutChart({ data, isLoading = true }) {
   const t = useTranslations();
 
-  const loadingData = [
-    { name: t("donut-chart.ongoing"), value: 1, type: "#8E8E8E" },
-  ];
-
   const legendItems = isLoading
     ? [
         { name: t("donut-chart.ongoing"), value: 0, type: "#8E8E8E" },
@@ -20,33 +16,51 @@ export default function DonutChart({ data, isLoading = true }) {
       ]
     : data;
 
-  const chartData = isLoading ? loadingData : data;
   const total = isLoading ? 0 : data.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="flex flex-col lg:flex-row justify-start items-center gap-6">
       {/* Donut chart */}
-      <div className="donut-chart-wrapper relative">
-        <ResponsiveContainer width="100%" height="100%" className="!m-0 !p-0">
+      <div className="donut-chart-wrapper relative  w-[250px] h-[250px]">
+        <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            {/* Outer gray circle as background */}
             <Pie
-              data={chartData}
+              data={[{ value: 1 }]}
               dataKey="value"
-              nameKey="name"
               cx="50%"
               cy="50%"
               innerRadius={80}
               outerRadius={127}
               startAngle={90}
               endAngle={-270}
-              paddingAngle={0}
               stroke="none"
               label={false}
+              isAnimationActive={false}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={index} fill={entry.type} />
-              ))}
+              <Cell fill="#8E8E8E" />
             </Pie>
+
+            {/* Actual chart data on top */}
+            {!isLoading && (
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={80}
+                outerRadius={127}
+                startAngle={90}
+                endAngle={-270}
+                stroke="none"
+                label={false}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={index} fill={entry.type} />
+                ))}
+              </Pie>
+            )}
           </PieChart>
         </ResponsiveContainer>
 
