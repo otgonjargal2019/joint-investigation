@@ -89,13 +89,11 @@ public class AuthController {
             cookie.setHttpOnly(true);
             cookie.setSecure(false); // true in production with HTTPS
             cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 10); // 10 hour
+            if (userDto.isStayLoggedIn())
+                cookie.setMaxAge(60 * 60 * 10); // 10 hour
+            else
+                cookie.setMaxAge(-1);
             response.addCookie(cookie);
-
-            Cookie stayLoggedInCookie = new Cookie("stay_logged_in", String.valueOf(userDto.isStayLoggedIn()));
-            stayLoggedInCookie.setPath("/");
-            stayLoggedInCookie.setMaxAge(60 * 60 * 10);
-            response.addCookie(stayLoggedInCookie);
 
             // Response JSON (no token)
             Map<String, Object> res = new HashMap<>();

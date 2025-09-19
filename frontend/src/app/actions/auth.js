@@ -25,11 +25,6 @@ export async function getUserFromCookie() {
   }
 }
 
-export async function getStayLoggedIn() {
-  const cookieStore = await cookies();
-  return cookieStore.get("stay_logged_in")?.value;
-}
-
 export async function logout() {
   const cookieStore = await cookies();
 
@@ -39,10 +34,5 @@ export async function logout() {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
-  });
-
-  cookieStore.set("stay_logged_in", "", {
-    path: "/",
-    maxAge: 0,
   });
 }
