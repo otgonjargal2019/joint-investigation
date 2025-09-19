@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useCallback } from "react";
 import { useEditorState } from "@tiptap/react";
 import * as Popover from "@radix-ui/react-popover";
@@ -23,7 +25,7 @@ import {
 import { fontSizes, fonts } from "./fontHelper";
 
 export default function MenuBar({ editor }) {
-  //   if (!editor) return null;
+  if (!editor || !editor.view) return null;
 
   const [rows, setRows] = useState(3);
   const [cols, setCols] = useState(3);
@@ -148,6 +150,7 @@ export default function MenuBar({ editor }) {
   ];
 
   const addImage = useCallback(() => {
+    if (!editor || !editor.view) return;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -170,7 +173,7 @@ export default function MenuBar({ editor }) {
   }, [editor]);
 
   const addLink = useCallback(() => {
-    if (!editor) return;
+    if (!editor || !editor.view) return;
 
     const previousUrl = editor.getAttributes("link").href || "";
     const url = window.prompt("Enter URL", previousUrl);
@@ -208,6 +211,7 @@ export default function MenuBar({ editor }) {
   }, [editor]);
 
   const handleInsert = useCallback(() => {
+    if (!editor || !editor.view) return;
     editor.chain().focus().insertTable({ rows, cols, withHeaderRow }).run();
   }, [editor, rows, cols, withHeaderRow]);
 
@@ -232,6 +236,7 @@ export default function MenuBar({ editor }) {
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
+            type="button"
             title="Insert Table"
             className="p-1 hover:bg-slate-100 rounded"
             aria-label="Insert Table"
@@ -280,6 +285,7 @@ export default function MenuBar({ editor }) {
               </label>
 
               <button
+                type="button"
                 onClick={handleInsert}
                 className="mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
               >
@@ -293,6 +299,7 @@ export default function MenuBar({ editor }) {
       </Popover.Root>
 
       <button
+        type="button"
         title="Insert Image"
         onClick={addImage}
         className="p-1 hover:bg-slate-100 rounded"
@@ -301,6 +308,7 @@ export default function MenuBar({ editor }) {
       </button>
 
       <button
+        type="button"
         title="Add/Edit Link"
         onClick={addLink}
         className="p-1 hover:bg-slate-100 rounded"
@@ -311,6 +319,7 @@ export default function MenuBar({ editor }) {
       <select
         onChange={(e) => {
           console.log(editor?.getAttributes("textStyle"));
+          if (!editor || !editor.view) return;
           editor?.chain().focus().setFontFamily(e.target.value).run();
         }}
         value={fontFamily}
@@ -324,9 +333,10 @@ export default function MenuBar({ editor }) {
       </select>
 
       <select
-        onChange={(e) =>
-          editor?.chain().focus().setFontSize(e.target.value).run()
-        }
+        onChange={(e) => {
+          if (!editor || !editor.view) return;
+          editor.chain().focus().setFontSize(e.target.value).run();
+        }}
         value={fontSize}
         className="border px-2 py-1 text-sm rounded"
       >

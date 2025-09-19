@@ -65,9 +65,9 @@ const Tiptap = ({ content, onChange }) => {
 
   return (
     <div className="editor-wrapper">
-      <MenuBar editor={editor} />
+      {editor ? <MenuBar editor={editor} /> : null}
       <EditorContent editor={editor} />
-      <TableToolbar editor={editor} />
+      {editor ? <TableToolbar editor={editor} /> : null}
     </div>
   );
 };
