@@ -58,6 +58,9 @@ function LoginPage() {
           toast.warning(t("auth.admin-approve-msg"), {
             autoClose: 3000,
             position: "top-center",
+            style: {
+              width: "350px",
+            },
           });
         } else {
           setError("root", {
