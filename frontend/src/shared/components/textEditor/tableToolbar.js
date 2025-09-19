@@ -54,13 +54,14 @@ export default function TableToolbar({ editor }) {
     };
   }, [editor]);
 
-  const canAddRow = editor?.can().addRowAfter();
-  const canDeleteRow = editor?.can().deleteRow();
-  const canAddColumn = editor?.can().addColumnAfter();
-  const canDeleteColumn = editor?.can().deleteColumn();
-  const canMergeCells = editor?.can().mergeCells();
-  const canSplitCell = editor?.can().splitCell();
-  const canDeleteTable = editor?.can().deleteTable();
+  const canApi = editor?.can?.();
+  const canAddRow = !!canApi?.addRowAfter?.();
+  const canDeleteRow = !!canApi?.deleteRow?.();
+  const canAddColumn = !!canApi?.addColumnAfter?.();
+  const canDeleteColumn = !!canApi?.deleteColumn?.();
+  const canMergeCells = !!canApi?.mergeCells?.();
+  const canSplitCell = !!canApi?.splitCell?.();
+  const canDeleteTable = !!canApi?.deleteTable?.();
 
   if (!position) return null;
 
