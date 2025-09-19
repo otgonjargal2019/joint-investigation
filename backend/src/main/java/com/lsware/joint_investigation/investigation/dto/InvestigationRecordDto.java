@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.investigation.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.cases.dto.CaseDto;
@@ -20,7 +21,7 @@ public class InvestigationRecordDto {
     private CaseDto caseInstance;
     private String recordName;
     private String content;
-    private String securityLevel;
+    private Integer securityLevel;
     private Integer number;
     private PROGRESS_STATUS progressStatus;
     private REVIEW_STATUS reviewStatus;
@@ -30,6 +31,7 @@ public class InvestigationRecordDto {
     private LocalDateTime reviewedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<AttachFileDto> attachedFiles;
 
     public InvestigationRecord toEntity() {
         InvestigationRecord entity = new InvestigationRecord();

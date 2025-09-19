@@ -46,10 +46,13 @@
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "Pre investigation",
       "INVESTIGATION": "investigation",
-      "REVIEW": "review",
+      "TRANSFER": "transfer",
+      "ANALYZING": "analysing",
+      "REPORT_INVESTIGATION": "report investigation",
       "DISPOSE": "dispose",
-      "CLOSED": "closed"
-    }
+      "ON_HOLD": "on hold"
+    },
+    "saved-successfully": "Saved successfully"
   },
   "case": "case",
   "total": "total",
@@ -235,7 +238,8 @@
     "detailed-progress-status": "detailed progress status",
     "investigation-content": "investigation content",
     "investigative-report": "investigative report",
-    "digital-evidence": "digital evidence"
+    "digital-evidence": "digital evidence",
+    "validation-enter-record-name": "Enter investigation record name"
   },
   "enter-incident-info": "enter incident info",
   "edit-incident-info": "edit incident info",
