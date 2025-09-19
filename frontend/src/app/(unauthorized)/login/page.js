@@ -55,13 +55,7 @@ function LoginPage() {
       },
       onError: (err) => {
         if (err.response?.data?.message == "ADMIN_CONFIRMATION_NEEDED") {
-          toast.warning(t("auth.admin-approve-msg"), {
-            autoClose: 3000,
-            position: "top-center",
-            style: {
-              width: "350px",
-            },
-          });
+          setModalOpen(true);
         } else {
           setError("root", {
             type: "manual",
@@ -141,12 +135,20 @@ function LoginPage() {
           </div>
         </form>
       </div>
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        showClose={false}
+      >
         <h2 className="text-center text-[20px] text-color-24 mb-6">
           {t("auth.admin-approve-msg")}
         </h2>
         <div className="flex justify-center ">
-          <Button size="small" className="min-w-[150px]">
+          <Button
+            size="small"
+            className="min-w-[150px]"
+            onClick={() => setModalOpen(false)}
+          >
             {t("check")}
           </Button>
         </div>

@@ -70,7 +70,7 @@ export const registerFormSchema = withPasswordConfirm(
     loginId: z.string().min(1, "Required"),
     password: passwordField,
     passwordConfirm: z.string().min(1, "Required"),
-    nameKr: z.string().min(3, "Required"),
+    nameKr: z.string().min(1, "Required"),
     nameEn: z.string().optional(),
     countryId: z.string().min(1, "Required"),
     headquarterId: z.string().min(1, "Required"),

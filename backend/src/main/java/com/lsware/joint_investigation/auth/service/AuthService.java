@@ -31,19 +31,19 @@ public class AuthService {
     }
 
     public boolean checkloginIdExist(String loginId) {
-        Optional<Users> user = userRepository.checkLoginIdExist(loginId); //userRepository.findByLoginId(loginId) ;
+        Optional<Users> user = userRepository.checkLoginIdExist(loginId); // userRepository.findByLoginId(loginId) ;
 
         if (!user.isEmpty()) {
-            throw new IllegalArgumentException("user found with this ID.");
+            throw new IllegalArgumentException("info-msg.not-available-id");
         }
         return false;
     }
 
     public boolean checkEmailExist(String email) {
-        Optional<Users> user = userRepository.findByEmail(email) ;
+        Optional<Users> user = userRepository.findByEmail(email);
 
         if (!user.isEmpty()) {
-            throw new IllegalArgumentException("user found with this EMAIL.");
+            throw new IllegalArgumentException("info-msg.not-available-email-id");
         }
         return false;
     }
