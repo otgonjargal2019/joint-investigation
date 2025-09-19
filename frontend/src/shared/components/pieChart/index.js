@@ -8,10 +8,6 @@ import "./pieChart.css";
 export default function DonutChart({ data, isLoading = true }) {
   const t = useTranslations();
 
-  const loadingData = [
-    { name: t("donut-chart.ongoing"), value: 1, type: "#8E8E8E" },
-  ];
-
   const legendItems = isLoading
     ? [
         { name: t("donut-chart.ongoing"), value: 0, type: "#8E8E8E" },
@@ -20,7 +16,6 @@ export default function DonutChart({ data, isLoading = true }) {
       ]
     : data;
 
-  const chartData = isLoading ? loadingData : data;
   const total = isLoading ? 0 : data.reduce((sum, item) => sum + item.value, 0);
 
   return (
