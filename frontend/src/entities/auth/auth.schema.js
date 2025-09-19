@@ -18,12 +18,10 @@ const passwordField = z
     message: "Password must include at least one special character (@$!%*?&).",
   });
 
-  
-
-
 export const loginFormSchema = z.object({
   loginId: z.string().min(1, "Login ID is required"),
-  password: passwordField
+  password: passwordField,
+  stayLoggedIn: z.boolean().optional().default(true),
 });
 
 const withChangePassConfirm = (schema) =>
@@ -37,15 +35,13 @@ const withChangePassConfirm = (schema) =>
     }
   });
 
-export const changePassFormSchema =  withChangePassConfirm(
-    z.object({
+export const changePassFormSchema = withChangePassConfirm(
+  z.object({
     password: passwordField,
     newPassword: passwordField,
-    confirmPassword: passwordField
+    confirmPassword: passwordField,
   })
 );
-
-
 
 const withPasswordConfirm = (schema) =>
   schema.superRefine((data, ctx) => {
@@ -62,7 +58,7 @@ const withPasswordConfirm = (schema) =>
 
     if (!emailRegex.test(fullEmail)) {
       ctx.addIssue({
-        path: ["email"], 
+        path: ["email"],
         message: "Invalid email address",
         code: "custom",
       });
@@ -74,15 +70,15 @@ export const registerFormSchema = withPasswordConfirm(
     loginId: z.string().min(1, "Required"),
     password: passwordField,
     passwordConfirm: z.string().min(1, "Required"),
-    nameKr: z.string().min(3,"Required"),
+    nameKr: z.string().min(3, "Required"),
     nameEn: z.string().optional(),
     countryId: z.string().min(1, "Required"),
     headquarterId: z.string().min(1, "Required"),
     departmentId: z.string().min(1, "Required"),
     phone1: z.string().optional(),
     phone2: z.string().optional(),
-    email: z.string().min(1,"Required"),
-    email2: z.string().min(1,"Required")
+    email: z.string().min(1, "Required"),
+    email2: z.string().min(1, "Required"),
   })
 );
 
@@ -90,13 +86,10 @@ export const profileFormSchema = withPasswordConfirm(
   z.object({
     phone1: z.string().optional(),
     phone2: z.string().optional(),
-    email: z.string().min(1,"Required"),
-    email2: z.string().min(1,"Required"),
+    email: z.string().min(1, "Required"),
+    email2: z.string().min(1, "Required"),
     //countryId: z.string().min(1, "Required"),
     headquarterId: z.string().min(1, "Required"),
-    departmentId: z.string().min(1, "Required")
+    departmentId: z.string().min(1, "Required"),
   })
 );
-
-
-

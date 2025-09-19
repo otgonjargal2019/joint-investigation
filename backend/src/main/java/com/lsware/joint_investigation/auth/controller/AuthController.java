@@ -87,16 +87,16 @@ public class AuthController {
 
             Cookie cookie = new Cookie("access_token", jwtToken);
             cookie.setHttpOnly(true);
-            cookie.setSecure(false); // true in production with HTTPS
+            cookie.setSecure(false);
             cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 10); // 10 hour
+            if (userDto.isStayLoggedIn())
+                cookie.setMaxAge(60 * 60 * 24 * 30);
             response.addCookie(cookie);
 
-            // Response JSON (no token)
             Map<String, Object> res = new HashMap<>();
             res.put("success", true);
             res.put("message", "Login successful");
-            // res.put("access_token", jwtToken);
+
             return ResponseEntity.ok(res);
         } catch (AuthenticationException ex) {
             Map<String, Object> errorResponse = new HashMap<>();
