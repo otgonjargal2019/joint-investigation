@@ -195,7 +195,7 @@ const CaseForm = ({
           <ul className="space-y-1">
             {report?.map((file, idx) => (
               <li key={idx} className="flex gap-1">
-                <span className="text-color-20">{file.name}</span>
+                <span className="text-color-20"><a href={file.url} target="_blank">{file.name}</a></span>
                 <span className="text-color-96">({file.size})</span>
               </li>
             ))}
@@ -208,7 +208,7 @@ const CaseForm = ({
           <ul className="space-y-1">
             {digitalEvidence?.map((file, idx) => (
               <li key={idx} className="flex gap-1">
-                <span className="text-color-20">{file.name}</span>
+                <span className="text-color-20"><a href={file.url} target="_blank">{file.name}</a></span>
                 <span className="text-color-96">({file.size})</span>
               </li>
             ))}

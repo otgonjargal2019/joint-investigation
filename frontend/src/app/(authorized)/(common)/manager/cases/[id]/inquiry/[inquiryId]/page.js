@@ -141,10 +141,12 @@ const InquiryDetailPage = () => {
             }}
             report={investigationRecord?.attachedFiles?.filter(file => file.fileType === 'REPORT').map(file => ({
               name: file.fileName,
+              url: file.storagePath,
               size: file.fileSize ? `${(file.fileSize / 1024).toFixed(1)}KB` : "Unknown"
             })) || []}
             digitalEvidence={investigationRecord?.attachedFiles?.filter(file => file.fileType === 'EVIDENCE').map(file => ({
               name: file.fileName,
+              url: file.storagePath,
               size: file.fileSize ? `${(file.fileSize / 1024).toFixed(1)}KB` : "Unknown"
             })) || []}
           />
