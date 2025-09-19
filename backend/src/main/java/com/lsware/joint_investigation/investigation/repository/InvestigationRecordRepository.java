@@ -2,6 +2,7 @@ package com.lsware.joint_investigation.investigation.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
@@ -49,7 +50,23 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         return rootPredicate;
     }
 
-    public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, String caseId, Pageable pageable) {
+    public Optional<InvestigationRecord> findByRecordId(UUID recordId) {
+        QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+
+        InvestigationRecord result = queryFactory
+                .selectFrom(q)
+                .leftJoin(q.caseInstance).fetchJoin()
+                .leftJoin(q.creator).fetchJoin()
+                .leftJoin(q.reviewer).fetchJoin()
+                .leftJoin(q.attachedFiles).fetchJoin()
+                .where(q.recordId.eq(recordId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, String caseId,
+            Pageable pageable) {
 
         BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus, caseId);
 

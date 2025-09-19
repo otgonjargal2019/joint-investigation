@@ -309,29 +309,37 @@ public class InvestigationService {
 
 	/**
 	 * Get investigation record by ID
-	 * 
+	 *
 	 * @param recordId The investigation record ID
-	 * @return The investigation record DTO
+	 * @return The investigation record DTO with integrated case instance
 	 */
-	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR')")
+	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	public InvestigationRecordDto getInvestigationRecordById(UUID recordId) {
-		InvestigationRecord record = investigationRecordRepository.findById(recordId.toString())
+		InvestigationRecord record = investigationRecordRepository.findByRecordId(recordId)
 				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
-		return record.toDto();
+
+		InvestigationRecordDto dto = record.toDto();
+
+		// Manually integrate the case instance to avoid recursion issues
+		if (record.getCaseInstance() != null) {
+			dto.setCaseInstance(record.getCaseInstance().toDto());
+		}
+
+		return dto;
 	}
 
 	/**
 	 * Update an existing investigation record
-	 * 
+	 *
 	 * @param recordId The investigation record ID
 	 * @param request  The update request
 	 * @return The updated investigation record DTO
 	 */
-	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR')")
+	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	@Transactional
 	public InvestigationRecordDto updateInvestigationRecord(UUID recordId, UpdateInvestigationRecordRequest request) {
 		// Get the existing record
-		InvestigationRecord existingRecord = investigationRecordRepository.findById(recordId.toString())
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId)
 				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
 
 		// Validate request

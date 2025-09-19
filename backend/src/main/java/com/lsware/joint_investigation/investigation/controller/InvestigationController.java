@@ -8,6 +8,8 @@ import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecor
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.controller.UserController;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/investigation-records")
+@Slf4j
 public class InvestigationController {
 
 	@Autowired
@@ -134,8 +137,12 @@ public class InvestigationController {
 			return ResponseEntity.ok(mapping);
 
 		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for getting investigation record {}: {}",
+				recordId, e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+			log.error("Invalid request for getting investigation record {}: {}",
+				recordId, e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}
