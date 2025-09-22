@@ -143,3 +143,25 @@ export const useRejectInvestigationRecord = () => {
     }
   });
 };
+
+/**
+ * Hook for approving investigation record
+ * @returns {import('@tanstack/react-query').UseMutationResult}
+ */
+export const useApproveInvestigationRecord = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ recordId }) => {
+      const response = await axiosInstance.post('/investigation-records/approve', {
+        recordId
+      });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate related queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['investigationRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['investigationRecord', variables.recordId] });
+    }
+  });
+};

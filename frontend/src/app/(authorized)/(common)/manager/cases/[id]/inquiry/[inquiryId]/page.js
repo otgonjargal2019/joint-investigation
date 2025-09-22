@@ -13,7 +13,7 @@ import CheckCircle from "@/shared/components/icons/checkCircle";
 import CancelCircle from "@/shared/components/icons/cancelCircle";
 import CaseForm from "@/shared/widgets/caseForm";
 import Modal from "@/shared/components/modal";
-import { useInvestigationRecord, useRejectInvestigationRecord } from "@/entities/investigation";
+import { useInvestigationRecord, useRejectInvestigationRecord, useApproveInvestigationRecord } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
   const params = useParams();
@@ -23,6 +23,7 @@ const InquiryDetailPage = () => {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [captchaInput, setCaptchaInput] = useState("");
 
   const router = useRouter();
 
@@ -35,6 +36,9 @@ const InquiryDetailPage = () => {
 
   // Reject mutation
   const rejectMutation = useRejectInvestigationRecord();
+
+  // Approve mutation
+  const approveMutation = useApproveInvestigationRecord();
 
   const t = useTranslations();
   const {
@@ -92,6 +96,53 @@ const InquiryDetailPage = () => {
         },
         onError: (error) => {
           console.error("Failed to reject investigation record:", error);
+          toast.error(t('incident.error-occurred'), {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        }
+      }
+    );
+  };
+
+  const handleApproveInvestigation = () => {
+    const expectedText = "위 수사 기록을 검토하였으며 최종 승인합니다.";
+
+    if (captchaInput.trim() !== expectedText) {
+      toast.info(t('incident.captcha-mismatch'), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      return;
+    }
+
+    approveMutation.mutate(
+      {
+        recordId: inquiryId
+      },
+      {
+        onSuccess: () => {
+          setApproveModalOpen(false);
+          setCaptchaInput("");
+          toast.success(t('incident.approved-successfully'), {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        },
+        onError: (error) => {
+          console.error("Failed to approve investigation record:", error);
           toast.error(t('incident.error-occurred'), {
             position: "top-right",
             autoClose: 3000,
@@ -221,18 +272,29 @@ const InquiryDetailPage = () => {
             name="capcha"
             className="border w-full border-color-32 rounded-10 placeholder-color-50 text-[20px] font-medium px-[20px] py-[10px]"
             placeholder="위 수사 기록을 검토하였으며 최종 승인합니다."
+            value={captchaInput}
+            onChange={(e) => setCaptchaInput(e.target.value)}
           />
           <div className="flex justify-center gap-4">
             <Button
               variant="gray2"
               size="form"
               className="w-[148px]"
-              onClick={() => setApproveModalOpen(false)}
+              onClick={() => {
+                setApproveModalOpen(false);
+                setCaptchaInput("");
+              }}
+              disabled={approveMutation.isPending}
             >
               {t("cancel")}
             </Button>
-            <Button size="form" className="w-[148px]">
-              {t("check")}
+            <Button
+              size="form"
+              className="w-[148px]"
+              onClick={handleApproveInvestigation}
+              disabled={approveMutation.isPending || captchaInput.trim() !== "위 수사 기록을 검토하였으며 최종 승인합니다."}
+            >
+              {approveMutation.isPending ? "처리중..." : t("check")}
             </Button>
           </div>
         </div>

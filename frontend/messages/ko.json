@@ -54,7 +54,9 @@
     },
     "saved-successfully": "성공적으로 저장되었습니다",
     "error-occurred": "요청 처리 중 오류가 발생했습니다.",
-    "reason-required": "사유가 필요합니다."
+    "reason-required": "사유가 필요합니다.",
+    "captcha-mismatch": "표시된 정확한 텍스트를 입력해주세요.",
+    "approved-successfully": "수사기록이 성공적으로 승인되었습니다."
   },
   "case": "건",
   "total": "총",

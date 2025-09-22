@@ -4,7 +4,8 @@ export {
   useCreateInvestigationRecordWithFiles,
   useUpdateInvestigationRecord,
   useGetInvestigationRecord,
-  useRejectInvestigationRecord
+  useRejectInvestigationRecord,
+  useApproveInvestigationRecord
 } from './api/investigationRecord.mutation';
 export * from './model/types';
 export * from './model/query-params';

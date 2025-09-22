@@ -7,6 +7,7 @@ import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.controller.UserController;
 
@@ -196,6 +197,34 @@ public class InvestigationController {
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
 			log.error("Error rejecting investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
+	 * Approve an investigation record
+	 */
+	@PostMapping("/approve")
+	public ResponseEntity<MappingJacksonValue> approveInvestigationRecord(
+			@RequestBody ApproveInvestigationRecordRequest request,
+			Authentication authentication) {
+
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			InvestigationRecordDto approvedRecord = investigationService.approveInvestigationRecord(request, user.getId());
+
+			MappingJacksonValue mapping = new MappingJacksonValue(approvedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for approving investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error approving investigation record {}: {}",
 				request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}

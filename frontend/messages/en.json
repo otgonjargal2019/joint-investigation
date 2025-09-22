@@ -54,7 +54,9 @@
     },
     "saved-successfully": "Saved successfully",
     "error-occurred": "An error occurred while processing your request.",
-    "reason-required": "Reason is required."
+    "reason-required": "Reason is required.",
+    "captcha-mismatch": "Please enter the exact text as shown.",
+    "approved-successfully": "Investigation record has been approved successfully."
   },
   "case": "case",
   "total": "total",
