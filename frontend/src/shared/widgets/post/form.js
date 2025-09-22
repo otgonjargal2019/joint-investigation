@@ -82,15 +82,13 @@ const Form = ({
   const title = watch("title");
 
   const isDisabled = useMemo(() => {
-    // const titleEmpty = !title?.trim();
-    // const contentEmpty = !content?.trim();
-    // const noNewFiles = newFiles.length === 0;
+    const titleEmpty = !title?.trim();
+    const contentEmpty = !content?.trim() || content === "<p></p>";
 
-    // if (mode === "create") {
-    //    return titleEmpty && contentEmpty && noNewFiles;
-    //    return titleEmpty || (contentEmpty && noNewFiles);
-    //    return false;
-    // }
+    if (mode === "create") {
+      // For create mode, require both title and content
+      return titleEmpty || contentEmpty;
+    }
 
     if (mode === "edit") {
       const titleUnchanged = title === defaultValues?.title;
@@ -99,7 +97,12 @@ const Form = ({
         newFiles.length === 0 &&
         existingFiles.length === (defaultValues.attachments?.length || 0);
 
-      return titleUnchanged && contentUnchanged && filesUnchanged;
+      // For edit mode, disable if nothing changed OR if title/content is empty
+      return (
+        (titleUnchanged && contentUnchanged && filesUnchanged) ||
+        titleEmpty ||
+        contentEmpty
+      );
     }
 
     return false;

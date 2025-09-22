@@ -15,7 +15,7 @@ import TrashBin from "@/shared/components/icons/trashBin";
 import { postQuery, BOARD_TYPE, useDeletePost } from "@/entities/post";
 
 const tableColumns = [
-  { key: "no", title: "NO." },
+  { key: "no", title: "NO.", textAlign: "text-center" },
   { key: "title", title: "제목" },
   { key: "createdAt", title: "날짜", textAlign: "text-center" },
   { key: "viewCount", title: "조회수", textAlign: "text-center" },
