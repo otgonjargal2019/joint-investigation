@@ -95,14 +95,16 @@ const UserDetailWithRoleChange = ({
                 register={register}
                 name="role"
                 options={[
-                  { label: "", value: "" },
+                  // { label: "", value: "" },
                   { label: "수사관", value: ROLES.INVESTIGATOR },
                   { label: "수사 관리자", value: ROLES.INV_ADMIN },
+                  { label: "조사관", value: ROLES.RESEARCHER },
+                  { label: "저작권자", value: ROLES.COPYRIGHT_HOLDER },
                 ]}
                 showError={false}
               />
               <Button
-                variant="yellow"
+                variant={`${isButtonDisabled ? "grayWithDark" : "yellow"}`}
                 size="adminForm"
                 onClick={onSubmit}
                 disabled={isButtonDisabled}

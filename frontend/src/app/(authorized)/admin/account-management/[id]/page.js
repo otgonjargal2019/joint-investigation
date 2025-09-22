@@ -30,7 +30,7 @@ const UserDetailPage = ({ params }) => {
   const t = useTranslations();
   const router = useRouter();
 
-  const { data: response } = useQuery(
+  const { data: response, refetch } = useQuery(
     userQuery.getUserById({
       userId: id,
     })
@@ -157,6 +157,7 @@ const UserDetailPage = ({ params }) => {
               autoClose: 3000,
               position: "top-center",
             });
+            refetch();
           },
           onError: (err) => {
             toast.error(err.response.data.message, {

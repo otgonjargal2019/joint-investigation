@@ -18,13 +18,13 @@ const tabs = [
   { label: "승인 완료", value: USERSTATUS.APPROVED },
 ];
 const tableColumns = [
-  { key: "no", title: "NO." },
-  { key: "loginId", title: "ID" },
-  { key: "nameKr", title: "이름" },
-  { key: "countryName", title: "국가" },
-  { key: "affiliation", title: "소속" },
-  { key: "createdAtFormatted", title: "가입일" },
-  { key: "status2", title: "상태" },
+  { key: "no", title: "NO.", textAlign: "text-center" },
+  { key: "loginId", title: "ID", textAlign: "text-left" },
+  { key: "nameKr", title: "이름", textAlign: "text-center" },
+  { key: "countryName", title: "국가", textAlign: "text-center" },
+  { key: "affiliation", title: "소속", textAlign: "text-center" },
+  { key: "createdAtFormatted", title: "가입일", textAlign: "text-center" },
+  { key: "status2", title: "상태", textAlign: "text-center" },
 ];
 
 function AcountManagementPage() {
