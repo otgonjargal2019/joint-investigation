@@ -55,8 +55,12 @@
     "saved-successfully": "Saved successfully",
     "error-occurred": "An error occurred while processing your request.",
     "reason-required": "Reason is required.",
-    "captcha-mismatch": "Please enter the exact text as shown.",
-    "approved-successfully": "Investigation record has been approved successfully."
+    "typing-verification-prompt": "Please complete the text verification first.",
+    "approved-successfully": "Investigation record has been approved successfully.",
+    "approval-guideline-1": "Please review the investigation report, type the",
+    "approval-guideline-2": "text in the lower box, and press the OK button.",
+    "approval-statement": "We have reviewed the above investigation records and finally approve them.",
+    "reason-for-rejection-prompt": "Please provide the reason for rejection"
   },
   "case": "case",
   "total": "total",
@@ -161,7 +165,8 @@
     "headquarter": "Please enter the headquarters.",
     "department": "Please enter the department.",
     "chat-search": "chatrooms, searching for participants",
-    "message": "Enter your message here..."
+    "message": "Enter your message here...",
+    "reason": "Create reason for rejection"
   },
   "header": {
     "title": "International Cooperation and Investigation Platform",
