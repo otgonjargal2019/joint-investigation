@@ -13,7 +13,12 @@ import CheckCircle from "@/shared/components/icons/checkCircle";
 import CancelCircle from "@/shared/components/icons/cancelCircle";
 import CaseForm from "@/shared/widgets/caseForm";
 import Modal from "@/shared/components/modal";
-import { useInvestigationRecord, useRejectInvestigationRecord, useApproveInvestigationRecord } from "@/entities/investigation";
+import TypingOverlay from "@/shared/widgets/typingOverlay";
+import {
+  useInvestigationRecord,
+  useRejectInvestigationRecord,
+  useApproveInvestigationRecord,
+} from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
   const params = useParams();
@@ -23,7 +28,7 @@ const InquiryDetailPage = () => {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [captchaInput, setCaptchaInput] = useState("");
+  const [captchaCompleted, setCaptchaCompleted] = useState(false);
 
   const router = useRouter();
 
@@ -31,7 +36,7 @@ const InquiryDetailPage = () => {
   const {
     data: investigationRecord,
     isLoading,
-    error
+    error,
   } = useInvestigationRecord(inquiryId);
 
   // Reject mutation
@@ -52,7 +57,8 @@ const InquiryDetailPage = () => {
     if (investigationRecord) {
       reset({
         securityLevel: `option${investigationRecord.securityLevel || 3}`,
-        progressStatus: investigationRecord.progressStatus || "PRE_INVESTIGATION",
+        progressStatus:
+          investigationRecord.progressStatus || "PRE_INVESTIGATION",
         overview: investigationRecord.content || "",
         recordName: investigationRecord.recordName || "",
       });
@@ -65,13 +71,13 @@ const InquiryDetailPage = () => {
 
   const handleRejectInvestigation = () => {
     if (!rejectionReason.trim()) {
-      toast.info(t('incident.reason-required'), {
+      toast.info(t("incident.reason-required"), {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
-        draggable: true
+        draggable: true,
       });
       return;
     }
@@ -79,81 +85,79 @@ const InquiryDetailPage = () => {
     rejectMutation.mutate(
       {
         recordId: inquiryId,
-        rejectionReason: rejectionReason.trim()
+        rejectionReason: rejectionReason.trim(),
       },
       {
         onSuccess: () => {
           setDenyModalOpen(false);
           setRejectionReason("");
-          toast.success(t('incident.saved-successfully'), {
+          toast.success(t("incident.saved-successfully"), {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
-            draggable: true
+            draggable: true,
           });
           navigateBack();
         },
         onError: (error) => {
           console.error("Failed to reject investigation record:", error);
-          toast.error(t('incident.error-occurred'), {
+          toast.error(t("incident.error-occurred"), {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
-            draggable: true
+            draggable: true,
           });
-        }
+        },
       }
     );
   };
 
   const handleApproveInvestigation = () => {
-    const expectedText = "위 수사 기록을 검토하였으며 최종 승인합니다.";
-
-    if (captchaInput.trim() !== expectedText) {
-      toast.info(t('incident.captcha-mismatch'), {
+    if (!captchaCompleted) {
+      toast.info(t("incident.typing-verification-prompt"), {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
-        draggable: true
+        draggable: true,
       });
       return;
     }
 
     approveMutation.mutate(
       {
-        recordId: inquiryId
+        recordId: inquiryId,
       },
       {
         onSuccess: () => {
           setApproveModalOpen(false);
-          setCaptchaInput("");
-          toast.success(t('incident.approved-successfully'), {
+          setCaptchaCompleted(false);
+          toast.success(t("incident.approved-successfully"), {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
-            draggable: true
+            draggable: true,
           });
           navigateBack();
         },
         onError: (error) => {
           console.error("Failed to approve investigation record:", error);
-          toast.error(t('incident.error-occurred'), {
+          toast.error(t("incident.error-occurred"), {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
-            draggable: true
+            draggable: true,
           });
-        }
+        },
       }
     );
   };
@@ -193,7 +197,12 @@ const InquiryDetailPage = () => {
         <PageTitle title={t("case-detail.inquiry-of-investigation-records")} />
         <div className="flex justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Button variant="white" size="mediumWithShadow" className="gap-3" onClick={navigateBack}>
+            <Button
+              variant="white"
+              size="mediumWithShadow"
+              className="gap-3"
+              onClick={navigateBack}
+            >
               <ChevronLeft />
               {t("go-back")}
             </Button>
@@ -231,8 +240,14 @@ const InquiryDetailPage = () => {
             errors={errors}
             readonly={true}
             headerInfo={{
-              item1: investigationRecord?.caseInstance?.creationDate || investigationRecord?.createdAt?.split('T')[0] || "",
-              item2: investigationRecord?.caseInstance?.caseNumber || investigationRecord?.number || "",
+              item1:
+                investigationRecord?.caseInstance?.creationDate ||
+                investigationRecord?.createdAt?.split("T")[0] ||
+                "",
+              item2:
+                investigationRecord?.caseInstance?.caseNumber ||
+                investigationRecord?.number ||
+                "",
               item3: investigationRecord?.caseInstance?.caseName || "",
               item4: investigationRecord?.creator?.nameKr || "",
               item5: investigationRecord?.creator?.nameKr || "",
@@ -241,18 +256,31 @@ const InquiryDetailPage = () => {
               item8: investigationRecord?.reviewedAt || "",
             }}
             data={{
-              item1: investigationRecord?.recordName || "사건 B 목격자 관련 제보",
+              item1:
+                investigationRecord?.recordName || "사건 B 목격자 관련 제보",
             }}
-            report={investigationRecord?.attachedFiles?.filter(file => file.fileType === 'REPORT').map(file => ({
-              name: file.fileName,
-              url: file.storagePath,
-              size: file.fileSize ? `${(file.fileSize / 1024).toFixed(1)}KB` : "Unknown"
-            })) || []}
-            digitalEvidence={investigationRecord?.attachedFiles?.filter(file => file.fileType === 'EVIDENCE').map(file => ({
-              name: file.fileName,
-              url: file.storagePath,
-              size: file.fileSize ? `${(file.fileSize / 1024).toFixed(1)}KB` : "Unknown"
-            })) || []}
+            report={
+              investigationRecord?.attachedFiles
+                ?.filter((file) => file.fileType === "REPORT")
+                .map((file) => ({
+                  name: file.fileName,
+                  url: file.storagePath,
+                  size: file.fileSize
+                    ? `${(file.fileSize / 1024).toFixed(1)}KB`
+                    : "Unknown",
+                })) || []
+            }
+            digitalEvidence={
+              investigationRecord?.attachedFiles
+                ?.filter((file) => file.fileType === "EVIDENCE")
+                .map((file) => ({
+                  name: file.fileName,
+                  url: file.storagePath,
+                  size: file.fileSize
+                    ? `${(file.fileSize / 1024).toFixed(1)}KB`
+                    : "Unknown",
+                })) || []
+            }
           />
         </div>
       </div>
@@ -266,16 +294,13 @@ const InquiryDetailPage = () => {
             {t("approval-investigation-records")}
           </h3>
           <div className="bg-color-77 rounded-20 text-color-24 text-[20px] font-normal text-center p-4">
-            수사 보고서를 검토한 뒤 아래 란에 글씨를 따라
+            {t("incident.approval-guideline-1")}
             <br />
-            입력한 뒤, 확인 버튼을 눌러주세요.
+            {t("incident.approval-guideline-2")}
           </div>
-          <input
-            name="capcha"
-            className="border w-full border-color-32 rounded-10 placeholder-color-50 text-[20px] font-medium px-[20px] py-[10px]"
-            placeholder="위 수사 기록을 검토하였으며 최종 승인합니다."
-            value={captchaInput}
-            onChange={(e) => setCaptchaInput(e.target.value)}
+          <TypingOverlay
+            text={t("incident.approval-statement")}
+            onComplete={() => setCaptchaCompleted(true)}
           />
           <div className="flex justify-center gap-4">
             <Button
@@ -284,7 +309,7 @@ const InquiryDetailPage = () => {
               className="w-[148px]"
               onClick={() => {
                 setApproveModalOpen(false);
-                setCaptchaInput("");
+                setCaptchaCompleted(false);
               }}
               disabled={approveMutation.isPending}
             >
@@ -294,7 +319,7 @@ const InquiryDetailPage = () => {
               size="form"
               className="w-[148px]"
               onClick={handleApproveInvestigation}
-              disabled={approveMutation.isPending || captchaInput.trim() !== "위 수사 기록을 검토하였으며 최종 승인합니다."}
+              disabled={approveMutation.isPending || !captchaCompleted}
             >
               {approveMutation.isPending ? "처리중..." : t("check")}
             </Button>
@@ -311,11 +336,11 @@ const InquiryDetailPage = () => {
             {t("refusal-investigation-records")}
           </h3>
           <div className="bg-color-77 rounded-20 text-color-24 text-[20px] font-normal text-center p-4 py-5">
-            반려 사유를 작성해주세요
+            {t("incident.reason-for-rejection-prompt")}
           </div>
           <textarea
-            className="w-full h-[200px] border border-color-32 rounded-10 placeholder-color-50 text-[20px] font-medium px-[20px] py-[10px]"
-            placeholder="반려 사유 작성"
+            className="w-full h-[200px] border border-color-32 rounded-10 placeholder-color-50 text-[20px] font-medium px-[20px] py-[10px] outline-none"
+            placeholder={t("placeholder.reason")}
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
           />
