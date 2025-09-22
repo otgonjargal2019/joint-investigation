@@ -10,12 +10,16 @@ mc alias set joint_investigation http://localhost:9000 "$MINIO_ROOT_USER" "$MINI
 
 # 2) 버킷 생성 (검색 이미지, 프로필 이미지)
 echo "=== Creating buckets ==="
-#mc mb nft-eyes-minio/search-images
 mc mb --ignore-existing joint_investigation/profile-images
+mc mb --ignore-existing joint_investigation/notice
+mc mb --ignore-existing joint_investigation/research
+mc mb --ignore-existing joint_investigation/investigation
+echo "=== Created buckets ==="
 
-# 3) search-images 버킷 Public Read 설정
-#echo "=== Setting public read policy on search-images ==="
-#mc anonymous set download nft-eyes-minio/search-images
+# 3) Public Read
+mc anonymous set download joint_investigation/notice
+mc anonymous set download joint_investigation/research
+mc anonymous set download joint_investigation/investigation
 
 # 4) profile-images 버킷 Public Read 설정
 echo "=== Setting public read policy on profile-images ==="
