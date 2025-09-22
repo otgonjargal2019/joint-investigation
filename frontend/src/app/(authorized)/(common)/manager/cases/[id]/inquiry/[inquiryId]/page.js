@@ -93,6 +93,7 @@ const InquiryDetailPage = () => {
             pauseOnHover: true,
             draggable: true
           });
+          navigateBack();
         },
         onError: (error) => {
           console.error("Failed to reject investigation record:", error);
@@ -140,6 +141,7 @@ const InquiryDetailPage = () => {
             pauseOnHover: true,
             draggable: true
           });
+          navigateBack();
         },
         onError: (error) => {
           console.error("Failed to approve investigation record:", error);
