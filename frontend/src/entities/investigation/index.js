@@ -3,7 +3,8 @@ export {
   useCreateInvestigationRecord,
   useCreateInvestigationRecordWithFiles,
   useUpdateInvestigationRecord,
-  useGetInvestigationRecord
+  useGetInvestigationRecord,
+  useRejectInvestigationRecord
 } from './api/investigationRecord.mutation';
 export * from './model/types';
 export * from './model/query-params';

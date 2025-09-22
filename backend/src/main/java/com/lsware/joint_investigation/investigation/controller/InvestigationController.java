@@ -3,8 +3,10 @@ package com.lsware.joint_investigation.investigation.controller;
 
 import com.lsware.joint_investigation.investigation.service.InvestigationService;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordRequest;
+import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.controller.UserController;
 
@@ -167,6 +169,34 @@ public class InvestigationController {
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
+	 * Reject an investigation record
+	 */
+	@PostMapping("/reject")
+	public ResponseEntity<MappingJacksonValue> rejectInvestigationRecord(
+			@RequestBody RejectInvestigationRecordRequest request,
+			Authentication authentication) {
+
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			InvestigationRecordDto rejectedRecord = investigationService.rejectInvestigationRecord(request, user.getId());
+
+			MappingJacksonValue mapping = new MappingJacksonValue(rejectedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for rejecting investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error rejecting investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}

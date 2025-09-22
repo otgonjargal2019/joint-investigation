@@ -120,3 +120,26 @@ export const useGetInvestigationRecord = () => {
     }
   });
 };
+
+/**
+ * Hook for rejecting investigation record
+ * @returns {import('@tanstack/react-query').UseMutationResult}
+ */
+export const useRejectInvestigationRecord = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ recordId, rejectionReason }) => {
+      const response = await axiosInstance.post('/investigation-records/reject', {
+        recordId,
+        rejectionReason
+      });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate related queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['investigationRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['investigationRecord', variables.recordId] });
+    }
+  });
+};

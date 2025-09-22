@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 import Button from "@/shared/components/button";
 import PageTitle from "@/shared/components/pageTitle/page";
@@ -12,7 +13,7 @@ import CheckCircle from "@/shared/components/icons/checkCircle";
 import CancelCircle from "@/shared/components/icons/cancelCircle";
 import CaseForm from "@/shared/widgets/caseForm";
 import Modal from "@/shared/components/modal";
-import { useInvestigationRecord } from "@/entities/investigation";
+import { useInvestigationRecord, useRejectInvestigationRecord } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
   const params = useParams();
@@ -21,6 +22,7 @@ const InquiryDetailPage = () => {
 
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const router = useRouter();
 
@@ -30,6 +32,9 @@ const InquiryDetailPage = () => {
     isLoading,
     error
   } = useInvestigationRecord(inquiryId);
+
+  // Reject mutation
+  const rejectMutation = useRejectInvestigationRecord();
 
   const t = useTranslations();
   const {
@@ -52,6 +57,52 @@ const InquiryDetailPage = () => {
 
   const navigateBack = () => {
     router.push(`/manager/cases/${caseId}`);
+  };
+
+  const handleRejectInvestigation = () => {
+    if (!rejectionReason.trim()) {
+      toast.info(t('incident.reason-required'), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      return;
+    }
+
+    rejectMutation.mutate(
+      {
+        recordId: inquiryId,
+        rejectionReason: rejectionReason.trim()
+      },
+      {
+        onSuccess: () => {
+          setDenyModalOpen(false);
+          setRejectionReason("");
+          toast.success(t('incident.saved-successfully'), {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        },
+        onError: (error) => {
+          console.error("Failed to reject investigation record:", error);
+          toast.error(t('incident.error-occurred'), {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        }
+      }
+    );
   };
 
   // Show loading state
@@ -201,18 +252,29 @@ const InquiryDetailPage = () => {
           <textarea
             className="w-full h-[200px] border border-color-32 rounded-10 placeholder-color-50 text-[20px] font-medium px-[20px] py-[10px]"
             placeholder="반려 사유 작성"
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
           />
           <div className="flex justify-center gap-4">
             <Button
               variant="gray2"
               size="form"
               className="w-[148px]"
-              onClick={() => setDenyModalOpen(false)}
+              onClick={() => {
+                setDenyModalOpen(false);
+                setRejectionReason("");
+              }}
+              disabled={rejectMutation.isPending}
             >
               {t("cancel")}
             </Button>
-            <Button size="form" className="w-[148px]">
-              {t("check")}
+            <Button
+              size="form"
+              className="w-[148px]"
+              onClick={handleRejectInvestigation}
+              disabled={rejectMutation.isPending || !rejectionReason.trim()}
+            >
+              {rejectMutation.isPending ? "처리중..." : t("check")}
             </Button>
           </div>
         </div>

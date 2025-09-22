@@ -20,6 +20,7 @@ import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecor
 import com.lsware.joint_investigation.investigation.dto.CreateAttachFileRequest;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.user.entity.Users;
@@ -372,6 +373,44 @@ public class InvestigationService {
 							"Reviewer not found with ID: " + request.getReviewerId()));
 			existingRecord.setReviewer(reviewer);
 		}
+
+		// Update timestamp
+		existingRecord.setUpdatedAt(LocalDateTime.now());
+
+		// Save the record
+		InvestigationRecord savedRecord = investigationRecordRepository.save(existingRecord);
+
+		// Update case updated_at timestamp
+		if (existingRecord.getCaseInstance() != null) {
+			Case caseEntity = existingRecord.getCaseInstance();
+			caseEntity.setUpdatedAt(LocalDateTime.now());
+			caseRepository.save(caseEntity);
+		}
+
+		// Return DTO
+		return savedRecord.toDto();
+	}
+
+	/**
+	 * Reject an investigation record
+	 */
+	@Transactional
+	@PreAuthorize("hasRole('INV_ADMIN')")
+	public InvestigationRecordDto rejectInvestigationRecord(RejectInvestigationRecordRequest request, UUID currentUserId) {
+		// Get the existing record
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
+				.orElseThrow(() -> new IllegalArgumentException(
+						"Investigation record not found with ID: " + request.getRecordId()));
+
+		// Set review status to REJECTED and update rejection reason
+		existingRecord.setReviewStatus(InvestigationRecord.REVIEW_STATUS.REJECTED);
+		existingRecord.setRejectionReason(request.getRejectionReason());
+
+		// Set reviewer and review timestamp
+		Users currentUser = userRepository.findByUserId(currentUserId)
+				.orElseThrow(() -> new IllegalArgumentException("Current user not found"));
+		existingRecord.setReviewer(currentUser);
+		existingRecord.setReviewedAt(LocalDateTime.now());
 
 		// Update timestamp
 		existingRecord.setUpdatedAt(LocalDateTime.now());
