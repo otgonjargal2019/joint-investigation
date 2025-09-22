@@ -13,8 +13,8 @@ import { axiosInstance } from "@/shared/api/baseAxiosApi";
  * }>}
  */
 export const useInvestigationRecords = ({
-  sortBy = "recordName",
-  sortDirection = "asc",
+  sortBy = "createdAt",
+  sortDirection = "desc",
   page = 0,
   size = 10,
   progressStatus,
@@ -39,5 +39,26 @@ export const useInvestigationRecords = ({
       );
       return data;
     },
+  });
+};
+
+/**
+ * Hook for fetching a single investigation record by ID
+ * @param {string} recordId - UUID of the investigation record
+ * @param {boolean} enabled - Whether the query should run
+ * @returns {import('@tanstack/react-query').UseQueryResult<import('../model/types').InvestigationRecord>}
+ */
+export const useInvestigationRecord = (recordId, { enabled = true } = {}) => {
+  return useQuery({
+    queryKey: ["investigationRecord", recordId],
+    queryFn: async () => {
+      if (!recordId) {
+        throw new Error("Record ID is required");
+      }
+
+      const { data } = await axiosInstance.get(`/investigation-records/${recordId}`);
+      return data;
+    },
+    enabled: enabled && Boolean(recordId),
   });
 };

@@ -3,10 +3,15 @@ package com.lsware.joint_investigation.investigation.controller;
 
 import com.lsware.joint_investigation.investigation.service.InvestigationService;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordRequest;
+import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.controller.UserController;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +40,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/investigation-records")
+@Slf4j
 public class InvestigationController {
 
 	@Autowired
@@ -47,8 +53,8 @@ public class InvestigationController {
 			@RequestParam(required = false) String caseId,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
-			@RequestParam(required = false, defaultValue = "recordName") String sortBy,
-			@RequestParam(required = false, defaultValue = "asc") String sortDirection) {
+			@RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+			@RequestParam(required = false, defaultValue = "desc") String sortDirection) {
 		Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
 		Sort sort = Sort.by(direction, sortBy);
 		Pageable pageable = PageRequest.of(page, size, sort);
@@ -134,8 +140,12 @@ public class InvestigationController {
 			return ResponseEntity.ok(mapping);
 
 		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for getting investigation record {}: {}",
+				recordId, e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+			log.error("Invalid request for getting investigation record {}: {}",
+				recordId, e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}
@@ -160,6 +170,62 @@ public class InvestigationController {
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
+	 * Reject an investigation record
+	 */
+	@PostMapping("/reject")
+	public ResponseEntity<MappingJacksonValue> rejectInvestigationRecord(
+			@RequestBody RejectInvestigationRecordRequest request,
+			Authentication authentication) {
+
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			InvestigationRecordDto rejectedRecord = investigationService.rejectInvestigationRecord(request, user.getId());
+
+			MappingJacksonValue mapping = new MappingJacksonValue(rejectedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for rejecting investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error rejecting investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
+	 * Approve an investigation record
+	 */
+	@PostMapping("/approve")
+	public ResponseEntity<MappingJacksonValue> approveInvestigationRecord(
+			@RequestBody ApproveInvestigationRecordRequest request,
+			Authentication authentication) {
+
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			InvestigationRecordDto approvedRecord = investigationService.approveInvestigationRecord(request, user.getId());
+
+			MappingJacksonValue mapping = new MappingJacksonValue(approvedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for approving investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error approving investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}

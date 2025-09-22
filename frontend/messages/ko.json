@@ -52,7 +52,11 @@
       "DISPOSE": "디지털 증거물 파기",
       "ON_HOLD": "미해결"
     },
-    "saved-successfully": "성공적으로 저장되었습니다"
+    "saved-successfully": "성공적으로 저장되었습니다",
+    "error-occurred": "요청 처리 중 오류가 발생했습니다.",
+    "reason-required": "사유가 필요합니다.",
+    "captcha-mismatch": "표시된 정확한 텍스트를 입력해주세요.",
+    "approved-successfully": "수사기록이 성공적으로 승인되었습니다."
   },
   "case": "건",
   "total": "총",
@@ -239,7 +243,8 @@
     "investigation-content": "수사 내용",
     "investigative-report": "수사 보고서",
     "digital-evidence": "디지털 증거물",
-    "validation-enter-record-name": "수사 기록명을 입력해주세요."
+    "validation-enter-record-name": "수사 기록명을 입력해주세요.",
+    "no-content": "내용이 없습니다."
   },
   "enter-incident-info": "사건 정보 입력",
   "edit-incident-info": "사건 정보 수정",

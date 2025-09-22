@@ -64,24 +64,24 @@ const IncidentCreatePage = () => {
     input.type = 'file';
     input.multiple = true;
     input.accept = '*/*';
-    
+
     input.onchange = (event) => {
       const files = Array.from(event.target.files);
-      
+
       // Simple categorization dialog or you could implement a modal
       const fileType = window.confirm(
         'Click OK for Investigation Report files, Cancel for Digital Evidence files'
       );
-      
+
       if (fileType) {
         setReportFiles(prev => [...prev, ...files]);
       } else {
         setDigitalEvidenceFiles(prev => [...prev, ...files]);
       }
-      
+
       setSelectedFiles(prev => [...prev, ...files]);
     };
-    
+
     input.click();
   };
 
@@ -106,7 +106,8 @@ const IncidentCreatePage = () => {
       // Prepare investigation record data
       const recordData = {
         recordName: formData.recordName.trim(),
-        progressStatus: mapProgressStatus(formData.progressStatus),
+        content: formData.overview || "",
+        progressStatus: formData.progressStatus,
         securityLevel: parseInt(formData.securityLevel?.replace('option', '')) || 3,
         overview: formData.overview || "",
         caseId: caseId
@@ -157,26 +158,10 @@ const IncidentCreatePage = () => {
     }
   };
 
-  // Helper function to map progress status
-  const mapProgressStatus = (statusOption) => {
-    const statusMap = {
-      'option1': 'PRE_INVESTIGATION',
-      'option2': 'INVESTIGATION', 
-      'option3': 'TRANSFER',
-      'option4': 'ANALYZING',
-      'option5': 'REPORT_INVESTIGATION',
-      'option6': 'DISPOSE',
-      'option7': 'ON_HOLD'
-    };
-    return statusMap[statusOption] || 'PRE_INVESTIGATION';
-  };
-
   // Cancel handler
   const handleCancel = () => {
     router.push(`/investigator/cases/${caseId}`);
   };
-
-  console.log("caseId", caseId);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
@@ -193,20 +178,20 @@ const IncidentCreatePage = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Button 
+              <Button
                 type="button"
-                variant="white" 
-                size="mediumWithShadow" 
+                variant="white"
+                size="mediumWithShadow"
                 className="gap-3"
                 onClick={handleCancel}
               >
                 <Cancel />
                 {t("cancel")}
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="white" 
-                size="mediumWithShadow" 
+                variant="white"
+                size="mediumWithShadow"
                 className="gap-3"
                 onClick={handleFileUpload}
               >
@@ -215,10 +200,10 @@ const IncidentCreatePage = () => {
               </Button>
             </div>
             <div>
-              <Button 
+              <Button
                 type="submit"
-                variant="yellow" 
-                size="mediumWithShadow" 
+                variant="yellow"
+                size="mediumWithShadow"
                 className="gap-3"
                 disabled={createInvestigationRecordMutation.isPending}
               >
@@ -250,13 +235,13 @@ const IncidentCreatePage = () => {
               data={{
                 item1: watch("recordName") || "사건 B 목격자 관련 제보",
               }}
-              report={reportFiles.map((file, index) => ({ 
-                name: file.name, 
+              report={reportFiles.map((file, index) => ({
+                name: file.name,
                 size: `${(file.size / 1024).toFixed(1)}KB`,
                 onRemove: () => removeReportFile(index)
               }))}
-              digitalEvidence={digitalEvidenceFiles.map((file, index) => ({ 
-                name: file.name, 
+              digitalEvidence={digitalEvidenceFiles.map((file, index) => ({
+                name: file.name,
                 size: `${(file.size / 1024).toFixed(1)}KB`,
                 onRemove: () => removeDigitalEvidenceFile(index)
               }))}

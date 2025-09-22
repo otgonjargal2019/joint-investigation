@@ -69,8 +69,22 @@ function IncidentDetailPage() {
         return `${year}-${month}-${day}`;
       }
     },
-    { key: "content", title: "디지털 증거물" },
-    { key: "investigationReport", title: "수사보고서" },
+    {
+      key: "attachedFiles",
+      title: "디지털 증거물",
+      render: (attachedFiles) => {
+        if (!attachedFiles) return 'X';
+        return attachedFiles?.find(file => file.digitalEvidence) ? 'O' : 'X';
+      }
+    },
+    {
+      key: "attachedFiles",
+      title: "수사보고서",
+      render: (attachedFiles) => {
+        if (!attachedFiles) return 'X';
+        return attachedFiles?.find(file => file.investigationReport) ? 'O' : 'X';
+      }
+    },
     { key: "progressStatus", title: "진행상태", render: (value) => t(`incident.PROGRESS_STATUS.${value}`) },
   ];
 

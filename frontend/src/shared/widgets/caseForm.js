@@ -66,6 +66,7 @@ const CaseForm = ({
   register,
   watch,
   errors,
+  readonly = false,
 }) => {
   const t = useTranslations();
   const textWriter = t("case-form.writer");
@@ -81,7 +82,6 @@ const CaseForm = ({
     const day = String(date.getDate()).padStart(2, '0');
     item7 = `${year}-${month}-${day}`;
   }
-
 
   return (
     <div>
@@ -128,12 +128,18 @@ const CaseForm = ({
           {t("case-form.investigation-record-name")}
         </TitleDiv>
         <TextDiv className="border-t border-r">
-          <Input
-            name="recordName"
-            register={(name) => register(name, { required: t("case-form.validation-enter-record-name") })}
-            error={errors.recordName}
-            placeholder={t("case-form.validation-enter-record-name")}
-          />
+          {readonly ? (
+            <div className="text-[18px] font-normal py-2">
+              {data.item1 || watch("recordName") || t("case-form.validation-enter-record-name")}
+            </div>
+          ) : (
+            <Input
+              name="recordName"
+              register={(name) => register(name, { required: t("case-form.validation-enter-record-name") })}
+              error={errors.recordName}
+              placeholder={t("case-form.validation-enter-record-name")}
+            />
+          )}
         </TextDiv>
         <TitleDiv className="gap-2">
           {t("case-form.security-level")} <QuestionMarkCircle />
@@ -145,6 +151,7 @@ const CaseForm = ({
             options={options}
             register={register}
             watch={watch}
+            readonly={readonly}
           />
         </TextDiv>
         <TitleDiv>{t("case-form.detailed-progress-status")}</TitleDiv>
@@ -155,17 +162,24 @@ const CaseForm = ({
             options={options2}
             register={register}
             watch={watch}
+            readonly={readonly}
           />
         </TextDiv>
         <TitleDiv>{t("case-form.investigation-content")}</TitleDiv>
         <TextDiv className="border-r">
-          <Textarea
-            name="overview"
-            register={register}
-            error={errors.overview}
-            placeholder="Enter your message here..."
-            rows={8}
-          />
+          {readonly ? (
+            <div className="text-[18px] font-normal py-2 whitespace-pre-wrap min-h-[200px]">
+              {watch("overview") || t("case-form.no-content")}
+            </div>
+          ) : (
+            <Textarea
+              name="overview"
+              register={register}
+              error={errors.overview}
+              placeholder="Enter your message here..."
+              rows={8}
+            />
+          )}
         </TextDiv>
       </div>
 
@@ -181,7 +195,7 @@ const CaseForm = ({
           <ul className="space-y-1">
             {report?.map((file, idx) => (
               <li key={idx} className="flex gap-1">
-                <span className="text-color-20">{file.name}</span>
+                <span className="text-color-20"><a href={file.url} target="_blank">{file.name}</a></span>
                 <span className="text-color-96">({file.size})</span>
               </li>
             ))}
@@ -194,7 +208,7 @@ const CaseForm = ({
           <ul className="space-y-1">
             {digitalEvidence?.map((file, idx) => (
               <li key={idx} className="flex gap-1">
-                <span className="text-color-20">{file.name}</span>
+                <span className="text-color-20"><a href={file.url} target="_blank">{file.name}</a></span>
                 <span className="text-color-96">({file.size})</span>
               </li>
             ))}

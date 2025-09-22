@@ -244,6 +244,9 @@ public class FileService {
             metadata.addUserMetadata("file-type", fileType);
 
             PutObjectRequest request = new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata);
+            AccessControlList acl = new AccessControlList();
+            acl.grantPermission(GroupGrantee.AllUsers, Permission.Read);
+            request.setAccessControlList(acl);
             s3Client.putObject(request);
 
             URL downloadUrl = s3Client.getUrl(bucketName, s3Key);

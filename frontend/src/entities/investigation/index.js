@@ -1,9 +1,11 @@
-export { useInvestigationRecords } from './api/investigationRecord.query';
+export { useInvestigationRecords, useInvestigationRecord } from './api/investigationRecord.query';
 export {
   useCreateInvestigationRecord,
   useCreateInvestigationRecordWithFiles,
   useUpdateInvestigationRecord,
-  useGetInvestigationRecord
+  useGetInvestigationRecord,
+  useRejectInvestigationRecord,
+  useApproveInvestigationRecord
 } from './api/investigationRecord.mutation';
 export * from './model/types';
 export * from './model/query-params';

@@ -52,7 +52,11 @@
       "DISPOSE": "dispose",
       "ON_HOLD": "on hold"
     },
-    "saved-successfully": "Saved successfully"
+    "saved-successfully": "Saved successfully",
+    "error-occurred": "An error occurred while processing your request.",
+    "reason-required": "Reason is required.",
+    "captcha-mismatch": "Please enter the exact text as shown.",
+    "approved-successfully": "Investigation record has been approved successfully."
   },
   "case": "case",
   "total": "total",
@@ -239,7 +243,8 @@
     "investigation-content": "investigation content",
     "investigative-report": "investigative report",
     "digital-evidence": "digital evidence",
-    "validation-enter-record-name": "Enter investigation record name"
+    "validation-enter-record-name": "Enter investigation record name",
+    "no-content": "No content"
   },
   "enter-incident-info": "enter incident info",
   "edit-incident-info": "edit incident info",
