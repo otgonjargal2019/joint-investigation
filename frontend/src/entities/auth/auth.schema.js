@@ -66,20 +66,36 @@ const withPasswordConfirm = (schema) =>
   });
 
 export const registerFormSchema = withPasswordConfirm(
-  z.object({
-    loginId: z.string().min(1, "Required"),
-    password: passwordField,
-    passwordConfirm: z.string().min(1, "Required"),
-    nameKr: z.string().min(1, "Required"),
-    nameEn: z.string().optional(),
-    countryId: z.string().min(1, "Required"),
-    headquarterId: z.string().min(1, "Required"),
-    departmentId: z.string().min(1, "Required"),
-    phone1: z.string().optional(),
-    phone2: z.string().optional(),
-    email: z.string().min(1, "Required"),
-    email2: z.string().min(1, "Required"),
-  })
+  z
+    .object({
+      loginId: z
+        .string()
+        .min(1, "Required")
+        .regex(
+          /^[A-Za-z0-9]+$/,
+          "Login ID는 영어 문자와 숫자를 포함해야 합니다."
+        ),
+      password: passwordField,
+      passwordConfirm: z.string().min(1, "Required"),
+      nameKr: z.string().optional(),
+      nameEn: z.string().optional(),
+      countryId: z.string().min(1, "Required"),
+      headquarterId: z.string().min(1, "Required"),
+      departmentId: z.string().min(1, "Required"),
+      phone1: z.string().optional(),
+      phone2: z.string().optional(),
+      email: z.string().min(1, "Required"),
+      email2: z.string().min(1, "Required"),
+    })
+    .superRefine((data, ctx) => {
+      if (!data.nameKr && !data.nameEn) {
+        ctx.addIssue({
+          code: "custom",
+          message: "한국어 이름 또는 영어 이름이 필요합니다.",
+          path: ["nameEn"],
+        });
+      }
+    })
 );
 
 export const profileFormSchema = withPasswordConfirm(

@@ -166,21 +166,11 @@ function JoinMembershipPage() {
         setLoginIdChecked(true);
         setAlertMessage("info-msg.available-id");
         setModalOpen(true);
-
-        // toast.success(t("info-msg.available-id"), {
-        //   autoClose: 3000,
-        //   position: "top-center",
-        // });
       },
       onError: () => {
         setLoginIdChecked(false);
         setAlertMessage("info-msg.not-available-id");
         setModalOpen(true);
-
-        // toast.warning(t("info-msg.not-available-id"), {
-        //   autoClose: 3000,
-        //   position: "top-center",
-        // });
       },
     });
   };
@@ -202,19 +192,11 @@ function JoinMembershipPage() {
         setEmailChecked(true);
         setAlertMessage("info-msg.available-email-id");
         setModalOpen(true);
-        // toast.success(t("info-msg.available-email-id"), {
-        //   autoClose: 3000,
-        //   position: "top-center",
-        // });
       },
       onError: () => {
         setEmailChecked(false);
         setAlertMessage("info-msg.not-available-email-id");
         setModalOpen(true);
-        // toast.warning(t("info-msg.not-available-email-id"), {
-        //   autoClose: 3000,
-        //   position: "top-center",
-        // });
       },
     });
   };
@@ -246,14 +228,19 @@ function JoinMembershipPage() {
                 {t("form.id")}
               </Label>
               <div className="flex gap-2">
-                <Input
-                  register={register}
-                  name="loginId"
-                  showError={false}
-                  variant="form"
-                  placeholder={t("placeholder.id")}
-                  error={errors.loginId}
-                />
+                <div className="w-full">
+                  <Input
+                    register={register}
+                    name="loginId"
+                    showError={false}
+                    variant="form"
+                    placeholder={t("placeholder.id")}
+                    error={errors.loginId}
+                  />
+                  <p className="text-color-86 text-[16px] font-normal text-left">
+                    {errors.loginId && t("error-msg.error-login-id")}
+                  </p>
+                </div>
                 <Button
                   size="small2"
                   variant={watch("loginId") ? "neon" : "gray3"}
@@ -306,7 +293,7 @@ function JoinMembershipPage() {
             <div className="w-full h-px bg-color-24 mb-4" />
 
             <div
-              className="grid gap-4"
+              className="w-full grid gap-4"
               style={{ gridTemplateColumns: "120px 600px" }}
             >
               <Label color="gray" className="text-right mt-2">
@@ -323,13 +310,18 @@ function JoinMembershipPage() {
               <Label color="gray" className="text-right mt-2">
                 {t("form.eng-name")}
               </Label>
-              <Input
-                register={register}
-                name="nameEn"
-                showError={false}
-                variant="form"
-                placeholder={t("placeholder.eng-name")}
-              />
+              <div className="w-full">
+                <Input
+                  register={register}
+                  name="nameEn"
+                  showError={false}
+                  variant="form"
+                  placeholder={t("placeholder.eng-name")}
+                />
+                <p className="text-color-86 text-[16px] font-normal text-left">
+                  {errors.nameEn && t("error-msg.namekr-or-nameen-required")}
+                </p>
+              </div>
               <Label color="gray" className="text-right mt-2">
                 {t("form.nation")}
               </Label>
@@ -432,7 +424,8 @@ function JoinMembershipPage() {
                 size="small3"
                 variant={
                   loginIdChecked &&
-                  Object.keys(errors).length == 0 &&
+                  Object.keys(errors).filter((key) => key != "nameEn").length ==
+                    0 &&
                   emailChecked
                     ? "neon"
                     : "gray2"
@@ -441,7 +434,8 @@ function JoinMembershipPage() {
                 disabled={
                   !(
                     loginIdChecked &&
-                    Object.keys(errors).length == 0 &&
+                    Object.keys(errors).filter((key) => key != "nameEn")
+                      .length == 0 &&
                     emailChecked
                   )
                 }

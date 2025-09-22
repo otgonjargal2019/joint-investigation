@@ -43,10 +43,10 @@ function LoginPage() {
     };
     loginMutation.mutate(payload, {
       onSuccess: (res) => {
-        const { message, success } = res.data;
+        const { success } = res.data;
         if (success) {
-          toast.success(`${message}`, {
-            autoClose: 3000,
+          toast.success(t("info-msg.login-successful"), {
+            autoClose: 9000,
             position: "top-center",
           });
 
