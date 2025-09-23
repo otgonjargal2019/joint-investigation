@@ -4,6 +4,8 @@
   "loading-organizational-data": "Loading organizational data",
   "loading-foreign-data": "Loading foreign data",
   "loading-assignees": "Loading assignees",
+  "loading-error": "Error loading record",
+  "record-not-found": "record not found",
   "user-role": {
     "PLATFORM_ADMIN": "Platform Admin",
     "INV_ADMIN": "Investigation Admin",
@@ -60,7 +62,8 @@
     "approval-guideline-1": "Please review the investigation report, type the",
     "approval-guideline-2": "text in the lower box, and press the OK button.",
     "approval-statement": "We have reviewed the above investigation records and finally approve them.",
-    "reason-for-rejection-prompt": "Please provide the reason for rejection"
+    "reason-for-rejection-prompt": "Please provide the reason for rejection",
+    "cancel-editing": "Cancel editing"
   },
   "case": "case",
   "total": "total",
