@@ -71,32 +71,6 @@ public class InvestigationController {
 	}
 
 	/**
-	 * Create a new investigation record with optional attached files
-	 * DEPRECATED: Use /create-with-files for file uploads
-	 * The request can include an array of attached files with their metadata.
-	 * File content should be uploaded separately and the storagePath provided here.
-	 */
-	@PostMapping("/create")
-	public ResponseEntity<MappingJacksonValue> createInvestigationRecord(
-			@RequestBody CreateInvestigationRecordRequest request,
-			Authentication authentication) {
-
-		try {
-			InvestigationRecordDto createdRecord = investigationService.createInvestigationRecord(request);
-
-			MappingJacksonValue mapping = new MappingJacksonValue(createdRecord);
-			mapping.setFilters(UserController.getUserFilter());
-
-			return ResponseEntity.ok(mapping);
-
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().build();
-		} catch (Exception e) {
-			return ResponseEntity.internalServerError().build();
-		}
-	}
-
-	/**
 	 * Create a new investigation record with file uploads
 	 * Handles multipart/form-data requests with files
 	 */

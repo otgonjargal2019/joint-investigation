@@ -70,117 +70,6 @@ public class InvestigationService {
 	}
 
 	/**
-	 * Create a new investigation record
-	 * 
-	 * @param request The create investigation record request
-	 * @return The created investigation record DTO
-	 */
-	@PreAuthorize("hasRole('RESEARCHER') or hasRole('INVESTIGATOR')")
-	@Transactional
-	public InvestigationRecordDto createInvestigationRecord(CreateInvestigationRecordRequest request) {
-		// Validate request
-		if (request.getCaseId() == null) {
-			throw new IllegalArgumentException("Case ID is required");
-		}
-		if (request.getRecordName() == null || request.getRecordName().trim().isEmpty()) {
-			throw new IllegalArgumentException("Record name is required");
-		}
-		if (request.getSecurityLevel() == null) {
-			throw new IllegalArgumentException("Security level is required");
-		}
-
-		// Get current user
-		CustomUser currentUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		UUID currentUserId = currentUser.getId();
-
-		// Validate and get the case
-		Case caseEntity = caseRepository.findById(request.getCaseId())
-				.orElseThrow(() -> new IllegalArgumentException("Case not found with ID: " + request.getCaseId()));
-
-		// Get the creator user
-		Users creator = userRepository.findByUserId(currentUserId)
-				.orElseThrow(() -> new RuntimeException("Creator user not found"));
-
-		// Get reviewer if specified
-		Users reviewer = null;
-		if (request.getReviewerId() != null) {
-			reviewer = userRepository.findByUserId(request.getReviewerId())
-					.orElseThrow(() -> new IllegalArgumentException(
-							"Reviewer not found with ID: " + request.getReviewerId()));
-		}
-
-		// Create the investigation record entity
-		InvestigationRecord record = new InvestigationRecord();
-		record.setCaseInstance(caseEntity);
-		record.setRecordName(request.getRecordName());
-		record.setContent(request.getContent());
-		record.setSecurityLevel(request.getSecurityLevel());
-		record.setNumber(request.getNumber());
-		record.setProgressStatus(
-				request.getProgressStatus() != null ? request.getProgressStatus() : PROGRESS_STATUS.PRE_INVESTIGATION);
-		record.setReviewStatus(request.getReviewStatus() != null ? request.getReviewStatus()
-				: InvestigationRecord.REVIEW_STATUS.WRITING);
-		record.setRejectionReason(request.getRejectionReason());
-		record.setCreator(creator);
-		record.setReviewer(reviewer);
-
-		// Set timestamps
-		LocalDateTime now = LocalDateTime.now();
-		record.setCreatedAt(now);
-		record.setUpdatedAt(now);
-
-		// Save the record
-		InvestigationRecord savedRecord = investigationRecordRepository.save(record);
-
-		// Create and save attached files if provided
-		if (request.getAttachedFiles() != null && !request.getAttachedFiles().isEmpty()) {
-			List<AttachFile> attachedFiles = new ArrayList<>();
-
-			for (CreateAttachFileRequest fileRequest : request.getAttachedFiles()) {
-				// Validate file request
-				if (fileRequest.getFileName() == null || fileRequest.getFileName().trim().isEmpty()) {
-					throw new IllegalArgumentException("File name is required for attached files");
-				}
-				if (fileRequest.getFileType() == null) {
-					throw new IllegalArgumentException("File type is required for attached files");
-				}
-				if (fileRequest.getStoragePath() == null || fileRequest.getStoragePath().trim().isEmpty()) {
-					throw new IllegalArgumentException("Storage path is required for attached files");
-				}
-
-				// Create attach file entity
-				AttachFile attachFile = new AttachFile();
-				attachFile.setInvestigationRecord(savedRecord);
-				attachFile.setFileName(fileRequest.getFileName());
-				attachFile.setFileType(fileRequest.getFileType());
-				attachFile.setFileSize(fileRequest.getFileSize());
-				attachFile.setMimeType(fileRequest.getMimeType());
-				attachFile.setFileHash(fileRequest.getFileHash());
-				attachFile.setStoragePath(fileRequest.getStoragePath());
-				attachFile.setUploadedBy(creator);
-				attachFile.setCreatedAt(now);
-				attachFile.setDigitalEvidence(fileRequest.getDigitalEvidence());
-				attachFile.setInvestigationReport(fileRequest.getInvestigationReport());
-				attachFile.setAuthorizedUserIdList(fileRequest.getAuthorizedUserIdList());
-				attachFile.setAuthorizedUserReEncryptKeyIdList(fileRequest.getAuthorizedUserReEncryptKeyIdList());
-
-				AttachFile savedFile = attachFileRepository.save(attachFile);
-				attachedFiles.add(savedFile);
-			}
-
-			// Set the attached files to the saved record
-			savedRecord.setAttachedFiles(attachedFiles);
-		}
-
-		// Update case updated_at timestamp
-		caseEntity.setUpdatedAt(now);
-		caseRepository.save(caseEntity);
-
-		// Return DTO
-		return savedRecord.toDto();
-	}
-
-	/**
 	 * Create investigation record with multipart file uploads
 	 */
 	@Transactional
@@ -215,7 +104,7 @@ public class InvestigationService {
 				.orElseThrow(() -> new RuntimeException("Creator user not found"));
 
 		// Get reviewer if specified
-		Users reviewer = null;
+		Users reviewer = caseEntity.getCreator();
 		if (request.getReviewerId() != null) {
 			reviewer = userRepository.findByUserId(request.getReviewerId())
 					.orElseThrow(() -> new IllegalArgumentException(

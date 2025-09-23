@@ -75,6 +75,33 @@ const InquiryDetailPage = () => {
 
   console.log("investigationRecord", investigationRecord);
 
+  let reviewResult = "";
+
+  let reviewedAt = "";
+  if (investigationRecord?.reviewedAt) {
+    const date = new Date(investigationRecord?.reviewedAt);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    reviewedAt = `${year}-${month}-${day}`;
+  }
+
+  switch (investigationRecord?.reviewStatus) {
+    case REVIEW_STATUS.REJECTED:
+      reviewResult = <span className="text-[red]">{`${reviewedAt}(${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)})`}</span>;
+      break;
+    case REVIEW_STATUS.APPROVED:
+      reviewResult = <span className="text-[#5D5996]">{`${reviewedAt}`}</span>;
+      break;
+
+    case REVIEW_STATUS.PENDING:
+      reviewResult = <span className="text-[#6B62D3]">{`${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)}`}</span>;
+      break;
+
+    default:
+      break;
+  }
+
   // Show loading state
   if (isLoading) {
     return (
@@ -183,7 +210,7 @@ const InquiryDetailPage = () => {
               item5: investigationRecord?.creator?.nameKr || "",
               item6: investigationRecord?.reviewer?.nameKr || "",
               item7: investigationRecord?.updatedAt || "",
-              item8: [REVIEW_STATUS.REJECTED, REVIEW_STATUS.APPROVED].includes(investigationRecord?.reviewStatus) ? t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`) : "",
+              item8: reviewResult,
             }}
             data={{
               item1:
