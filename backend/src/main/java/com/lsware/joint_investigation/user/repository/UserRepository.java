@@ -53,7 +53,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
 
     public Optional<Users> findByLoginId(String loginId) {
         BooleanBuilder builder = new BooleanBuilder();
-        builder.and(users.loginId.eq(loginId));
+        builder.and(users.loginId.lower().eq(loginId.toLowerCase()));
         builder.and(
                 users.status.eq(Users.USER_STATUS.APPROVED)
                         .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))
@@ -69,7 +69,7 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
 
     public Optional<Users> checkLoginIdExist(String loginId) {
         BooleanBuilder builder = new BooleanBuilder();
-        builder.and(users.loginId.eq(loginId));
+        builder.and(users.loginId.lower().eq(loginId.toLowerCase()));
 
         return Optional.ofNullable(
                 queryFactory
