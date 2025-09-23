@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateInvestigationRecordRequest {
 
+    private UUID recordId;
+
     private String recordName;
 
     private String content;

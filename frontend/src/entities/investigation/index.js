@@ -3,6 +3,7 @@ export {
   useCreateInvestigationRecord,
   useCreateInvestigationRecordWithFiles,
   useUpdateInvestigationRecord,
+  useUpdateInvestigationRecordWithFiles,
   useGetInvestigationRecord,
   useRejectInvestigationRecord,
   useApproveInvestigationRecord,

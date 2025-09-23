@@ -109,6 +109,76 @@ export const useUpdateInvestigationRecord = () => {
 };
 
 /**
+ * Hook for updating investigation record with new file attachments
+ * New files are added to existing attachments without overwriting
+ * @returns {import('@tanstack/react-query').UseMutationResult}
+ */
+export const useUpdateInvestigationRecordWithFiles = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      record,
+      files = [],
+      fileTypes = [],
+      digitalEvidenceFlags = [],
+      investigationReportFlags = []
+    }) => {
+      const formData = new FormData();
+
+      // Add the investigation record data
+      formData.append(
+        'record',
+        new Blob([JSON.stringify(record)], { type: 'application/json' })
+      );
+
+      // Add files if provided
+      if (files && files.length > 0) {
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
+
+        // Add file metadata arrays
+        if (fileTypes.length > 0) {
+          fileTypes.forEach((type) => {
+            formData.append('fileTypes', type);
+          });
+        }
+
+        if (digitalEvidenceFlags.length > 0) {
+          digitalEvidenceFlags.forEach((flag) => {
+            formData.append('digitalEvidenceFlags', flag);
+          });
+        }
+
+        if (investigationReportFlags.length > 0) {
+          investigationReportFlags.forEach((flag) => {
+            formData.append('investigationReportFlags', flag);
+          });
+        }
+      }
+
+      const response = await axiosInstance.put(
+        '/investigation-records/update-with-files',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate related queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['investigationRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['investigationRecord', variables.record.recordId] });
+    }
+  });
+};
+
+/**
  * Hook for getting investigation record by ID
  * @returns {import('@tanstack/react-query').UseMutationResult}
  */

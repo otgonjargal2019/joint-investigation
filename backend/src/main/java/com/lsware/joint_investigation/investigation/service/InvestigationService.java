@@ -281,6 +281,141 @@ public class InvestigationService {
 	}
 
 	/**
+	 * Update investigation record with new file attachments
+	 * New files are added to existing attachments without overwriting
+	 */
+	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
+	@Transactional
+	public InvestigationRecordDto updateInvestigationRecordWithFiles(
+			UUID recordId,
+			UpdateInvestigationRecordRequest request,
+			MultipartFile[] files,
+			String[] fileTypes,
+			Boolean[] digitalEvidenceFlags,
+			Boolean[] investigationReportFlags) {
+
+		// Get the existing record
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId)
+				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
+
+		// Update basic fields using existing logic
+		if (request.getRecordName() != null && !request.getRecordName().trim().isEmpty()) {
+			existingRecord.setRecordName(request.getRecordName());
+		}
+		if (request.getContent() != null) {
+			existingRecord.setContent(request.getContent());
+		}
+		if (request.getSecurityLevel() != null) {
+			existingRecord.setSecurityLevel(request.getSecurityLevel());
+		}
+		if (request.getNumber() != null) {
+			existingRecord.setNumber(request.getNumber());
+		}
+		if (request.getProgressStatus() != null) {
+			existingRecord.setProgressStatus(request.getProgressStatus());
+		}
+		if (request.getReviewStatus() != null) {
+			existingRecord.setReviewStatus(request.getReviewStatus());
+		}
+		if (request.getRejectionReason() != null) {
+			existingRecord.setRejectionReason(request.getRejectionReason());
+		}
+
+		// Update reviewer if specified
+		if (request.getReviewerId() != null) {
+			Users reviewer = userRepository.findByUserId(request.getReviewerId())
+					.orElseThrow(() -> new IllegalArgumentException(
+							"Reviewer not found with ID: " + request.getReviewerId()));
+			existingRecord.setReviewer(reviewer);
+		}
+
+		// Get current user for file uploads
+		CustomUser currentUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		UUID currentUserId = currentUser.getId();
+		Users uploader = userRepository.findByUserId(currentUserId)
+				.orElseThrow(() -> new RuntimeException("Uploader user not found"));
+
+		// Process and upload new files if provided
+		if (files != null && files.length > 0) {
+			LocalDateTime now = LocalDateTime.now();
+			List<AttachFile> newAttachedFiles = new ArrayList<>();
+
+			for (int i = 0; i < files.length; i++) {
+				MultipartFile file = files[i];
+
+				if (file.isEmpty()) {
+					continue; // Skip empty files
+				}
+
+				// Validate file type
+				String fileType = (fileTypes != null && i < fileTypes.length) ? fileTypes[i] : "EVIDENCE";
+				if (!fileType.equals("EVIDENCE") && !fileType.equals("REPORT")) {
+					throw new IllegalArgumentException(
+							"Invalid file type: " + fileType + ". Must be EVIDENCE or REPORT");
+				}
+
+				try {
+					// Upload file to S3 using FileService
+					String storagePath = fileService.storeInvestigationFile(file, fileType);
+
+					// Generate file hash
+					String fileHash = generateFileHash(file);
+
+					// Create attach file entity
+					AttachFile attachFile = new AttachFile();
+					attachFile.setInvestigationRecord(existingRecord);
+					attachFile.setFileName(file.getOriginalFilename());
+					attachFile.setFileType(AttachFile.FileType.valueOf(fileType));
+					attachFile.setFileSize(file.getSize());
+					attachFile.setMimeType(file.getContentType());
+					attachFile.setFileHash(fileHash);
+					attachFile.setStoragePath(storagePath);
+					attachFile.setUploadedBy(uploader);
+					attachFile.setCreatedAt(now);
+
+					// Set flags if provided
+					if (digitalEvidenceFlags != null && i < digitalEvidenceFlags.length) {
+						attachFile.setDigitalEvidence(digitalEvidenceFlags[i]);
+					}
+					if (investigationReportFlags != null && i < investigationReportFlags.length) {
+						attachFile.setInvestigationReport(investigationReportFlags[i]);
+					}
+
+					AttachFile savedFile = attachFileRepository.save(attachFile);
+					newAttachedFiles.add(savedFile);
+
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to upload file: " + file.getOriginalFilename(), e);
+				}
+			}
+
+			// Add new files to existing attached files list
+			List<AttachFile> existingFiles = existingRecord.getAttachedFiles();
+			if (existingFiles == null) {
+				existingFiles = new ArrayList<>();
+			}
+			existingFiles.addAll(newAttachedFiles);
+			existingRecord.setAttachedFiles(existingFiles);
+		}
+
+		// Update timestamp
+		existingRecord.setUpdatedAt(LocalDateTime.now());
+
+		// Save the record
+		InvestigationRecord savedRecord = investigationRecordRepository.save(existingRecord);
+
+		// Update case updated_at timestamp
+		if (existingRecord.getCaseInstance() != null) {
+			Case caseEntity = existingRecord.getCaseInstance();
+			caseEntity.setUpdatedAt(LocalDateTime.now());
+			caseRepository.save(caseEntity);
+		}
+
+		// Return DTO
+		return savedRecord.toDto();
+	}
+
+	/**
 	 * Reject an investigation record
 	 */
 	@Transactional

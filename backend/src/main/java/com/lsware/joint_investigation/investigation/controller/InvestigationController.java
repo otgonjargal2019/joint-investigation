@@ -150,6 +150,42 @@ public class InvestigationController {
 	}
 
 	/**
+	 * Update an existing investigation record with new file attachments
+	 * New files are added to existing attachments without overwriting
+	 */
+	@PutMapping(value = "/update-with-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<MappingJacksonValue> updateInvestigationRecordWithFiles(
+			@RequestPart("record") UpdateInvestigationRecordRequest request,
+			@RequestPart(value = "files", required = false) MultipartFile[] files,
+			@RequestParam(value = "fileTypes", required = false) String[] fileTypes,
+			@RequestParam(value = "digitalEvidenceFlags", required = false) Boolean[] digitalEvidenceFlags,
+			@RequestParam(value = "investigationReportFlags", required = false) Boolean[] investigationReportFlags,
+			Authentication authentication) {
+
+		try {
+			// Validate that recordId is provided in the request
+			if (request.getRecordId() == null) {
+				throw new IllegalArgumentException("Record ID is required");
+			}
+
+			InvestigationRecordDto updatedRecord = investigationService.updateInvestigationRecordWithFiles(
+					request.getRecordId(), request, files, fileTypes, digitalEvidenceFlags, investigationReportFlags);
+
+			MappingJacksonValue mapping = new MappingJacksonValue(updatedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for updating investigation record with files: {}", e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error updating investigation record with files: {}", e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
 	 * Reject an investigation record
 	 */
 	@PostMapping("/reject")
