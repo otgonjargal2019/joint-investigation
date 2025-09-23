@@ -15,6 +15,7 @@ import CreateDoc from "@/shared/components/icons/createDoc";
 import CaseForm from "@/shared/widgets/caseForm";
 import {
   useInvestigationRecord,
+  useRequestReviewInvestigationRecord,
 } from "@/entities/investigation";
 import { REVIEW_STATUS } from "@/entities/investigation/model/constants";
 
@@ -30,6 +31,9 @@ const InquiryDetailPage = () => {
     isLoading,
     error,
   } = useInvestigationRecord(investigationRecordId);
+
+  // Request review mutation
+  const requestReviewMutation = useRequestReviewInvestigationRecord();
 
   const t = useTranslations();
   const {
@@ -53,6 +57,20 @@ const InquiryDetailPage = () => {
 
   const navigateBack = () => {
     router.push(`/investigator/cases/${caseId}`);
+  };
+
+  const handleRequestReview = async () => {
+    try {
+      await requestReviewMutation.mutateAsync({
+        recordId: investigationRecordId
+      });
+      toast.success(t("incident.request-review-success"));
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        t("incident.request-review-error")
+      );
+    }
   };
 
   console.log("investigationRecord", investigationRecord);
@@ -118,7 +136,7 @@ const InquiryDetailPage = () => {
                   variant="yellow"
                   size="mediumWithShadow"
                   className="gap-3"
-                  // onClick={() => setDenyModalOpen(true)}
+                // onClick={() => setDenyModalOpen(true)}
                 >
                   <EditFile />
                   {t("incident.edit")}
@@ -127,10 +145,14 @@ const InquiryDetailPage = () => {
                   variant="yellow"
                   size="mediumWithShadow"
                   className="gap-3"
-                  // onClick={() => setApproveModalOpen(true)}
+                  onClick={handleRequestReview}
+                  disabled={requestReviewMutation.isPending}
                 >
                   <CheckRectangle />
-                  {t("incident.request-review")}
+                  {requestReviewMutation.isPending
+                    ? t("incident.requesting-review")
+                    : t("incident.request-review")
+                  }
                 </Button>
               </>
             )}

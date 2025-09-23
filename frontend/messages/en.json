@@ -64,7 +64,10 @@
     "reason-for-rejection-prompt": "Please provide the reason for rejection",
     "cancel-editing": "Cancel editing",
     "edit": "Edit",
-    "request-review": "Request Review"
+    "request-review": "Request Review",
+    "requesting-review": "Requesting Review...",
+    "request-review-success": "Review request has been submitted successfully.",
+    "request-review-error": "Failed to submit review request. Please try again."
   },
   "case": "case",
   "total": "total",
