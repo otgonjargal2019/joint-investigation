@@ -67,7 +67,11 @@
     "request-review": "검토요청",
     "requesting-review": "검토 요청 중...",
     "request-review-success": "검토 요청이 성공적으로 제출되었습니다.",
-    "request-review-error": "검토 요청에 실패했습니다. 다시 시도해주세요."
+    "request-review-error": "검토 요청에 실패했습니다. 다시 시도해주세요.",
+    "save-changes": "변경사항 저장",
+    "updating": "업데이트 중...",
+    "update-success": "수사 기록이 성공적으로 업데이트되었습니다.",
+    "update-error": "수사 기록 업데이트에 실패했습니다. 다시 시도해주세요."
   },
   "case": "건",
   "total": "총",

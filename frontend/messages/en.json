@@ -67,7 +67,11 @@
     "request-review": "Request Review",
     "requesting-review": "Requesting Review...",
     "request-review-success": "Review request has been submitted successfully.",
-    "request-review-error": "Failed to submit review request. Please try again."
+    "request-review-error": "Failed to submit review request. Please try again.",
+    "save-changes": "Save Changes",
+    "updating": "Updating...",
+    "update-success": "Investigation record has been updated successfully.",
+    "update-error": "Failed to update investigation record. Please try again."
   },
   "case": "case",
   "total": "total",

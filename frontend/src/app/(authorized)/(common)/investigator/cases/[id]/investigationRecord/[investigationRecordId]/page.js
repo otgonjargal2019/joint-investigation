@@ -65,6 +65,7 @@ const InquiryDetailPage = () => {
         recordId: investigationRecordId
       });
       toast.success(t("incident.request-review-success"));
+      router.push(`/investigator/cases/${caseId}`);
     } catch (error) {
       toast.error(
         error.response?.data?.message ||

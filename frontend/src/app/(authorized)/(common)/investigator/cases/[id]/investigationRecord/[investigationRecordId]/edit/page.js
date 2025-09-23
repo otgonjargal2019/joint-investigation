@@ -9,13 +9,12 @@ import { toast } from "react-toastify";
 import Button from "@/shared/components/button";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Cancel from "@/shared/components/icons/cancel";
-import CheckRectangle from "@/shared/components/icons/checkRectangle";
 import EditFile from "@/shared/components/icons/editFile";
 import CreateDoc from "@/shared/components/icons/createDoc";
 import CaseForm from "@/shared/widgets/caseForm";
 import {
   useInvestigationRecord,
-  useRequestReviewInvestigationRecord,
+  useUpdateInvestigationRecordWithFiles,
 } from "@/entities/investigation";
 import { REVIEW_STATUS } from "@/entities/investigation/model/constants";
 
@@ -32,14 +31,19 @@ const InquiryDetailPage = () => {
     error,
   } = useInvestigationRecord(investigationRecordId);
 
-  // Request review mutation
-  const requestReviewMutation = useRequestReviewInvestigationRecord();
+  // Update investigation record with files mutation
+  const updateInvestigationRecordMutation = useUpdateInvestigationRecordWithFiles();
+
+  // State for file management
+  const [reportFiles, setReportFiles] = useState([]);
+  const [digitalEvidenceFiles, setDigitalEvidenceFiles] = useState([]);
 
   const t = useTranslations();
   const {
     register,
     watch,
     reset,
+    handleSubmit,
     formState: { errors },
   } = useForm();
 
@@ -56,19 +60,91 @@ const InquiryDetailPage = () => {
   }, [investigationRecord, reset]);
 
   const navigateBack = () => {
-    router.push(`/investigator/cases/${caseId}`);
+    router.push(`/investigator/cases/${caseId}/investigationRecord/${investigationRecordId}`);
   };
 
-  const handleRequestReview = async () => {
+  // File upload handler with categorization
+  const handleFileUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = '*/*';
+
+    input.onchange = (event) => {
+      const files = Array.from(event.target.files);
+
+      // Simple categorization dialog or you could implement a modal
+      const fileType = window.confirm(
+        'Click OK for Investigation Report files, Cancel for Digital Evidence files'
+      );
+
+      if (fileType) {
+        setReportFiles(prev => [...prev, ...files]);
+      } else {
+        setDigitalEvidenceFiles(prev => [...prev, ...files]);
+      }
+    };
+
+    input.click();
+  };
+
+  // Remove file handlers
+  const removeReportFile = (index) => {
+    setReportFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeDigitalEvidenceFile = (index) => {
+    setDigitalEvidenceFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateInvestigationRecord = async (formData) => {
     try {
-      await requestReviewMutation.mutateAsync({
-        recordId: investigationRecordId
+      // Prepare the update request data
+      const updateData = {
+        recordId: investigationRecordId,
+        recordName: formData.recordName,
+        content: formData.overview,
+        securityLevel: formData.securityLevel ? parseInt(formData.securityLevel.replace('option', '')) : investigationRecord.securityLevel,
+        progressStatus: formData.progressStatus || investigationRecord.progressStatus,
+      };
+
+      // Prepare file arrays
+      const allFiles = [...reportFiles, ...digitalEvidenceFiles];
+      const fileTypes = [
+        ...reportFiles.map(() => 'REPORT'),
+        ...digitalEvidenceFiles.map(() => 'EVIDENCE')
+      ];
+      const digitalEvidenceFlags = [
+        ...reportFiles.map(() => false),
+        ...digitalEvidenceFiles.map(() => true)
+      ];
+      const investigationReportFlags = [
+        ...reportFiles.map(() => true),
+        ...digitalEvidenceFiles.map(() => false)
+      ];
+
+      // Call the mutation with new files
+      await updateInvestigationRecordMutation.mutateAsync({
+        record: updateData,
+        files: allFiles,
+        fileTypes: fileTypes,
+        digitalEvidenceFlags: digitalEvidenceFlags,
+        investigationReportFlags: investigationReportFlags
       });
-      toast.success(t("incident.request-review-success"));
+
+      toast.success(t("incident.update-success"));
+
+      // Clear files after successful update
+      setReportFiles([]);
+      setDigitalEvidenceFiles([]);
+
+      // Navigate back to view page
+      router.push(`/investigator/cases/${caseId}`);
+
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-        t("incident.request-review-error")
+        t("incident.update-error")
       );
     }
   };
@@ -151,6 +227,7 @@ const InquiryDetailPage = () => {
               variant="white"
               size="mediumWithShadow"
               className="gap-3"
+              onClick={handleFileUpload}
             >
               <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
               {t("upload-investigation-material")}
@@ -163,10 +240,14 @@ const InquiryDetailPage = () => {
                   variant="yellow"
                   size="mediumWithShadow"
                   className="gap-3"
-                // onClick={() => setDenyModalOpen(true)}
+                  onClick={handleSubmit(handleUpdateInvestigationRecord)}
+                  disabled={updateInvestigationRecordMutation.isPending}
                 >
                   <EditFile />
-                  {t("incident.edit")}
+                  {updateInvestigationRecordMutation.isPending
+                    ? t("incident.updating")
+                    : t("incident.save-changes")
+                  }
                 </Button>
               </>
             )}
@@ -182,7 +263,7 @@ const InquiryDetailPage = () => {
             register={register}
             watch={watch}
             errors={errors}
-            // readonly={true}
+            readonly={false}
             headerInfo={{
               item1:
                 investigationRecord?.caseInstance?.creationDate ||
@@ -203,8 +284,9 @@ const InquiryDetailPage = () => {
               item1:
                 investigationRecord?.recordName || "사건 B 목격자 관련 제보",
             }}
-            report={
-              investigationRecord?.attachedFiles
+            report={[
+              // Existing files
+              ...(investigationRecord?.attachedFiles
                 ?.filter((file) => file.fileType === "REPORT")
                 .map((file) => ({
                   name: file.fileName,
@@ -212,10 +294,18 @@ const InquiryDetailPage = () => {
                   size: file.fileSize
                     ? `${(file.fileSize / 1024).toFixed(1)}KB`
                     : "Unknown",
-                })) || []
-            }
-            digitalEvidence={
-              investigationRecord?.attachedFiles
+                })) || []),
+              // New files to be uploaded
+              ...reportFiles.map((file, index) => ({
+                name: file.name,
+                size: `${(file.size / 1024).toFixed(1)}KB`,
+                onRemove: () => removeReportFile(index),
+                isNew: true
+              }))
+            ]}
+            digitalEvidence={[
+              // Existing files
+              ...(investigationRecord?.attachedFiles
                 ?.filter((file) => file.fileType === "EVIDENCE")
                 .map((file) => ({
                   name: file.fileName,
@@ -223,8 +313,15 @@ const InquiryDetailPage = () => {
                   size: file.fileSize
                     ? `${(file.fileSize / 1024).toFixed(1)}KB`
                     : "Unknown",
-                })) || []
-            }
+                })) || []),
+              // New files to be uploaded
+              ...digitalEvidenceFiles.map((file, index) => ({
+                name: file.name,
+                size: `${(file.size / 1024).toFixed(1)}KB`,
+                onRemove: () => removeDigitalEvidenceFile(index),
+                isNew: true
+              }))
+            ]}
           />
         </div>
       </div>
