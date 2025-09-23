@@ -8,6 +8,7 @@ import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecor
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.RequestReviewInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.controller.UserController;
 
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -225,6 +227,34 @@ public class InvestigationController {
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
 			log.error("Error approving investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
+	 * Request review for an investigation record
+	 */
+	@PatchMapping("/requestReview")
+	public ResponseEntity<MappingJacksonValue> requestReviewInvestigationRecord(
+			@RequestBody RequestReviewInvestigationRecordRequest request,
+			Authentication authentication) {
+
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			InvestigationRecordDto reviewRequestedRecord = investigationService.requestReviewInvestigationRecord(request, user.getId());
+
+			MappingJacksonValue mapping = new MappingJacksonValue(reviewRequestedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for requesting review of investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error requesting review for investigation record {}: {}",
 				request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}

@@ -22,6 +22,7 @@ import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecor
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.RequestReviewInvestigationRecordRequest;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.user.entity.Users;
@@ -397,7 +398,8 @@ public class InvestigationService {
 	 */
 	@Transactional
 	@PreAuthorize("hasRole('INV_ADMIN')")
-	public InvestigationRecordDto rejectInvestigationRecord(RejectInvestigationRecordRequest request, UUID currentUserId) {
+	public InvestigationRecordDto rejectInvestigationRecord(RejectInvestigationRecordRequest request,
+			UUID currentUserId) {
 		// Get the existing record
 		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
 				.orElseThrow(() -> new IllegalArgumentException(
@@ -435,7 +437,8 @@ public class InvestigationService {
 	 */
 	@Transactional
 	@PreAuthorize("hasRole('INV_ADMIN')")
-	public InvestigationRecordDto approveInvestigationRecord(ApproveInvestigationRecordRequest request, UUID currentUserId) {
+	public InvestigationRecordDto approveInvestigationRecord(ApproveInvestigationRecordRequest request,
+			UUID currentUserId) {
 		// Get the existing record
 		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
 				.orElseThrow(() -> new IllegalArgumentException(
@@ -450,6 +453,56 @@ public class InvestigationService {
 				.orElseThrow(() -> new IllegalArgumentException("Current user not found"));
 		existingRecord.setReviewer(currentUser);
 		existingRecord.setReviewedAt(LocalDateTime.now());
+
+		// Update timestamp
+		existingRecord.setUpdatedAt(LocalDateTime.now());
+
+		// Save the record
+		InvestigationRecord savedRecord = investigationRecordRepository.save(existingRecord);
+
+		// Update case updated_at timestamp
+		if (existingRecord.getCaseInstance() != null) {
+			Case caseEntity = existingRecord.getCaseInstance();
+			caseEntity.setUpdatedAt(LocalDateTime.now());
+			caseRepository.save(caseEntity);
+		}
+
+		// Return DTO
+		return savedRecord.toDto();
+	}
+
+	/**
+	 * Request review for an investigation record
+	 */
+	@Transactional
+	@PreAuthorize("hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
+	public InvestigationRecordDto requestReviewInvestigationRecord(RequestReviewInvestigationRecordRequest request,
+			UUID currentUserId) {
+		// Get the existing record
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
+				.orElseThrow(() -> new IllegalArgumentException(
+						"Investigation record not found with ID: " + request.getRecordId()));
+
+		// Verify that the current user is the creator of the record
+		if (!existingRecord.getCreator().getUserId().equals(currentUserId)) {
+			throw new IllegalArgumentException("Only the creator can request review for this investigation record");
+		}
+
+		// Verify that the review status allows requesting review
+		if (existingRecord.getReviewStatus() != InvestigationRecord.REVIEW_STATUS.WRITING
+				&& existingRecord.getReviewStatus() != InvestigationRecord.REVIEW_STATUS.REJECTED) {
+			throw new IllegalArgumentException(
+					"Review can only be requested when status is WRITING or REJECTED. Current status: "
+							+ existingRecord.getReviewStatus());
+		}
+
+		// Set review status to PENDING
+		existingRecord.setReviewStatus(InvestigationRecord.REVIEW_STATUS.PENDING);
+
+		// Clear previous review data
+		existingRecord.setReviewer(null);
+		existingRecord.setReviewedAt(null);
+		existingRecord.setRejectionReason(null);
 
 		// Update timestamp
 		existingRecord.setUpdatedAt(LocalDateTime.now());
