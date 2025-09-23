@@ -2,12 +2,12 @@
 package com.lsware.joint_investigation.investigation.controller;
 
 import com.lsware.joint_investigation.investigation.service.InvestigationService;
-import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordRequest;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationRecordRequest;
+import com.lsware.joint_investigation.investigation.dto.RequestReviewInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
 import com.lsware.joint_investigation.user.controller.UserController;
 
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,32 +67,6 @@ public class InvestigationController {
 		mapping.setFilters(UserController.getUserFilter());
 
 		return mapping;
-	}
-
-	/**
-	 * Create a new investigation record with optional attached files
-	 * DEPRECATED: Use /create-with-files for file uploads
-	 * The request can include an array of attached files with their metadata.
-	 * File content should be uploaded separately and the storagePath provided here.
-	 */
-	@PostMapping("/create")
-	public ResponseEntity<MappingJacksonValue> createInvestigationRecord(
-			@RequestBody CreateInvestigationRecordRequest request,
-			Authentication authentication) {
-
-		try {
-			InvestigationRecordDto createdRecord = investigationService.createInvestigationRecord(request);
-
-			MappingJacksonValue mapping = new MappingJacksonValue(createdRecord);
-			mapping.setFilters(UserController.getUserFilter());
-
-			return ResponseEntity.ok(mapping);
-
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().build();
-		} catch (Exception e) {
-			return ResponseEntity.internalServerError().build();
-		}
 	}
 
 	/**
@@ -175,6 +150,42 @@ public class InvestigationController {
 	}
 
 	/**
+	 * Update an existing investigation record with new file attachments
+	 * New files are added to existing attachments without overwriting
+	 */
+	@PutMapping(value = "/update-with-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<MappingJacksonValue> updateInvestigationRecordWithFiles(
+			@RequestPart("record") UpdateInvestigationRecordRequest request,
+			@RequestPart(value = "files", required = false) MultipartFile[] files,
+			@RequestParam(value = "fileTypes", required = false) String[] fileTypes,
+			@RequestParam(value = "digitalEvidenceFlags", required = false) Boolean[] digitalEvidenceFlags,
+			@RequestParam(value = "investigationReportFlags", required = false) Boolean[] investigationReportFlags,
+			Authentication authentication) {
+
+		try {
+			// Validate that recordId is provided in the request
+			if (request.getRecordId() == null) {
+				throw new IllegalArgumentException("Record ID is required");
+			}
+
+			InvestigationRecordDto updatedRecord = investigationService.updateInvestigationRecordWithFiles(
+					request.getRecordId(), request, files, fileTypes, digitalEvidenceFlags, investigationReportFlags);
+
+			MappingJacksonValue mapping = new MappingJacksonValue(updatedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for updating investigation record with files: {}", e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error updating investigation record with files: {}", e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
 	 * Reject an investigation record
 	 */
 	@PostMapping("/reject")
@@ -225,6 +236,34 @@ public class InvestigationController {
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
 			log.error("Error approving investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
+	/**
+	 * Request review for an investigation record
+	 */
+	@PatchMapping("/requestReview")
+	public ResponseEntity<MappingJacksonValue> requestReviewInvestigationRecord(
+			@RequestBody RequestReviewInvestigationRecordRequest request,
+			Authentication authentication) {
+
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			InvestigationRecordDto reviewRequestedRecord = investigationService.requestReviewInvestigationRecord(request, user.getId());
+
+			MappingJacksonValue mapping = new MappingJacksonValue(reviewRequestedRecord);
+			mapping.setFilters(UserController.getUserFilter());
+
+			return ResponseEntity.ok(mapping);
+
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid request for requesting review of investigation record {}: {}",
+				request.getRecordId(), e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			log.error("Error requesting review for investigation record {}: {}",
 				request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}

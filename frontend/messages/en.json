@@ -4,6 +4,8 @@
   "loading-organizational-data": "Loading organizational data",
   "loading-foreign-data": "Loading foreign data",
   "loading-assignees": "Loading assignees",
+  "loading-error": "Error loading record",
+  "record-not-found": "record not found",
   "user-role": {
     "PLATFORM_ADMIN": "Platform Admin",
     "INV_ADMIN": "Investigation Admin",
@@ -36,12 +38,11 @@
     "infringement-type": "Infringement Type",
     "status": "Status",
     "progress-detail": "Progress Detail",
-    "review-status": {
-      "pending": "Pending",
-      "in_review": "In Review",
-      "reviewed": "Reviewed",
-      "approved": "Approved",
-      "rejected": "Rejected"
+    "REVIEW_STATUS": {
+      "WRITING": "Writing",
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
     },
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "Pre investigation",
@@ -60,7 +61,17 @@
     "approval-guideline-1": "Please review the investigation report, type the",
     "approval-guideline-2": "text in the lower box, and press the OK button.",
     "approval-statement": "We have reviewed the above investigation records and finally approve them.",
-    "reason-for-rejection-prompt": "Please provide the reason for rejection"
+    "reason-for-rejection-prompt": "Please provide the reason for rejection",
+    "cancel-editing": "Cancel editing",
+    "edit": "Edit",
+    "request-review": "Request Review",
+    "requesting-review": "Requesting Review...",
+    "request-review-success": "Review request has been submitted successfully.",
+    "request-review-error": "Failed to submit review request. Please try again.",
+    "save-changes": "Save Changes",
+    "updating": "Updating...",
+    "update-success": "Investigation record has been updated successfully.",
+    "update-error": "Failed to update investigation record. Please try again."
   },
   "case": "case",
   "total": "total",

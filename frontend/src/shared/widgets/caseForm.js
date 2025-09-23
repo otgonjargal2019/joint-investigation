@@ -194,9 +194,27 @@ const CaseForm = ({
         <TextDiv2>
           <ul className="space-y-1">
             {report?.map((file, idx) => (
-              <li key={idx} className="flex gap-1">
-                <span className="text-color-20"><a href={file.url} target="_blank">{file.name}</a></span>
+              <li key={idx} className="flex gap-1 items-center">
+                <span className="text-color-20">
+                  {file.url ? (
+                    <a href={file.url} target="_blank">{file.name}</a>
+                  ) : (
+                    <span>{file.name}</span>
+                  )}
+                </span>
                 <span className="text-color-96">({file.size})</span>
+                {file.onRemove && (
+                  <button
+                    type="button"
+                    onClick={file.onRemove}
+                    className="ml-2 text-red-500 hover:text-red-700 text-sm"
+                  >
+                    ✕
+                  </button>
+                )}
+                {file.isNew && (
+                  <span className="ml-2 text-blue-500 text-sm">(New)</span>
+                )}
               </li>
             ))}
           </ul>
@@ -207,9 +225,27 @@ const CaseForm = ({
         <TextDiv2>
           <ul className="space-y-1">
             {digitalEvidence?.map((file, idx) => (
-              <li key={idx} className="flex gap-1">
-                <span className="text-color-20"><a href={file.url} target="_blank">{file.name}</a></span>
+              <li key={idx} className="flex gap-1 items-center">
+                <span className="text-color-20">
+                  {file.url ? (
+                    <a href={file.url} target="_blank">{file.name}</a>
+                  ) : (
+                    <span>{file.name}</span>
+                  )}
+                </span>
                 <span className="text-color-96">({file.size})</span>
+                {file.onRemove && (
+                  <button
+                    type="button"
+                    onClick={file.onRemove}
+                    className="ml-2 text-red-500 hover:text-red-700 text-sm"
+                  >
+                    ✕
+                  </button>
+                )}
+                {file.isNew && (
+                  <span className="ml-2 text-blue-500 text-sm">(New)</span>
+                )}
               </li>
             ))}
           </ul>

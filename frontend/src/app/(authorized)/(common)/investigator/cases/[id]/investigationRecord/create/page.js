@@ -58,6 +58,13 @@ const IncidentCreatePage = () => {
     });
   }, [reset]);
 
+  let now = "";
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  now = `${year}-${month}-${day}`;
+
   // File upload handler with categorization
   const handleFileUpload = () => {
     const input = document.createElement('input');
@@ -223,12 +230,12 @@ const IncidentCreatePage = () => {
               watch={watch}
               errors={errors}
               headerInfo={{
-                item1: caseData?.creationDate || "2024-02-28",
-                item2: caseData?.caseNumber || "156",
-                item3: caseData?.caseName || "사건 B",
-                item4: caseData?.creator?.nameKr || "고광천",
-                item5: caseData?.creator?.nameKr || "고광천",
-                item6: caseData?.reviewer?.nameKr || "김철수",
+                item1: now,
+                item2: `#${caseData?.number}` || "",
+                item3: caseData?.caseName || "",
+                item4: caseData?.creator?.nameKr || "",
+                item5: caseData?.creator?.nameKr || "",
+                item6: caseData?.reviewer?.nameKr || "",
                 item7: caseData?.updatedAt,
                 // item8: "test2",
               }}

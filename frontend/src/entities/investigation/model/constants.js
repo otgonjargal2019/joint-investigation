@@ -8,4 +8,11 @@ export const PROGRESS_STATUS = {
   ON_HOLD: 'ON_HOLD',
 };
 
+export const REVIEW_STATUS = {
+  WRITING: 'WRITING',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+};
+
 export const DEFAULT_PAGE_SIZE = 10;

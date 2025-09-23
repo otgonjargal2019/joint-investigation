@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 import Button from "@/shared/components/button";
 import CaseDetailGrid from "@/shared/widgets/caseDetailGrid";
@@ -29,16 +29,14 @@ function IncidentDetailPage() {
 	const [page, setPage] = useState(1);
 	const t = useTranslations();
 	const router = useRouter();
-	const pathname = usePathname();
-
-	const id = pathname.split("/")[3];
+	const params = useParams();
 
 	const { data: caseData, isLoading: caseDataLoading } = useCaseById({
-		id,
+		id: params.id,
 	});
 
 	const { data: investigationRecordData, isLoading: invRecordLoading } = useInvestigationRecords({
-		caseId: id,
+		caseId: params.id,
 		page: page - 1,
 	});
 
@@ -53,15 +51,8 @@ function IncidentDetailPage() {
 		}));
 	}, [investigationRecordData]);
 
-	// const onClickNew = () => {
-	//   router.push("/incident/create");
-	// };
-
 	const onClickRow = (row) => {
-		console.log(row);
-		const id = pathname.split("/")[3];
-		console.log("id:", id);
-		router.push(`/manager/cases/${id}/inquiry/${row.recordId}`);
+		router.push(`/manager/cases/${params.id}/inquiry/${row.recordId}`);
 	};
 
 	if (caseDataLoading) {
@@ -93,7 +84,7 @@ function IncidentDetailPage() {
 						size="mediumWithShadow"
 						className="gap-3"
 						onClick={() => {
-							router.push(`/manager/cases/edit/assignment/${id}`);
+							router.push(`/manager/cases/edit/assignment/${params.id}`);
 						}}>
 						<Users />
 						{t("case-detail.set-investigator")}
@@ -103,7 +94,7 @@ function IncidentDetailPage() {
 						size="mediumWithShadow"
 						className="gap-3"
 						onClick={() => {
-							router.push(`/manager/cases/edit/${id}`);
+							router.push(`/manager/cases/edit/${params.id}`);
 						}}
 					>
 						<EditFile />

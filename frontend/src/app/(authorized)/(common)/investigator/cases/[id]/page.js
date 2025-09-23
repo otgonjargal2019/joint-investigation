@@ -24,7 +24,6 @@ const getNestedValue = (obj, path) => {
 };
 
 function IncidentDetailPage() {
-  const [page, setPage] = useState(1);
   const [investigationRecordsPage, setInvestigationRecordsPage] = useState(1);
   const t = useTranslations();
   const router = useRouter();
@@ -45,12 +44,16 @@ function IncidentDetailPage() {
   } = useInvestigationRecords({
     caseId: params.id,
     page: investigationRecordsPage - 1, // Convert to 0-based for API
-    size: parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10,
+    size: ROWS_PER_PAGE,
   });
 
   const onClickNew = () => {
     router.push(`/investigator/cases/${params.id}/investigationRecord/create`);
   };
+
+  const onClickRow = (row) => {
+		router.push(`/investigator/cases/${params.id}/investigationRecord/${row.recordId}`);
+	};
 
   // Define investigation records table columns
   const investigationRecordsColumns = [
@@ -164,6 +167,7 @@ function IncidentDetailPage() {
         columns={investigationRecordsColumns}
         data={transformedData}
         loading={isLoadingRecords}
+        onClickRow={onClickRow}
       />
       <Pagination
         currentPage={investigationRecordsPage}

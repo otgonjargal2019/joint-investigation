@@ -4,6 +4,8 @@
   "loading-organizational-data": "조직 데이터 로딩 중",
   "loading-foreign-data": "해외 데이터 로딩 중",
   "loading-assignees": "할당자 로딩 중",
+  "loading-error": "로딩 중 오류 발생",
+  "record-not-found": "기록을 찾을 수 없습니다.",
   "user-role": {
     "PLATFORM_ADMIN": "플랫폼 관리자",
     "INV_ADMIN": "수사 관리자",
@@ -36,12 +38,11 @@
     "infringement-type": "침해유형",
     "status": "상태",
     "progress-detail": "상세 진행 현황",
-    "review-status": {
-      "pending": "대기중",
-      "in_review": "검토중",
-      "reviewed": "검토완료",
-      "approved": "승인됨",
-      "rejected": "반려됨"
+    "REVIEW_STATUS": {
+      "WRITING": "작성중",
+      "PENDING": "대기중",
+      "APPROVED": "승인됨",
+      "REJECTED": "반려됨"
     },
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "사전조사",
@@ -60,7 +61,17 @@
     "approval-guideline-1": "수사 보고서를 검토한 뒤 아래 란에 글씨를 따라",
     "approval-guideline-2": "입력한 뒤, 확인 버튼을 눌러주세요.",
     "approval-statement": "위 수사 기록을 검토하였으며 최종 승인합니다.",
-    "reason-for-rejection-prompt": "반려 사유를 작성해주세요"
+    "reason-for-rejection-prompt": "반려 사유를 작성해주세요",
+    "cancel-editing": "취소",
+    "edit": "수정하기",
+    "request-review": "검토요청",
+    "requesting-review": "검토 요청 중...",
+    "request-review-success": "검토 요청이 성공적으로 제출되었습니다.",
+    "request-review-error": "검토 요청에 실패했습니다. 다시 시도해주세요.",
+    "save-changes": "변경사항 저장",
+    "updating": "업데이트 중...",
+    "update-success": "수사 기록이 성공적으로 업데이트되었습니다.",
+    "update-error": "수사 기록 업데이트에 실패했습니다. 다시 시도해주세요."
   },
   "case": "건",
   "total": "총",

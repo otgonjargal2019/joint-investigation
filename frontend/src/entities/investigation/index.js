@@ -3,9 +3,11 @@ export {
   useCreateInvestigationRecord,
   useCreateInvestigationRecordWithFiles,
   useUpdateInvestigationRecord,
+  useUpdateInvestigationRecordWithFiles,
   useGetInvestigationRecord,
   useRejectInvestigationRecord,
-  useApproveInvestigationRecord
+  useApproveInvestigationRecord,
+  useRequestReviewInvestigationRecord
 } from './api/investigationRecord.mutation';
 export * from './model/types';
 export * from './model/query-params';
