@@ -38,12 +38,11 @@
     "infringement-type": "Infringement Type",
     "status": "Status",
     "progress-detail": "Progress Detail",
-    "review-status": {
-      "pending": "Pending",
-      "in_review": "In Review",
-      "reviewed": "Reviewed",
-      "approved": "Approved",
-      "rejected": "Rejected"
+    "REVIEW_STATUS": {
+      "WRITING": "Writing",
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
     },
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "Pre investigation",
@@ -63,7 +62,9 @@
     "approval-guideline-2": "text in the lower box, and press the OK button.",
     "approval-statement": "We have reviewed the above investigation records and finally approve them.",
     "reason-for-rejection-prompt": "Please provide the reason for rejection",
-    "cancel-editing": "Cancel editing"
+    "cancel-editing": "Cancel editing",
+    "edit": "Edit",
+    "request-review": "Request Review"
   },
   "case": "case",
   "total": "total",

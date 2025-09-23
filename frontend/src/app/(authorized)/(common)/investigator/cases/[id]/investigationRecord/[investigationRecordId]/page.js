@@ -9,12 +9,14 @@ import { toast } from "react-toastify";
 import Button from "@/shared/components/button";
 import PageTitle from "@/shared/components/pageTitle/page";
 import Cancel from "@/shared/components/icons/cancel";
-import CheckCircle from "@/shared/components/icons/checkCircle";
-import CancelCircle from "@/shared/components/icons/cancelCircle";
+import CheckRectangle from "@/shared/components/icons/checkRectangle";
+import EditFile from "@/shared/components/icons/editFile";
+import CreateDoc from "@/shared/components/icons/createDoc";
 import CaseForm from "@/shared/widgets/caseForm";
 import {
   useInvestigationRecord,
 } from "@/entities/investigation";
+import { REVIEW_STATUS } from "@/entities/investigation/model/constants";
 
 const InquiryDetailPage = () => {
   const router = useRouter();
@@ -52,6 +54,8 @@ const InquiryDetailPage = () => {
   const navigateBack = () => {
     router.push(`/investigator/cases/${caseId}`);
   };
+
+  console.log("investigationRecord", investigationRecord);
 
   // Show loading state
   if (isLoading) {
@@ -97,26 +101,39 @@ const InquiryDetailPage = () => {
               <Cancel />
               {t("incident.cancel-editing")}
             </Button>
+            <Button
+              type="button"
+              variant="white"
+              size="mediumWithShadow"
+              className="gap-3"
+            >
+              <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
+              {t("upload-investigation-material")}
+            </Button>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="pink"
-              size="mediumWithShadow"
-              className="gap-3"
-              // onClick={() => setDenyModalOpen(true)}
-            >
-              <CancelCircle />
-              {t("deny")}
-            </Button>
-            <Button
-              variant="yellow"
-              size="mediumWithShadow"
-              className="gap-3"
-              // onClick={() => setApproveModalOpen(true)}
-            >
-              <CheckCircle />
-              {t("approve")}
-            </Button>
+            {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING || investigationRecord.reviewStatus === REVIEW_STATUS.REJECTED) && (
+              <>
+                <Button
+                  variant="yellow"
+                  size="mediumWithShadow"
+                  className="gap-3"
+                  // onClick={() => setDenyModalOpen(true)}
+                >
+                  <EditFile />
+                  {t("incident.edit")}
+                </Button>
+                <Button
+                  variant="yellow"
+                  size="mediumWithShadow"
+                  className="gap-3"
+                  // onClick={() => setApproveModalOpen(true)}
+                >
+                  <CheckRectangle />
+                  {t("incident.request-review")}
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <div className=" bg-white border border-color-36 rounded-10 px-[70px] py-6">
@@ -144,7 +161,7 @@ const InquiryDetailPage = () => {
               item5: investigationRecord?.creator?.nameKr || "",
               item6: investigationRecord?.reviewer?.nameKr || "",
               item7: investigationRecord?.updatedAt || "",
-              item8: investigationRecord?.reviewStatus || "",
+              item8: [REVIEW_STATUS.REJECTED, REVIEW_STATUS.APPROVED].includes(investigationRecord?.reviewStatus) ? t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`) : "",
             }}
             data={{
               item1:

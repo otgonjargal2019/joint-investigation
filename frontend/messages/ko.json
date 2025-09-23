@@ -38,12 +38,11 @@
     "infringement-type": "침해유형",
     "status": "상태",
     "progress-detail": "상세 진행 현황",
-    "review-status": {
-      "pending": "대기중",
-      "in_review": "검토중",
-      "reviewed": "검토완료",
-      "approved": "승인됨",
-      "rejected": "반려됨"
+    "REVIEW_STATUS": {
+      "WRITING": "작성중",
+      "PENDING": "대기중",
+      "APPROVED": "승인됨",
+      "REJECTED": "반려됨"
     },
     "PROGRESS_STATUS": {
       "PRE_INVESTIGATION": "사전조사",
@@ -63,7 +62,9 @@
     "approval-guideline-2": "입력한 뒤, 확인 버튼을 눌러주세요.",
     "approval-statement": "위 수사 기록을 검토하였으며 최종 승인합니다.",
     "reason-for-rejection-prompt": "반려 사유를 작성해주세요",
-    "cancel-editing": "취소"
+    "cancel-editing": "취소",
+    "edit": "수정하기",
+    "request-review": "검토요청"
   },
   "case": "건",
   "total": "총",
