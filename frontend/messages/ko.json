@@ -145,7 +145,8 @@
     "available-email-id": "사용 가능한 이메일 입니다.",
     "not-available-email-id": "이미 사용 중인 이메일 입니다.",
     "signup-successful": "회원가입 성공",
-    "login-successful": "로그인 성공"
+    "login-successful": "로그인 성공",
+    "role-changed": "계정 권한이 변경되었습니다."
   },
   "form": {
     "id": "아이디",
