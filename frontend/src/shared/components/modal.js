@@ -3,7 +3,13 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function Modal({ isOpen, onClose, children, size = "md" }) {
+export default function Modal({
+  isOpen,
+  onClose,
+  children,
+  size = "md",
+  showClose = true,
+}) {
   const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-md",
@@ -35,7 +41,7 @@ export default function Modal({ isOpen, onClose, children, size = "md" }) {
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-600 hover:text-black"
         >
-          <X className="" />
+          {showClose && <X className="" />}
         </button>
         {children}
       </div>

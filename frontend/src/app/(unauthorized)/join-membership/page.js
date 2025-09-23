@@ -11,17 +11,27 @@ import Input from "@/shared/components/form/input";
 import SelectBox from "@/shared/components/form/select";
 import Label from "@/shared/components/form/label";
 import Button from "@/shared/components/button";
+import Modal from "@/shared/components/modal";
 import SuccessNotice from "@/shared/components/successNotice";
-import {
-  registerFormSchema
-} from "@/entities/auth";
+import { registerFormSchema } from "@/entities/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSignUp, useCheckLoginId, useCheckEmail } from "@/entities/auth/auth.mutation";
+import {
+  useSignUp,
+  useCheckLoginId,
+  useCheckEmail,
+} from "@/entities/auth/auth.mutation";
 import { signupQuery } from "@/entities/auth/auth.query";
 
-
 function JoinMembershipPage() {
-  const { register, formState: { errors }, trigger, handleSubmit, watch, setError, setValue } = useForm({resolver: zodResolver(registerFormSchema)});
+  const {
+    register,
+    formState: { errors },
+    trigger,
+    handleSubmit,
+    watch,
+    setError,
+    setValue,
+  } = useForm({ resolver: zodResolver(registerFormSchema) });
   const [submitted, setSubmitted] = useState(false);
   const [loginIdChecked, setLoginIdChecked] = useState(false);
   const [emailChecked, setEmailChecked] = useState(false);
@@ -30,7 +40,9 @@ function JoinMembershipPage() {
   const signupMutation = useSignUp();
   const checkLoginIdMutation = useCheckLoginId();
   const checkEmailMutation = useCheckEmail();
-  const {data} = useQuery(signupQuery.getSignup());
+  const { data } = useQuery(signupQuery.getSignup());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   // Watch selected country
   const selectedCountryCode = watch("countryId");
@@ -41,10 +53,11 @@ function JoinMembershipPage() {
   const [departmentOptions, setDepartmentOptions] = useState([]);
 
   // Convert API country data to SelectBox options
-  const countryOptions = data?.listCountry?.map(country => ({
-    label: country.name,
-    value: country.id
-  })) || [];
+  const countryOptions =
+    data?.listCountry?.map((country) => ({
+      label: country.name,
+      value: country.id,
+    })) || [];
 
   //Filter headquarters by selected country using state/effect
   useEffect(() => {
@@ -53,21 +66,22 @@ function JoinMembershipPage() {
       return;
     }
     const filtered = data.listHeadquarter
-      .filter(hq => hq.country?.id == selectedCountryCode)
-      .map(hq => ({
+      .filter((hq) => hq.country?.id == selectedCountryCode)
+      .map((hq) => ({
         label: hq.name,
-        value: hq.id
+        value: hq.id,
       }));
     setHeadquarterOptions(filtered);
 
-    if(filtered.length) {
+    if (filtered.length) {
       setValue("headquarterId", String(filtered[0].value));
     }
 
-    if(data?.listCountry){
-      const selectedCountry = data?.listCountry.find(c => c.id == selectedCountryCode);
-      if(selectedCountry)
-        setValue("phone1", selectedCountry?.phonePrefix);
+    if (data?.listCountry) {
+      const selectedCountry = data?.listCountry.find(
+        (c) => c.id == selectedCountryCode
+      );
+      if (selectedCountry) setValue("phone1", selectedCountry?.phonePrefix);
     }
   }, [selectedCountryCode]);
 
@@ -79,19 +93,19 @@ function JoinMembershipPage() {
     }
 
     const filteredDept = data.listDepartments
-      .filter(dp => dp.headquarter?.id == selectedQuarterCode)
-      .map(dp => ({
+      .filter((dp) => dp.headquarter?.id == selectedQuarterCode)
+      .map((dp) => ({
         label: dp.name,
-        value: dp.id
+        value: dp.id,
       }));
     setDepartmentOptions(filteredDept);
-    if(filteredDept.length) {
+    if (filteredDept.length) {
       setValue("departmentId", String(filteredDept[0].value));
     }
   }, [selectedQuarterCode]);
 
   useEffect(() => {
-    if (countryOptions.length  && !watch("countryId")) {
+    if (countryOptions.length && !watch("countryId")) {
       setValue("countryId", String(countryOptions[0].value));
     }
   }, [data]);
@@ -104,7 +118,7 @@ function JoinMembershipPage() {
       ...values,
       email: fullEmail,
       phone: fullPhone,
-      country: ''
+      country: "",
     };
 
     delete payload.email2;
@@ -113,15 +127,14 @@ function JoinMembershipPage() {
 
     signupMutation.mutate(payload, {
       onSuccess: (res) => {
-        const {message, success} = res.data;
-        if (success){
+        const { message, success } = res.data;
+        if (success) {
           toast.success(t("info-msg.signup-successful"), {
             autoClose: 3000,
             position: "top-center",
           });
           setSubmitted(true);
-        }
-        else {
+        } else {
           toast.warning(`${message}`, {
             autoClose: 3000,
             position: "top-center",
@@ -129,8 +142,8 @@ function JoinMembershipPage() {
         }
       },
       onError: (err) => {
-        const {message} = err.response.data;
-        toast.warning(`${message}`, {
+        const { message } = err.response.data;
+        toast.warning(t(message), {
           autoClose: 3000,
           position: "top-center",
         });
@@ -145,23 +158,19 @@ function JoinMembershipPage() {
       return;
     }
     const reqData = {
-      loginId: watch("loginId")
+      loginId: watch("loginId"),
     };
 
     checkLoginIdMutation.mutate(reqData, {
       onSuccess: () => {
         setLoginIdChecked(true);
-        toast.success(t("info-msg.available-id"), {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setAlertMessage("info-msg.available-id");
+        setModalOpen(true);
       },
       onError: () => {
         setLoginIdChecked(false);
-        toast.warning(t("info-msg.not-available-id"), {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setAlertMessage("info-msg.not-available-id");
+        setModalOpen(true);
       },
     });
   };
@@ -175,23 +184,19 @@ function JoinMembershipPage() {
     const email = watch("email");
     const email2 = watch("email2");
     const reqData = {
-      email: `${email}@${email2}`
+      email: `${email}@${email2}`,
     };
-    
+
     checkEmailMutation.mutate(reqData, {
       onSuccess: () => {
         setEmailChecked(true);
-        toast.success( t("info-msg.available-email-id"), {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setAlertMessage("info-msg.available-email-id");
+        setModalOpen(true);
       },
       onError: () => {
         setEmailChecked(false);
-        toast.warning( t("info-msg.not-available-email-id"), {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setAlertMessage("info-msg.not-available-email-id");
+        setModalOpen(true);
       },
     });
   };
@@ -223,14 +228,19 @@ function JoinMembershipPage() {
                 {t("form.id")}
               </Label>
               <div className="flex gap-2">
-                <Input
-                  register={register}
-                  name="loginId"
-                  showError={false}
-                  variant="form"
-                  placeholder={t("placeholder.id")}
-                  error={errors.loginId}
-                />
+                <div className="w-full">
+                  <Input
+                    register={register}
+                    name="loginId"
+                    showError={false}
+                    variant="form"
+                    placeholder={t("placeholder.id")}
+                    error={errors.loginId}
+                  />
+                  <p className="text-color-86 text-[16px] font-normal text-left">
+                    {errors.loginId && t("error-msg.error-login-id")}
+                  </p>
+                </div>
                 <Button
                   size="small2"
                   variant={watch("loginId") ? "neon" : "gray3"}
@@ -283,7 +293,7 @@ function JoinMembershipPage() {
             <div className="w-full h-px bg-color-24 mb-4" />
 
             <div
-              className="grid gap-4"
+              className="w-full grid gap-4"
               style={{ gridTemplateColumns: "120px 600px" }}
             >
               <Label color="gray" className="text-right mt-2">
@@ -300,13 +310,18 @@ function JoinMembershipPage() {
               <Label color="gray" className="text-right mt-2">
                 {t("form.eng-name")}
               </Label>
-              <Input
-                register={register}
-                name="nameEn"
-                showError={false}
-                variant="form"
-                placeholder={t("placeholder.eng-name")}
-              />
+              <div className="w-full">
+                <Input
+                  register={register}
+                  name="nameEn"
+                  showError={false}
+                  variant="form"
+                  placeholder={t("placeholder.eng-name")}
+                />
+                <p className="text-color-86 text-[16px] font-normal text-left">
+                  {errors.nameEn && t("error-msg.namekr-or-nameen-required")}
+                </p>
+              </div>
               <Label color="gray" className="text-right mt-2">
                 {t("form.nation")}
               </Label>
@@ -388,27 +403,42 @@ function JoinMembershipPage() {
                     await trigger(["email", "email2"]);
                   }}
                 />
-                <Button 
-                  size="small2" 
-                  variant={!errors.email && !errors.email2 ? "neon" : "gray3"} 
-                  className="min-w-[135px]" 
+                <Button
+                  size="small2"
+                  variant={!errors.email && !errors.email2 ? "neon" : "gray3"}
+                  className="min-w-[135px]"
                   onClick={handleCheckEmail}
                   disabled={errors.email || errors.email2}
-                  >
-                    {t("check-redundancy")}
+                >
+                  {t("check-redundancy")}
                 </Button>
               </div>
               <div />
               <p className="text-color-86 text-[16px] font-normal">
-                {Object.keys(errors).length > 0 && t("error-msg.enter-all-membership-info")}
+                {Object.keys(errors).length > 0 &&
+                  t("error-msg.enter-all-membership-info")}
               </p>
               <div />
               <Button
                 type="submit"
                 size="small3"
-                variant={loginIdChecked && Object.keys(errors).length == 0 && emailChecked ? "neon" : "gray2"} 
+                variant={
+                  loginIdChecked &&
+                  Object.keys(errors).filter((key) => key != "nameEn").length ==
+                    0 &&
+                  emailChecked
+                    ? "neon"
+                    : "gray2"
+                }
                 className="min-w-[600px]"
-                disabled={!(loginIdChecked && Object.keys(errors).length == 0 && emailChecked)}
+                disabled={
+                  !(
+                    loginIdChecked &&
+                    Object.keys(errors).filter((key) => key != "nameEn")
+                      .length == 0 &&
+                    emailChecked
+                  )
+                }
               >
                 {t("join-membership")}
               </Button>
@@ -416,6 +446,25 @@ function JoinMembershipPage() {
           </form>
         )}
       </div>
+
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        showClose={false}
+      >
+        <h2 className="text-center text-[20px] text-color-24 mb-6">
+          {t(alertMessage)}
+        </h2>
+        <div className="flex justify-center ">
+          <Button
+            size="small"
+            className="min-w-[150px]"
+            onClick={() => setModalOpen(false)}
+          >
+            {t("check")}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -29,7 +29,7 @@ function Membership() {
   const router = useRouter();
   const {
     register: registerProfile,
-    formState: { errors: profileErrors },
+    formState: { errors: profileErrors, isValid },
     trigger,
     handleSubmit: handleSubmitProfile,
     watch,
@@ -45,6 +45,7 @@ function Membership() {
   const [profileImg, setProfileImg] = useState(null);
   const [uploadImg, setUploadImg] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [countryName, setCountryName] = useState(null);
   const [headquarterOptions, setHeadquarterOptions] = useState([]);
@@ -56,13 +57,14 @@ function Membership() {
   const deleteProfileImgMutation = useDeleteProfileImg();
   const changePasswordMutation = useChangePassword();
   const selectedQuarterCode = watch("headquarterId");
+  const [alertMessage, setAlertMessage] = useState("");
 
   const { userInfo, listCountry, listDepartment, listHeadquarter } =
     useUserInfo();
 
   useEffect(() => {
     if (!userInfo) return;
-    if (userInfo?.userData?.status === USERSTATUS.WAITING_TO_CHANGE) {
+    if (userInfo?.status === USERSTATUS.WAITING_TO_CHANGE) {
       setSubmitted(true);
       return;
     }
@@ -149,10 +151,8 @@ function Membership() {
         }
       },
       onError: (err) => {
-        toast.error(`${err.response.data.message}`, {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setAlertMessage(`${err.response.data.message}`);
+        setAlertModalOpen(true);
         console.log(err);
       },
     });
@@ -170,17 +170,13 @@ function Membership() {
     };
 
     checkEmailMutation.mutate(reqData, {
-      onSuccess: (res) => {
-        toast.success(`${res.data.message}`, {
-          autoClose: 3000,
-          position: "top-center",
-        });
+      onSuccess: () => {
+        setAlertMessage("info-msg.available-email-id");
+        setAlertModalOpen(true);
       },
-      onError: (err) => {
-        toast.warning(`${err.response.data.message}`, {
-          autoClose: 3000,
-          position: "top-center",
-        });
+      onError: () => {
+        setAlertMessage("info-msg.not-available-email-id");
+        setAlertModalOpen(true);
       },
     });
   };
@@ -411,7 +407,8 @@ function Membership() {
                   variant={
                     Object.keys(profileErrors).length == 0 ? "neon" : "gray2"
                   }
-                  disabled={Object.keys(profileErrors).length > 0}
+                  // disabled={Object.keys(profileErrors).length > 0}
+                  disabled={!isValid}
                 >
                   {t("request-modification-member-info")}
                 </Button>
@@ -478,11 +475,33 @@ function Membership() {
             />
           </div>
           <div className="flex justify-center">
-            <Button type="submit" size="medium">
+            <Button
+              type="submit"
+              size="medium"
+              disabled={!(Object.keys(changepassErrors).length == 0)}
+            >
               {t("change")}
             </Button>
           </div>
         </form>
+      </Modal>
+      <Modal
+        isOpen={alertModalOpen}
+        onClose={() => setAlertModalOpen(false)}
+        showClose={false}
+      >
+        <h2 className="text-center text-[20px] text-color-24 mb-6">
+          {t(alertMessage)}
+        </h2>
+        <div className="flex justify-center ">
+          <Button
+            size="small"
+            className="min-w-[150px]"
+            onClick={() => setAlertModalOpen(false)}
+          >
+            {t("check")}
+          </Button>
+        </div>
       </Modal>
     </div>
   );

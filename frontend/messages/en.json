@@ -119,7 +119,9 @@
   "error-msg": {
     "id-pass-not-match": "The ID or password does not match.",
     "enter-all-membership-info": "Please enter all your membership information.",
-    "passwords-not-match": "Passwords does not match. Please try again."
+    "passwords-not-match": "Passwords does not match. Please try again.",
+    "namekr-or-nameen-required": "Either Korean name or English name is required",
+    "error-login-id": "Login ID must contain English letters and numbers."
   },
   "info-msg": {
     "password": "* 8-16 characters / case, number, special character combination",
@@ -131,7 +133,8 @@
     "not-available-id": "This ID is already in use.",
     "available-email-id": "This EmailID is available.",
     "not-available-email-id": "This EmailID is already in use.",
-    "signup-successful": "Signup successful"
+    "signup-successful": "Signup successful",
+    "login-successful": "Login successful"
   },
   "form": {
     "id": "id",
