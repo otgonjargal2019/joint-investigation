@@ -2,7 +2,6 @@
 package com.lsware.joint_investigation.investigation.controller;
 
 import com.lsware.joint_investigation.investigation.service.InvestigationService;
-import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordRequest;
 import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;

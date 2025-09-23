@@ -16,8 +16,6 @@ import com.lsware.joint_investigation.investigation.entity.AttachFile;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
 import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
-import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordRequest;
-import com.lsware.joint_investigation.investigation.dto.CreateAttachFileRequest;
 import com.lsware.joint_investigation.investigation.dto.CreateInvestigationRecordMultipartRequest;
 import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;

@@ -11,20 +11,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class UpdateInvestigationRecordRequest {
-    
+
     private String recordName;
-    
+
     private String content;
-    
+
     private Integer securityLevel;
-    
+
     private Integer number;
-    
+
     private PROGRESS_STATUS progressStatus;
-    
+
     private REVIEW_STATUS reviewStatus;
-    
+
     private String rejectionReason;
-    
+
     private UUID reviewerId;
 }
