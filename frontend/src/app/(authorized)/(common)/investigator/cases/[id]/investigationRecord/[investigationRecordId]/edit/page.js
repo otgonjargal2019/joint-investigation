@@ -73,9 +73,7 @@ const InquiryDetailPage = () => {
     }
   };
 
-  const edit = () => {
-    router.push(`/investigator/cases/${caseId}/investigationRecord/${investigationRecordId}/edit`);
-  };
+  console.log("investigationRecord", investigationRecord);
 
   let reviewResult = "";
 
@@ -165,23 +163,10 @@ const InquiryDetailPage = () => {
                   variant="yellow"
                   size="mediumWithShadow"
                   className="gap-3"
-                  onClick={edit}
+                // onClick={() => setDenyModalOpen(true)}
                 >
                   <EditFile />
                   {t("incident.edit")}
-                </Button>
-                <Button
-                  variant="yellow"
-                  size="mediumWithShadow"
-                  className="gap-3"
-                  onClick={handleRequestReview}
-                  disabled={requestReviewMutation.isPending}
-                >
-                  <CheckRectangle />
-                  {requestReviewMutation.isPending
-                    ? t("incident.requesting-review")
-                    : t("incident.request-review")
-                  }
                 </Button>
               </>
             )}
@@ -197,7 +182,7 @@ const InquiryDetailPage = () => {
             register={register}
             watch={watch}
             errors={errors}
-            readonly={true}
+            // readonly={true}
             headerInfo={{
               item1:
                 investigationRecord?.caseInstance?.creationDate ||
