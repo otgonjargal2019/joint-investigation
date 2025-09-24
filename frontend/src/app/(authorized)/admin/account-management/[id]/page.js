@@ -46,7 +46,8 @@ const UserDetailPage = ({ params }) => {
     watch,
   } = useForm();
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [roleSuccessModalOpen, setRoleSuccessModalOpen] = useState(false);
   const [waitingUserInfo, setWaitingUserInfo] = useState({});
   const userStatusMutation = useUpdateUserStatus();
   const userRoleMutation = useUpdateRole();
@@ -106,7 +107,7 @@ const UserDetailPage = ({ params }) => {
 
   const openRejectModal = () => {
     setValue("reason", "");
-    setModalOpen(true);
+    setRejectModalOpen(true);
   };
 
   const onConfirmReject = () => {
@@ -133,7 +134,7 @@ const UserDetailPage = ({ params }) => {
             autoClose: 3000,
             position: "top-center",
           });
-          setModalOpen(false);
+          setRejectModalOpen(false);
           router.push("/admin/account-management");
         },
         onError: (err) => {
@@ -153,10 +154,7 @@ const UserDetailPage = ({ params }) => {
         { userId: user.userId, role },
         {
           onSuccess: (res) => {
-            toast.success(res.data.message, {
-              autoClose: 3000,
-              position: "top-center",
-            });
+            setRoleSuccessModalOpen(true);
             refetch();
           },
           onError: (err) => {
@@ -218,7 +216,8 @@ const UserDetailPage = ({ params }) => {
             )}
           </div>
         </div>
-        {user?.status === USERSTATUS.PENDING && (
+        {(user?.status === USERSTATUS.PENDING ||
+          user?.status === USERSTATUS.REJECTED) && (
           <UserDetailTable userInfo={user} />
         )}
 
@@ -239,7 +238,11 @@ const UserDetailPage = ({ params }) => {
         )}
       </div>
 
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} size="w568">
+      <Modal
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        size="w568"
+      >
         <div className="space-y-8">
           <h3 className="text-color-8 text-[24px] font-medium text-center">
             {rejectTitle}
@@ -263,11 +266,31 @@ const UserDetailPage = ({ params }) => {
               variant="gray2"
               size="form"
               className="w-[148px]"
-              onClick={() => setModalOpen(false)}
+              onClick={() => setRejectModalOpen(false)}
             >
               {t("cancel")}
             </Button>
             <Button size="form" className="w-[148px]" onClick={onConfirmReject}>
+              {t("check")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={roleSuccessModalOpen}
+        onClose={() => setRoleSuccessModalOpen(false)}
+      >
+        <div className="space-y-4">
+          <div className="text-color-24 text-[20px] font-normal text-center p-4">
+            {t("info-msg.role-changed")}
+          </div>
+
+          <div className="flex justify-center gap-4">
+            <Button
+              size="form"
+              className="w-[150px]"
+              onClick={() => setRoleSuccessModalOpen(false)}
+            >
               {t("check")}
             </Button>
           </div>

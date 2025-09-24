@@ -145,7 +145,8 @@
     "available-email-id": "This EmailID is available.",
     "not-available-email-id": "This EmailID is already in use.",
     "signup-successful": "Signup successful",
-    "login-successful": "Login successful"
+    "login-successful": "Login successful",
+    "role-changed": "The account role has been changed."
   },
   "form": {
     "id": "id",

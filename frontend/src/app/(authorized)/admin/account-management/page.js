@@ -20,7 +20,7 @@ const tabs = [
 const tableColumns = [
   { key: "no", title: "NO.", textAlign: "text-center" },
   { key: "loginId", title: "ID", textAlign: "text-left" },
-  { key: "nameKr", title: "이름", textAlign: "text-center" },
+  { key: "name", title: "이름", textAlign: "text-left" },
   { key: "countryName", title: "국가", textAlign: "text-center" },
   { key: "affiliation", title: "소속", textAlign: "text-center" },
   { key: "createdAtFormatted", title: "가입일", textAlign: "text-center" },
@@ -44,14 +44,9 @@ function AcountManagementPage() {
   );
 
   const onClickRow = (row) => {
-    const { status, userId } = row;
+    const { userId } = row;
 
-    if (
-      userId &&
-      (status === USERSTATUS.PENDING ||
-        status === USERSTATUS.APPROVED ||
-        status === USERSTATUS.WAITING_TO_CHANGE)
-    ) {
+    if (userId) {
       router.push(`/admin/account-management/${userId}`);
     }
   };
@@ -86,6 +81,7 @@ function AcountManagementPage() {
     status2: getFancyStatusName(user.status),
     no: (page - 1) * pageSize + index + 1,
     affiliation: `${user.headquarterName} -> ${user.departmentName}`,
+    name: user.nameKr || user.nameEn,
   }));
   const totalPages = data?.meta?.totalPages;
 
