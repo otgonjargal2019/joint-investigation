@@ -214,8 +214,7 @@ const IncidentCreatePage = () => {
                 className="gap-3"
                 disabled={createInvestigationRecordMutation.isPending}
               >
-                <CheckRectangle />
-                {/* {createInvestigationRecordMutation.isPending ? t("creating...") : t("registering")} */}
+                <CheckRectangle />{t("incident.create")}
               </Button>
             </div>
           </div>

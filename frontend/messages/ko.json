@@ -30,6 +30,7 @@
     }
   },
   "incident": {
+    "create": "등록하기",
     "case-number": "사건번호",
     "title": "사건 명",
     "manager": "담당자",

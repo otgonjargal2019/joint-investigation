@@ -30,6 +30,7 @@
     }
   },
   "incident": {
+    "create": "Create",
     "case-number": "Case Number",
     "title": "Case Title",
     "manager": "Manager",
