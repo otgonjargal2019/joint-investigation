@@ -89,30 +89,33 @@ public class CaseService {
 		return mapping;
 	}
 
-	public MappingJacksonValue getCaseById(UUID caseId) {
+	public MappingJacksonValue getCaseById(UUID caseId, CustomUser user) throws RuntimeException {
 		// Fetch the case with latest investigation record
-		Case caseEntity = caseRepository.findById(caseId)
-				.orElseThrow(() -> new RuntimeException("Case not found"));
+		Case caseEntity = caseRepository.findById(caseId, user);
 
-		CaseDto dto = caseEntity.toDto();
+		if (caseEntity != null) {
+			CaseDto dto = caseEntity.toDto();
 
-		if (caseEntity.getInvestigationRecords() != null) {
-			List<InvestigationRecordDto> records = caseEntity.getInvestigationRecords()
-					.stream()
-					.map(r -> {
-						InvestigationRecordDto rdto = r.toDto();
-						rdto.setCaseId(caseEntity.getCaseId()); // avoid recursion
-						return rdto;
-					})
-					.collect(Collectors.toList());
-			dto.setInvestigationRecords(records);
+			if (caseEntity.getInvestigationRecords() != null) {
+				List<InvestigationRecordDto> records = caseEntity.getInvestigationRecords()
+						.stream()
+						.map(r -> {
+							InvestigationRecordDto rdto = r.toDto();
+							rdto.setCaseId(caseEntity.getCaseId()); // avoid recursion
+							return rdto;
+						})
+						.collect(Collectors.toList());
+				dto.setInvestigationRecords(records);
+			}
+
+			MappingJacksonValue mapping = new MappingJacksonValue(dto);
+
+			mapping.setFilters(UserController.getUserFilter());
+
+			return mapping;
 		}
 
-		MappingJacksonValue mapping = new MappingJacksonValue(dto);
-
-		mapping.setFilters(UserController.getUserFilter());
-
-		return mapping;
+		return null;
 	}
 
 	@PreAuthorize("hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")

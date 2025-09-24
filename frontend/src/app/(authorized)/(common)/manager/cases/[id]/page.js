@@ -73,7 +73,7 @@ function IncidentDetailPage() {
 				<div className="flex flex-col items-center">
 					<PageTitle title={t("header.incident-detail")} />
 					<div className="flex gap-4 justify-center mt-2">
-						<TagCaseStatus status={caseData.status} />
+						<TagCaseStatus status={caseData?.status} />
 						{/* <Tag status="ONGOING" />
 						<Tag status="COLLECTINGDIGITAL" /> */}
 					</div>

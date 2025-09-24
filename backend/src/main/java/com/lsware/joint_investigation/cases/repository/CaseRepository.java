@@ -2,7 +2,6 @@ package com.lsware.joint_investigation.cases.repository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.QCase;
 import com.lsware.joint_investigation.cases.entity.QCaseAssignee;
+import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 import com.lsware.joint_investigation.util.QuerydslHelper;
@@ -104,20 +104,27 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
         );
     }
 
-    public Optional<Case> findById(UUID caseId) {
-        QCase qCase = QCase.case$;
+    public Case findById(UUID caseId, CustomUser user) {
+        QCase qcase = QCase.case$;
         QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
 
+        BooleanExpression rootPredicate = qcase.caseId.eq(caseId);
+
+        if (user != null && user.getAuthorities() != null &&
+            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
+        }
+
         Case found = queryFactory
-            .select(qCase)
-            .from(qCase)
-            .leftJoin(qCase.investigationRecords, qRecord) // join list
+            .select(qcase)
+            .from(qcase)
+            .leftJoin(qcase.investigationRecords, qRecord) // join list
             .fetchJoin() // fetch the list eagerly
-            .where(qCase.caseId.eq(caseId))
+            .where(rootPredicate)
             .distinct() // important to avoid duplicates
             .fetchOne();
 
-        return Optional.of(found);
+        return found;
     }
 
     public Page<Case> findAssignedCases(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
