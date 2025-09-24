@@ -13,6 +13,7 @@ import { caseData } from "@/shared/widgets/mockData/homepage";
 import { userQuery } from "@/entities/user/user.query";
 import { useAuth } from "@/providers/authProviders";
 import { useRealTime } from "@/providers/realtimeProvider";
+import { useUserInfo } from "@/providers/userInfoProviders";
 
 export default function Home() {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ export default function Home() {
 
   const [isLoading, setLoading] = useState(true);
   const { data } = useQuery(userQuery.getUserDashboard());
-
+  const { userInfo } = useUserInfo();
   const { unreadUsersCount, unreadNotifCount } = useRealTime();
 
   const { noticeLink, researchLink } = useMemo(() => {
@@ -67,11 +68,11 @@ export default function Home() {
           </h2>
           <div className="">
             <ProfileCard
-              name={"고광천"}
+              name={userInfo?.nameKr || userInfo?.nameEn}
               unreadMessages={unreadUsersCount}
               unreadNotifications={unreadNotifCount}
-              department={"온라인 보호부"}
-              headquarters={"침해 대응 본부"}
+              department={userInfo?.departmentName}
+              headquarters={userInfo?.headquarterName}
             />
           </div>
         </div>

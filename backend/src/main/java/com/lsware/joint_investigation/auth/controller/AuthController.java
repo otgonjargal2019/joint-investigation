@@ -194,11 +194,14 @@ public class AuthController {
                 String formattedDateTime = LocalDateTime.now().format(formatter);
                 Map<String, String> contentMap = new LinkedHashMap<>();
                 contentMap.put("ID", userDto.getLoginId());
-                contentMap.put("성명", userDto.getNameKr());
+                contentMap.put("성명",
+                        (userDto.getNameKr() != null && !userDto.getNameKr().isEmpty()) ? userDto.getNameKr()
+                                : userDto.getNameEn());
                 contentMap.put("요청 일시", formattedDateTime);
 
                 for (Users admin : adminList)
-                    notificationService.notifyUser(admin.getUserId(), "신규 계정 등록", contentMap, null);
+                    notificationService.notifyUser(admin.getUserId(), "신규 계정 등록", contentMap,
+                            "/admin/account-management/" + user.getUserId());
             }
 
             response.put("success", true);

@@ -143,10 +143,8 @@ function JoinMembershipPage() {
       },
       onError: (err) => {
         const { message } = err.response.data;
-        toast.warning(t(message), {
-          autoClose: 3000,
-          position: "top-center",
-        });
+        setAlertMessage(t(message));
+        setModalOpen(true);
       },
     });
   };
@@ -236,6 +234,7 @@ function JoinMembershipPage() {
                     variant="form"
                     placeholder={t("placeholder.id")}
                     error={errors.loginId}
+                    maxLength={20}
                   />
                   <p className="text-color-86 text-[16px] font-normal text-left">
                     {errors.loginId && t("error-msg.error-login-id")}
@@ -263,6 +262,7 @@ function JoinMembershipPage() {
                   variant="form"
                   placeholder={t("placeholder.password")}
                   error={errors.password}
+                  maxLength={20}
                 />
                 <p className="text-color-15 text-[16px] font-normal text-left mt-1">
                   {t("info-msg.password")}
@@ -280,6 +280,7 @@ function JoinMembershipPage() {
                   variant="form"
                   placeholder={t("placeholder.password-confirm")}
                   error={errors.passwordConfirm}
+                  maxLength={20}
                   onBlur={async () => {
                     await trigger(["password", "passwordConfirm"]);
                   }}
@@ -306,6 +307,7 @@ function JoinMembershipPage() {
                 variant="form"
                 placeholder={t("placeholder.kor-name")}
                 error={errors.nameKr}
+                maxLength={20}
               />
               <Label color="gray" className="text-right mt-2">
                 {t("form.eng-name")}
@@ -317,6 +319,7 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.eng-name")}
+                  maxLength={20}
                 />
                 <p className="text-color-86 text-[16px] font-normal text-left">
                   {errors.nameEn && t("error-msg.namekr-or-nameen-required")}
@@ -379,6 +382,7 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.contact-info")}
+                  maxLength={20}
                 />
               </div>
               <Label color="gray" className="text-right mt-2">
@@ -391,6 +395,7 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   error={errors.email}
+                  maxLength={20}
                 />
                 <span className="text-gray-700">@</span>
                 <Input
@@ -399,6 +404,7 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   error={errors.email2}
+                  maxLength={20}
                   onBlur={async () => {
                     await trigger(["email", "email2"]);
                   }}

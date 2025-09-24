@@ -178,11 +178,14 @@ public class UserController {
                     String formattedDateTime = LocalDateTime.now().format(formatter);
                     Map<String, String> contentMap = new LinkedHashMap<>();
                     contentMap.put("ID", me.get().getLoginId());
-                    contentMap.put("성명", me.get().getNameKr());
+                    contentMap.put("성명",
+                            (me.get().getNameKr() != null && !me.get().getNameKr().isEmpty()) ? me.get().getNameKr()
+                                    : me.get().getNameEn());
                     contentMap.put("요청 일시", formattedDateTime);
 
                     for (Users admin : adminList)
-                        notificationService.notifyUser(admin.getUserId(), "회원 정보 변경 승인", contentMap, null);
+                        notificationService.notifyUser(admin.getUserId(), "회원 정보 변경 승인", contentMap,
+                                "/admin/account-management/" + me.get().getUserId());
                 }
 
                 response.put("success", true);

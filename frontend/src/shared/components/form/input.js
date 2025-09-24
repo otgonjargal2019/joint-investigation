@@ -14,6 +14,8 @@ const Input = ({
   showError = true,
   variant = "default",
   onBlur,
+  maxLength,
+  max,
 }) => {
   const variants = {
     default: "text-color-4 border rounded-10 px-3 py-2",
@@ -41,6 +43,8 @@ const Input = ({
         disabled={disabled}
         readOnly={readOnly}
         defaultValue={defaultValue}
+        maxLength={maxLength}
+        max={max}
       />
       {showError && (
         <p className="text-sm text-color-86 mt-1 min-h-[20px]">
@@ -62,6 +66,8 @@ Input.propTypes = {
   className: PropTypes.string,
   defaultValue: PropTypes.string,
   showError: PropTypes.bool,
+  maxLength: PropTypes.number,
+  max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default Input;
