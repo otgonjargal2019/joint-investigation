@@ -52,9 +52,9 @@ public class InvestigationService {
 	private FileService fileService;
 
 	public Map<String, Object> getInvestigationRecords(String recordName, PROGRESS_STATUS progressStatus, String caseId,
-			Pageable pageable) {
+			Pageable pageable, CustomUser user) {
 		Map<String, Object> result = investigationRecordRepository.findInvestigationRecord(recordName, progressStatus,
-				caseId, pageable);
+				caseId, pageable, user);
 
 		@SuppressWarnings("unchecked")
 		List<InvestigationRecord> records = (List<InvestigationRecord>) result.get("rows");

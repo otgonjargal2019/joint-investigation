@@ -5,8 +5,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.cases.entity.QCase;
+import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
+import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
 import com.lsware.joint_investigation.util.QuerydslHelper;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 
@@ -30,8 +33,9 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         super(InvestigationRecord.class, entityManager);
     }
 
-    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId) {
+    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId, CustomUser user) {
         QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+        QCase qcase = QCase.case$;
 
         BooleanExpression rootPredicate = q.recordId.isNotNull();
 
@@ -45,6 +49,16 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
 
         if (caseId != null) {
             rootPredicate = rootPredicate.and(q.caseInstance.caseId.eq(UUID.fromString(caseId)));
+        }
+
+        // Add role-based filtering for INV_ADMIN users
+        if (user != null && user.getAuthorities() != null &&
+            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
+            rootPredicate = rootPredicate.and(
+                q.reviewStatus.eq(REVIEW_STATUS.PENDING)
+                .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+            );
         }
 
         return rootPredicate;
@@ -66,21 +80,25 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
     }
 
     public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, String caseId,
-            Pageable pageable) {
+            Pageable pageable, CustomUser user) {
 
-        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus, caseId);
+        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus, caseId, user);
+
+        QInvestigationRecord q = QInvestigationRecord.investigationRecord;
 
         List<InvestigationRecord> rows = queryFactory
-                .selectFrom(QInvestigationRecord.investigationRecord)
+                .selectFrom(q)
+                .leftJoin(q.caseInstance, QCase.case$)
                 .where(combinedPredicate)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
-                .orderBy(QuerydslHelper.getSortedColumn(QInvestigationRecord.investigationRecord, pageable.getSort()))
+                .orderBy(QuerydslHelper.getSortedColumn(q, pageable.getSort()))
                 .fetch();
 
         Long total = queryFactory
-                .select(QInvestigationRecord.investigationRecord.recordId.count())
-                .from(QInvestigationRecord.investigationRecord)
+                .select(q.recordId.count())
+                .from(q)
+                .leftJoin(q.caseInstance, QCase.case$)
                 .where(combinedPredicate)
                 .fetchOne();
 

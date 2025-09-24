@@ -48,25 +48,33 @@ public class InvestigationController {
 	private InvestigationService investigationService;
 
 	@GetMapping("/list")
-	public MappingJacksonValue getInvestigationRecords(
+	public ResponseEntity<MappingJacksonValue> getInvestigationRecords(
 			@RequestParam(required = false) String recordName,
 			@RequestParam(required = false) PROGRESS_STATUS progressStatus,
 			@RequestParam(required = false) String caseId,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
 			@RequestParam(required = false, defaultValue = "createdAt") String sortBy,
-			@RequestParam(required = false, defaultValue = "desc") String sortDirection) {
-		Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
-		Sort sort = Sort.by(direction, sortBy);
-		Pageable pageable = PageRequest.of(page, size, sort);
+			@RequestParam(required = false, defaultValue = "desc") String sortDirection,
+			Authentication authentication) {
+		try {
+			CustomUser user = (CustomUser)authentication.getPrincipal();
+			Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
+			Sort sort = Sort.by(direction, sortBy);
+			Pageable pageable = PageRequest.of(page, size, sort);
 
-		Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, caseId,
-				pageable);
-		MappingJacksonValue mapping = new MappingJacksonValue(result);
+			Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, caseId,
+					pageable, user);
+			MappingJacksonValue mapping = new MappingJacksonValue(result);
 
-		mapping.setFilters(UserController.getUserFilter());
+			mapping.setFilters(UserController.getUserFilter());
 
-		return mapping;
+			return ResponseEntity.ok(mapping);
+		} catch (Exception e) {
+			log.error("Error getting investigation records: {}",
+				e.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
 	}
 
 	/**
