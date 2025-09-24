@@ -22,9 +22,22 @@ export const UserInfoProvider = ({ children }) => {
     setListDepartment(data.listDepartment || []);
   }, [data]);
 
+  const updateUserStatus = (newStatus) => {
+    setUserInfo((prev) => {
+      if (!prev) return prev;
+      return { ...prev, status: newStatus };
+    });
+  };
+
   return (
     <UserInfoContext.Provider
-      value={{ userInfo, listCountry, listHeadquarter, listDepartment }}
+      value={{
+        userInfo,
+        listCountry,
+        listHeadquarter,
+        listDepartment,
+        updateUserStatus,
+      }}
     >
       {children}
     </UserInfoContext.Provider>

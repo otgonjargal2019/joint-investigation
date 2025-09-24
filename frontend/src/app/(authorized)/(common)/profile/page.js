@@ -29,7 +29,7 @@ function Membership() {
   const router = useRouter();
   const {
     register: registerProfile,
-    formState: { errors: profileErrors, isValid },
+    formState: { errors: profileErrors, isValid, dirtyFields },
     trigger,
     handleSubmit: handleSubmitProfile,
     watch,
@@ -37,9 +37,12 @@ function Membership() {
   } = useForm({ resolver: zodResolver(profileFormSchema) });
   const {
     register: registerChangepass,
-    formState: { errors: changepassErrors },
+    formState: { errors: changepassErrors, isValid: changepassValid },
     handleSubmit: handleSubmitChangepass,
-  } = useForm({ resolver: zodResolver(changePassFormSchema) });
+  } = useForm({
+    resolver: zodResolver(changePassFormSchema),
+    mode: "onChange",
+  });
 
   const [error, setError] = useState(true);
   const [profileImg, setProfileImg] = useState(null);
@@ -58,9 +61,17 @@ function Membership() {
   const changePasswordMutation = useChangePassword();
   const selectedQuarterCode = watch("headquarterId");
   const [alertMessage, setAlertMessage] = useState("");
+  const email = watch("email");
+  const email2 = watch("email2");
+  const [emailChecked, setEmailChecked] = useState(true);
 
-  const { userInfo, listCountry, listDepartment, listHeadquarter } =
-    useUserInfo();
+  const {
+    userInfo,
+    listCountry,
+    listDepartment,
+    listHeadquarter,
+    updateUserStatus,
+  } = useUserInfo();
 
   useEffect(() => {
     if (!userInfo) return;
@@ -127,6 +138,17 @@ function Membership() {
     setDepartmentOptions(filteredDept);
   }, [selectedQuarterCode]);
 
+  useEffect(() => {
+    const originalEmail = userInfo?.email?.split("@") || ["", ""];
+    const emailModified =
+      email !== originalEmail[0] || email2 !== originalEmail[1];
+    if (emailModified) {
+      setEmailChecked(false);
+    } else {
+      setEmailChecked(true);
+    }
+  }, [email, email2]);
+
   const onSubmit = async (values) => {
     const payload = {
       countryId: userInfo?.countryId,
@@ -148,6 +170,7 @@ function Membership() {
         const { success } = res.data;
         if (success) {
           setSubmitted(true);
+          updateUserStatus(USERSTATUS.WAITING_TO_CHANGE);
         }
       },
       onError: (err) => {
@@ -163,8 +186,6 @@ function Membership() {
     if (!isValid) {
       return;
     }
-    const email = watch("email");
-    const email2 = watch("email2");
     const reqData = {
       email: `${email}@${email2}`,
     };
@@ -173,10 +194,12 @@ function Membership() {
       onSuccess: () => {
         setAlertMessage("info-msg.available-email-id");
         setAlertModalOpen(true);
+        setEmailChecked(true);
       },
       onError: () => {
         setAlertMessage("info-msg.not-available-email-id");
         setAlertModalOpen(true);
+        setEmailChecked(false);
       },
     });
   };
@@ -385,7 +408,11 @@ function Membership() {
                   <Button
                     size="small2"
                     variant={
-                      !profileErrors.email && !profileErrors.email2
+                      (dirtyFields.email || dirtyFields.email2) &&
+                      email &&
+                      email2 &&
+                      !profileErrors.email &&
+                      !profileErrors.email2
                         ? "neon"
                         : "gray3"
                     }
@@ -404,11 +431,8 @@ function Membership() {
                 <Button
                   type="submit"
                   size="small3"
-                  variant={
-                    Object.keys(profileErrors).length == 0 ? "neon" : "gray2"
-                  }
-                  // disabled={Object.keys(profileErrors).length > 0}
-                  disabled={!isValid}
+                  variant={emailChecked && isValid ? "neon" : "gray2"}
+                  disabled={!emailChecked || !isValid}
                 >
                   {t("request-modification-member-info")}
                 </Button>
@@ -475,11 +499,7 @@ function Membership() {
             />
           </div>
           <div className="flex justify-center">
-            <Button
-              type="submit"
-              size="medium"
-              disabled={!(Object.keys(changepassErrors).length == 0)}
-            >
+            <Button type="submit" size="medium" disabled={!changepassValid}>
               {t("change")}
             </Button>
           </div>
@@ -491,7 +511,7 @@ function Membership() {
         showClose={false}
       >
         <h2 className="text-center text-[20px] text-color-24 mb-6">
-          {t(alertMessage)}
+          {alertMessage ? t(alertMessage) : ""}
         </h2>
         <div className="flex justify-center ">
           <Button

@@ -32,7 +32,7 @@ const ProfileCard = ({
       <div className="flex flex-col gap-4 justify-center items-center text-center mt-8">
         <User />
         <p className="text-white text-[24px]">{name}</p>
-        <div className="flex items-center gap-[10px] bg-color-88 rounded-[5px] px-8 py-[5px] text-color-89 text-[24px]">
+        <div className="flex items-center gap-[10px] bg-color-88 rounded-[5px] px-8 py-[5px] text-color-89 text-[20px]">
           <p>{headquarters}</p>
           <div className="w-[2px] h-[25px] bg-color-87"></div>
           <p>{department}</p>
