@@ -18,6 +18,7 @@ import {
   useInvestigationRecord,
   useRejectInvestigationRecord,
   useApproveInvestigationRecord,
+  REVIEW_STATUS,
 } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
@@ -208,24 +209,28 @@ const InquiryDetailPage = () => {
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="pink"
-              size="mediumWithShadow"
-              className="gap-3"
-              onClick={() => setDenyModalOpen(true)}
-            >
-              <CancelCircle />
-              {t("deny")}
-            </Button>
-            <Button
-              variant="yellow"
-              size="mediumWithShadow"
-              className="gap-3"
-              onClick={() => setApproveModalOpen(true)}
-            >
-              <CheckCircle />
-              {t("approve")}
-            </Button>
+            {(investigationRecord?.reviewStatus === REVIEW_STATUS.PENDING && (
+              <>
+                <Button
+                  variant="pink"
+                  size="mediumWithShadow"
+                  className="gap-3"
+                  onClick={() => setDenyModalOpen(true)}
+                >
+                  <CancelCircle />
+                  {t("deny")}
+                </Button>
+                <Button
+                  variant="yellow"
+                  size="mediumWithShadow"
+                  className="gap-3"
+                  onClick={() => setApproveModalOpen(true)}
+                >
+                  <CheckCircle />
+                  {t("approve")}
+                </Button>
+              </>
+            ))}
           </div>
         </div>
         <div className=" bg-white border border-color-36 rounded-10 px-[70px] py-6">
