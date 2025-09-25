@@ -18,32 +18,75 @@ const DateInput = ({
     // Remove all non-numeric characters
     const numbers = input.replace(/\D/g, "");
 
-    // Apply formatting based on length
+    // Apply formatting based on length with validation
     let formatted = "";
 
     if (numbers.length >= 1) {
       formatted = numbers.substring(0, 4); // YYYY
     }
     if (numbers.length >= 5) {
-      formatted += "-" + numbers.substring(4, 6); // -MM
+      let month = numbers.substring(4, 6);
+      // Validate month (01-12)
+      if (parseInt(month) > 12) {
+        month = "12";
+      }
+      if (month.length === 1 && parseInt(month) > 1) {
+        month = "0" + month;
+      }
+      formatted += "-" + month; // -MM
     }
     if (numbers.length >= 7) {
-      formatted += "-" + numbers.substring(6, 8); // -DD
+      let day = numbers.substring(6, 8);
+      // Validate day (01-31)
+      if (parseInt(day) > 31) {
+        day = "31";
+      }
+      if (day.length === 1 && parseInt(day) > 3) {
+        day = "0" + day;
+      }
+      formatted += "-" + day; // -DD
     }
     if (numbers.length >= 9) {
-      formatted += " " + numbers.substring(8, 10); // HH
+      let hour = numbers.substring(8, 10);
+      // Validate hour (00-23)
+      if (parseInt(hour) > 23) {
+        hour = "23";
+      }
+      if (hour.length === 1 && parseInt(hour) > 2) {
+        hour = "0" + hour;
+      }
+      formatted += " " + hour; // HH
     }
     if (numbers.length >= 11) {
-      formatted += ":" + numbers.substring(10, 12); // :mm
+      let minute = numbers.substring(10, 12);
+      // Validate minute (00-59)
+      if (parseInt(minute) > 59) {
+        minute = "59";
+      }
+      if (minute.length === 1 && parseInt(minute) > 5) {
+        minute = "0" + minute;
+      }
+      formatted += ":" + minute; // :mm
     }
     if (numbers.length >= 13) {
-      formatted += ":" + numbers.substring(12, 14); // :ss
+      let second = numbers.substring(12, 14);
+      // Validate second (00-59)
+      if (parseInt(second) > 59) {
+        second = "59";
+      }
+      if (second.length === 1 && parseInt(second) > 5) {
+        second = "0" + second;
+      }
+      formatted += ":" + second; // :ss
     }
 
     return formatted;
   };
 
   const handleKeyDown = (e) => {
+    const currentValue = e.target.value || "";
+    const cursorPosition = e.target.selectionStart;
+
     // Allow backspace, delete, arrow keys, tab, etc.
     if (
       e.key === "Backspace" ||
@@ -64,14 +107,57 @@ const DateInput = ({
     // Only allow numbers
     if (!/[0-9]/.test(e.key)) {
       e.preventDefault();
+      return;
     }
 
-    // Limit to 14 digits (YYYYMMDDHHmmss)
-    const currentValue = e.target.value || "";
-    const numbers = currentValue.replace(/\D/g, "");
-    if (numbers.length >= 14) {
-      e.preventDefault();
+    // When typing a number, clear everything after cursor position
+    const beforeCursor = currentValue.substring(0, cursorPosition);
+    const numbersBeforeCursor = beforeCursor.replace(/\D/g, "");
+
+    // Create new value with only the part before cursor + new digit
+    const newNumbers = numbersBeforeCursor + e.key;
+    const newFormatted = formatDatetime(newNumbers);
+
+    // Prevent the default input and set our custom value
+    e.preventDefault();
+
+    // Update the input value
+    e.target.value = newFormatted;
+
+    // Trigger the onChange event
+    const syntheticEvent = {
+      target: e.target,
+      type: "input",
+    };
+
+    // Call react-hook-form's onChange
+    if (registerProps.onChange) {
+      registerProps.onChange(syntheticEvent);
     }
+
+    // Set cursor position after the new digit
+    setTimeout(() => {
+      if (inputRef.current) {
+        let newCursorPosition = 0;
+        let numberCount = 0;
+
+        for (
+          let i = 0;
+          i < newFormatted.length && numberCount < newNumbers.length;
+          i++
+        ) {
+          if (/\d/.test(newFormatted[i])) {
+            numberCount++;
+          }
+          newCursorPosition = i + 1;
+        }
+
+        inputRef.current.setSelectionRange(
+          newCursorPosition,
+          newCursorPosition
+        );
+      }
+    }, 0);
   };
 
   const handlePaste = (e) => {
@@ -99,21 +185,12 @@ const DateInput = ({
   // Get register props if register is provided
   const registerProps = register && name ? register(name) : {};
 
-  // Create a custom onChange that handles formatting
+  // Create a custom onChange that handles formatting (mainly for paste and other events)
   const customOnChange = (e) => {
-    // Store original values
+    // This will mainly handle paste events and other non-keydown events
+    // since keydown now handles most of the typing logic
     const originalValue = e.target.value;
-    const cursorPosition = e.target.selectionStart;
-
-    // Format the input
     const formatted = formatDatetime(originalValue);
-
-    // Calculate new cursor position
-    let newCursorPosition = cursorPosition;
-    if (formatted.length > originalValue.length) {
-      newCursorPosition =
-        cursorPosition + (formatted.length - originalValue.length);
-    }
 
     // Update the input value
     e.target.value = formatted;
@@ -122,16 +199,6 @@ const DateInput = ({
     if (registerProps.onChange) {
       registerProps.onChange(e);
     }
-
-    // Set cursor position after the event loop
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.setSelectionRange(
-          newCursorPosition,
-          newCursorPosition
-        );
-      }
-    }, 0);
   };
 
   return (
