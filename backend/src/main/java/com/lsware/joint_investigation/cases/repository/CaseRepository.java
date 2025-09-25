@@ -41,12 +41,12 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
         BooleanExpression userIdPredicate = q.creator.userId.eq(userId);
 
         BooleanExpression namePredicate = name != null
-            ? q.caseName.containsIgnoreCase(name.trim())
-            : null;
+                ? q.caseName.containsIgnoreCase(name.trim())
+                : null;
 
         BooleanExpression statusPredicate = status != null
-            ? q.status.eq(status)
-            : null;
+                ? q.status.eq(status)
+                : null;
 
         if (namePredicate != null) {
             userIdPredicate.and(namePredicate);
@@ -66,63 +66,80 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
         BooleanExpression combinedPredicate = createPredicate(userId, name, status);
 
         var latestRecordSubquery = queryFactory
-            .select(qRecord.createdAt.max())
-            .from(qRecord)
-            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+                .select(qRecord.createdAt.max())
+                .from(qRecord)
+                .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
 
         List<Tuple> results = queryFactory
-            .select(qCase, qRecord)
-            .from(qCase)
-            .leftJoin(qRecord).on(
-                qRecord.caseInstance.caseId.eq(qCase.caseId)
-                .and(qRecord.createdAt.eq(latestRecordSubquery))
-            )
-            .where(combinedPredicate)
-            .limit(pageable.getPageSize())
-            .offset(pageable.getOffset())
-            .orderBy(QuerydslHelper.getSortedColumn(qCase, pageable.getSort()))
-            .fetch();
+                .select(qCase, qRecord)
+                .from(qCase)
+                .leftJoin(qRecord).on(
+                        qRecord.caseInstance.caseId.eq(qCase.caseId)
+                                .and(qRecord.createdAt.eq(latestRecordSubquery)))
+                .where(combinedPredicate)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .orderBy(QuerydslHelper.getSortedColumn(qCase, pageable.getSort()))
+                .fetch();
 
         List<Case> cases = results.stream()
-            .map(tuple -> {
-                Case caseEntity = tuple.get(qCase);
-                InvestigationRecord record = tuple.get(qRecord);
-                caseEntity.setLatestRecord(record); // attach latest record
-                return caseEntity;
-            })
-            .toList();
+                .map(tuple -> {
+                    Case caseEntity = tuple.get(qCase);
+                    InvestigationRecord record = tuple.get(qRecord);
+                    caseEntity.setLatestRecord(record); // attach latest record
+                    return caseEntity;
+                })
+                .toList();
 
         Long total = queryFactory
-            .select(qCase.caseId.count())
-            .from(qCase)
-            .where(combinedPredicate)
-            .fetchOne();
+                .select(qCase.caseId.count())
+                .from(qCase)
+                .where(combinedPredicate)
+                .fetchOne();
 
         return Map.of(
-            "rows", cases,
-            "total", total
-        );
+                "rows", cases,
+                "total", total);
     }
 
     public Case findById(UUID caseId, CustomUser user) {
         QCase qcase = QCase.case$;
         QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+        QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+
+        Case found = null;
 
         BooleanExpression rootPredicate = qcase.caseId.eq(caseId);
 
         if (user != null && user.getAuthorities() != null &&
-            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
             rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
+
+            found = queryFactory
+                    .select(qcase)
+                    .from(qcase)
+                    .leftJoin(qcase.investigationRecords, qRecord) // join list
+                    .fetchJoin() // fetch the list eagerly
+                    .where(rootPredicate)
+                    .distinct() // important to avoid duplicates
+                    .fetchOne();
         }
 
-        Case found = queryFactory
-            .select(qcase)
-            .from(qcase)
-            .leftJoin(qcase.investigationRecords, qRecord) // join list
-            .fetchJoin() // fetch the list eagerly
-            .where(rootPredicate)
-            .distinct() // important to avoid duplicates
-            .fetchOne();
+        if (user != null && user.getAuthorities() != null &&
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+                        || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(qAssignee.userId.eq(user.getId()));
+
+            found = queryFactory
+                    .select(qcase)
+                    .from(qcase)
+                    .leftJoin(qcase.investigationRecords, qRecord) // join list
+                    .fetchJoin() // fetch the list eagerly
+                    .leftJoin(qcase.assignees, qAssignee)
+                    .where(rootPredicate)
+                    .distinct() // important to avoid duplicates
+                    .fetchOne();
+        }
 
         return found;
     }
@@ -136,12 +153,12 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
         BooleanExpression assigneePredicate = qAssignee.userId.eq(userId);
 
         BooleanExpression namePredicate = name != null && !name.trim().isEmpty()
-            ? qCase.caseName.containsIgnoreCase(name.trim())
-            : null;
+                ? qCase.caseName.containsIgnoreCase(name.trim())
+                : null;
 
         BooleanExpression statusPredicate = status != null
-            ? qCase.status.eq(status)
-            : null;
+                ? qCase.status.eq(status)
+                : null;
 
         BooleanExpression combinedPredicate = assigneePredicate;
         if (namePredicate != null) {
@@ -153,49 +170,49 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 
         // Get latest investigation record subquery
         var latestRecordSubquery = queryFactory
-            .select(qRecord.createdAt.max())
-            .from(qRecord)
-            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+                .select(qRecord.createdAt.max())
+                .from(qRecord)
+                .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
 
         // Main query with join to case_assignees
         List<Tuple> results = queryFactory
-            .select(qCase, qRecord)
-            .from(qCase)
-            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
-            .leftJoin(qRecord).on(
-                qRecord.caseInstance.caseId.eq(qCase.caseId)
-                .and(qRecord.createdAt.eq(latestRecordSubquery))
-            )
-            .where(combinedPredicate)
-            .limit(pageable.getPageSize())
-            .offset(pageable.getOffset())
-            .orderBy(QuerydslHelper.getSortedColumn(qCase, pageable.getSort()))
-            .fetch();
+                .select(qCase, qRecord)
+                .from(qCase)
+                .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+                .leftJoin(qRecord).on(
+                        qRecord.caseInstance.caseId.eq(qCase.caseId)
+                                .and(qRecord.createdAt.eq(latestRecordSubquery)))
+                .where(combinedPredicate)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .orderBy(QuerydslHelper.getSortedColumn(qCase, pageable.getSort()))
+                .fetch();
 
         List<Case> cases = results.stream()
-            .map(tuple -> {
-                Case caseEntity = tuple.get(qCase);
-                InvestigationRecord record = tuple.get(qRecord);
-                if (record != null) {
-                    caseEntity.setLatestRecord(record);
-                }
-                return caseEntity;
-            })
-            .toList();
+                .map(tuple -> {
+                    Case caseEntity = tuple.get(qCase);
+                    InvestigationRecord record = tuple.get(qRecord);
+                    if (record != null) {
+                        caseEntity.setLatestRecord(record);
+                    }
+                    return caseEntity;
+                })
+                .toList();
 
         // Count total
         Long total = queryFactory
-            .select(qCase.caseId.countDistinct())
-            .from(qCase)
-            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
-            .where(combinedPredicate)
-            .fetchOne();
+                .select(qCase.caseId.countDistinct())
+                .from(qCase)
+                .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+                .where(combinedPredicate)
+                .fetchOne();
 
         return new PageImpl<>(cases, pageable, total != null ? total : 0);
     }
 
     /**
      * Find the most recent 3 updated cases for a specific assignee
+     *
      * @param userId The ID of the assigned user
      * @return List of the 3 most recently updated cases assigned to the user
      */
@@ -206,41 +223,39 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 
         // Get latest investigation record subquery for each case
         var latestRecordSubquery = queryFactory
-            .select(qRecord.createdAt.max())
-            .from(qRecord)
-            .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+                .select(qRecord.createdAt.max())
+                .from(qRecord)
+                .where(qRecord.caseInstance.caseId.eq(qCase.caseId));
 
         // Main query to get cases with their latest investigation records
         List<Tuple> results = queryFactory
-            .select(qCase, qRecord)
-            .from(qCase)
-            .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
-            .leftJoin(qRecord).on(
-                qRecord.caseInstance.caseId.eq(qCase.caseId)
-                .and(qRecord.createdAt.eq(latestRecordSubquery))
-            )
-            .where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
-            .orderBy(
-                // Order by the maximum value between investigation record updatedAt and case updatedAt
-                Expressions.dateTimeTemplate(
-                    java.time.LocalDateTime.class,
-                    "GREATEST({0}, {1})",
-                    qRecord.updatedAt.coalesce(qCase.updatedAt),
-                    qCase.updatedAt
-                ).desc()
-            )
-            .limit(3)
-            .fetch();
+                .select(qCase, qRecord)
+                .from(qCase)
+                .innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+                .leftJoin(qRecord).on(
+                        qRecord.caseInstance.caseId.eq(qCase.caseId)
+                                .and(qRecord.createdAt.eq(latestRecordSubquery)))
+                .where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+                .orderBy(
+                        // Order by the maximum value between investigation record updatedAt and case
+                        // updatedAt
+                        Expressions.dateTimeTemplate(
+                                java.time.LocalDateTime.class,
+                                "GREATEST({0}, {1})",
+                                qRecord.updatedAt.coalesce(qCase.updatedAt),
+                                qCase.updatedAt).desc())
+                .limit(3)
+                .fetch();
 
         return results.stream()
-            .map(tuple -> {
-                Case caseEntity = tuple.get(qCase);
-                InvestigationRecord record = tuple.get(qRecord);
-                if (record != null) {
-                    caseEntity.setLatestRecord(record);
-                }
-                return caseEntity;
-            })
-            .toList();
+                .map(tuple -> {
+                    Case caseEntity = tuple.get(qCase);
+                    InvestigationRecord record = tuple.get(qRecord);
+                    if (record != null) {
+                        caseEntity.setLatestRecord(record);
+                    }
+                    return caseEntity;
+                })
+                .toList();
     }
 }
