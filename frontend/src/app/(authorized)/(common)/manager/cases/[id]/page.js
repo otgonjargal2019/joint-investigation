@@ -12,6 +12,7 @@ import Users from "@/shared/components/icons/users";
 import EditFile from "@/shared/components/icons/editFile";
 import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
+import TagProgressStatus from "@/shared/components/tagProgressStatus";
 
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
@@ -74,8 +75,7 @@ function IncidentDetailPage() {
 					<PageTitle title={t("header.incident-detail")} />
 					<div className="flex gap-4 justify-center mt-2">
 						<TagCaseStatus status={caseData?.status} />
-						{/* <Tag status="ONGOING" />
-						<Tag status="COLLECTINGDIGITAL" /> */}
+						<TagProgressStatus status={caseData?.latestRecord?.progressStatus} />
 					</div>
 				</div>
 

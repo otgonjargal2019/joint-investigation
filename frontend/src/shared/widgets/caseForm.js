@@ -74,13 +74,13 @@ const CaseForm = ({
 
   const options2 = Object.values(PROGRESS_STATUS).map(status => ({value: status, label: t(`incident.PROGRESS_STATUS.${status}`) })) || [];
 
-  let item7 = "";
-  if (headerInfo.item7) {
-    const date = new Date(headerInfo.item7);
+  let requestedAt = "";
+  if (headerInfo.requestedAt) {
+    const date = new Date(headerInfo.requestedAt);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    item7 = `${year}-${month}-${day}`;
+    requestedAt = `${year}-${month}-${day}`;
   }
 
   return (
@@ -116,7 +116,7 @@ const CaseForm = ({
           <TextDivBolder className="border-t border-r">
             {headerInfo.item6}
           </TextDivBolder>
-          <TextDivBolder className="">{item7}</TextDivBolder>
+          <TextDivBolder className="">{requestedAt}</TextDivBolder>
           <TextDivBolder className="border-r ">
             {headerInfo.item8}
           </TextDivBolder>

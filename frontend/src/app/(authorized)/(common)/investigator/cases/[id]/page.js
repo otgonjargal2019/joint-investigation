@@ -13,6 +13,7 @@ import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
+import TagProgressStatus from "@/shared/components/tagProgressStatus";
 import { REVIEW_STATUS } from "@/entities/investigation/model/constants";
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
@@ -155,7 +156,7 @@ function IncidentDetailPage() {
 
       <div className="flex gap-4 justify-center mt-2">
         <TagCaseStatus status={caseData.status} />
-        {/* {caseData.riskLevel && <Tag status={caseData.riskLevel} />} */}
+        <TagProgressStatus status={caseData?.latestRecord?.progressStatus} />
       </div>
 
       <div className="mb-8">

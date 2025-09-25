@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.investigation.dto;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ public class InvestigationRecordDto {
     private LocalDateTime reviewedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private ZonedDateTime requestedAt;
     private List<AttachFileDto> attachedFiles;
 
     public InvestigationRecord toEntity() {
@@ -57,6 +59,7 @@ public class InvestigationRecordDto {
         entity.setReviewedAt(this.reviewedAt);
         entity.setCreatedAt(this.createdAt);
         entity.setUpdatedAt(this.updatedAt);
+        entity.setRequestedAt(this.requestedAt);
         return entity;
     }
 

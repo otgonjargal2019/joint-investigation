@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.investigation.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,6 +97,9 @@ public class InvestigationRecord {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "requested_at")
+    private ZonedDateTime requestedAt;
+
     @OneToMany(mappedBy = "investigationRecord")
     private List<com.lsware.joint_investigation.investigation.entity.AttachFile> attachedFiles;
 
@@ -125,6 +129,7 @@ public class InvestigationRecord {
         dto.setReviewedAt(this.reviewedAt);
         dto.setCreatedAt(this.createdAt);
         dto.setUpdatedAt(this.updatedAt);
+        dto.setRequestedAt(this.requestedAt);
 
         // Convert attached files to DTOs
         if (this.attachedFiles != null && !this.attachedFiles.isEmpty()) {
