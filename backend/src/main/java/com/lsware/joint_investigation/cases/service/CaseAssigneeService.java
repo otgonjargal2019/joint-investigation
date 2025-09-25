@@ -8,9 +8,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.lsware.joint_investigation.cases.dto.AssignUsersRequest;
 import com.lsware.joint_investigation.cases.dto.CaseAssigneeDto;
 import com.lsware.joint_investigation.cases.dto.RemoveAssigneesRequest;
+import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.CaseAssignee;
 import com.lsware.joint_investigation.cases.repository.CaseAssigneeRepository;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
+import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 
@@ -33,12 +35,15 @@ public class CaseAssigneeService {
     /**
      * Assign users to a case
      */
-    public List<CaseAssigneeDto> assignUsersToCase(AssignUsersRequest request) {
+    public List<CaseAssigneeDto> assignUsersToCase(AssignUsersRequest request, CustomUser user) {
         log.info("Assigning {} users to case {}", request.getUserIds().size(), request.getCaseId());
 
         // Validate case exists
-        caseRepository.findById(request.getCaseId())
-                .orElseThrow(() -> new IllegalArgumentException("Case not found with ID: " + request.getCaseId()));
+        Case caseInstance = caseRepository.findById(request.getCaseId(), user);
+
+        if (caseInstance == null) {
+            throw new IllegalArgumentException("Case not found with ID: " + request.getCaseId());
+        }
 
         // Validate users exist
         List<Users> users = userRepository.findByUserIds(request.getUserIds());
@@ -69,7 +74,7 @@ public class CaseAssigneeService {
         }
 
         // Return the current assignments for the case
-        return getCaseAssignees(request.getCaseId());
+        return getCaseAssignees(request.getCaseId(), user);
     }
 
     /**
@@ -91,10 +96,10 @@ public class CaseAssigneeService {
      * Get all users assigned to a case
      */
     @Transactional(readOnly = true)
-    public List<CaseAssigneeDto> getCaseAssignees(UUID caseId) {
+    public List<CaseAssigneeDto> getCaseAssignees(UUID caseId, CustomUser user) {
         log.debug("Fetching assignees for case {}", caseId);
 
-        List<CaseAssignee> assignments = caseAssigneeRepository.findByCaseIdWithUserDetails(caseId);
+        List<CaseAssignee> assignments = caseAssigneeRepository.findByCaseIdWithUserDetails(caseId, user.getId());
 
         // Force loading of lazy user details
         if (!assignments.isEmpty()) {
@@ -165,13 +170,15 @@ public class CaseAssigneeService {
     /**
      * Update all assignments for a case (replace existing assignments)
      */
-    public List<CaseAssigneeDto> updateCaseAssignments(AssignUsersRequest request) {
+    public List<CaseAssigneeDto> updateCaseAssignments(AssignUsersRequest request, CustomUser user) {
         log.info("Updating all assignments for case {} with {} users",
                 request.getCaseId(), request.getUserIds().size());
 
         // Validate case exists
-        caseRepository.findById(request.getCaseId())
-                .orElseThrow(() -> new IllegalArgumentException("Case not found with ID: " + request.getCaseId()));
+        Case caseInstance = caseRepository.findById(request.getCaseId(), user);
+        if (caseInstance == null) {
+            throw new IllegalArgumentException("Case not found with ID: " + request.getCaseId());
+        }
 
         // Validate users exist
         List<Users> users = userRepository.findByUserIds(request.getUserIds());
@@ -200,7 +207,7 @@ public class CaseAssigneeService {
                 savedAssignments.size(), request.getCaseId());
 
         // Fetch assignments with user details for return
-        return getCaseAssignees(request.getCaseId());
+        return getCaseAssignees(request.getCaseId(), user);
     }
 
     /**
