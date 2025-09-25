@@ -1,6 +1,7 @@
 package com.lsware.joint_investigation.investigation.service;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.security.MessageDigest;
@@ -521,6 +522,7 @@ public class InvestigationService {
 
 		// Set review status to PENDING
 		existingRecord.setReviewStatus(InvestigationRecord.REVIEW_STATUS.PENDING);
+		existingRecord.setRequestedAt(ZonedDateTime.now());
 
 		// Clear previous review data
 		existingRecord.setReviewer(null);

@@ -235,7 +235,7 @@ const IncidentCreatePage = () => {
                 item4: caseData?.creator?.nameKr || "",
                 item5: caseData?.creator?.nameKr || "",
                 item6: caseData?.reviewer?.nameKr || "",
-                item7: caseData?.updatedAt,
+                requestedAt: caseData?.requestedAt || "",
                 // item8: "test2",
               }}
               data={{

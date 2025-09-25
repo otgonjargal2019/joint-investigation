@@ -246,7 +246,7 @@ const InquiryDetailPage = () => {
               item4: investigationRecord?.creator?.nameKr || "",
               item5: investigationRecord?.creator?.nameKr || "",
               item6: investigationRecord?.reviewer?.nameKr || "",
-              item7: investigationRecord?.updatedAt || "",
+              requestedAt: investigationRecord?.requestedAt || "",
               item8: investigationRecord?.reviewStatus || "",
             }}
             data={{
