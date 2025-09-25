@@ -15,15 +15,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lsware.joint_investigation.config.CustomUser;
-import com.lsware.joint_investigation.investigation.dto.InvestigationRecordDto;
+import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.cases.dto.CreateCaseRequest;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
+import com.lsware.joint_investigation.cases.entity.QCase;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.user.controller.UserController;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
+import com.querydsl.core.Tuple;
 
 @Service
 public class CaseService {
@@ -73,8 +75,8 @@ public class CaseService {
 	}
 
 	@PreAuthorize("hasRole('INV_ADMIN')")
-	public MappingJacksonValue getCaseList(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
-		Map<String, Object> result = caseRepository.getCaseList(userId, name, status, pageable);
+	public MappingJacksonValue getCaseList(CustomUser user, String name, CASE_STATUS status, Pageable pageable) {
+		Map<String, Object> result = caseRepository.getCaseList(user, name, status, pageable);
 
 		@SuppressWarnings("unchecked")
 		List<Case> records = (List<Case>) result.get("rows");
@@ -91,22 +93,11 @@ public class CaseService {
 
 	public MappingJacksonValue getCaseById(UUID caseId, CustomUser user) throws RuntimeException {
 		// Fetch the case with latest investigation record
-		Case caseEntity = caseRepository.findById(caseId, user);
+		Tuple caseEntity = caseRepository.findById(caseId, user);
 
 		if (caseEntity != null) {
-			CaseDto dto = caseEntity.toDto();
-
-			if (caseEntity.getInvestigationRecords() != null) {
-				List<InvestigationRecordDto> records = caseEntity.getInvestigationRecords()
-						.stream()
-						.map(r -> {
-							InvestigationRecordDto rdto = r.toDto();
-							rdto.setCaseId(caseEntity.getCaseId()); // avoid recursion
-							return rdto;
-						})
-						.collect(Collectors.toList());
-				dto.setInvestigationRecords(records);
-			}
+			caseEntity.get(QCase.case$).setLatestRecord(caseEntity.get(QInvestigationRecord.investigationRecord));
+			CaseDto dto = caseEntity.get(QCase.case$).toDto();
 
 			MappingJacksonValue mapping = new MappingJacksonValue(dto);
 

@@ -48,7 +48,7 @@ public class CaseController {
 		Sort sort = Sort.by(direction, sortBy);
 		Pageable pageable = PageRequest.of(page, size, sort);
 
-		return caseService.getCaseList(user.getId(), name, status, pageable);
+		return caseService.getCaseList(user, name, status, pageable);
     }
 
     @GetMapping("/{id}")
