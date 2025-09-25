@@ -61,6 +61,19 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
             );
         }
 
+        // Add role-based filtering for INVESTIGATOR and RESEARCHER users
+        if (user != null && user.getAuthorities() != null &&
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+                        || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(
+                q.creator.userId.eq(user.getId()).
+                or(
+                    q.creator.userId.ne(user.getId()).
+                    and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+                )
+            );
+        }
+
         return rootPredicate;
     }
 
@@ -76,6 +89,18 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
             rootPredicate = rootPredicate.and(
                 q.reviewStatus.eq(REVIEW_STATUS.PENDING)
                 .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+            );
+        }
+
+        if (user != null && user.getAuthorities() != null &&
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+                        || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(
+                q.creator.userId.eq(user.getId()).
+                or(
+                    q.creator.userId.ne(user.getId()).
+                    and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+                )
             );
         }
 
