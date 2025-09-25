@@ -172,22 +172,11 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show error state
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-red-500">
-          {t("Error loading investigation record")}: {error.message}
-        </div>
-      </div>
-    );
-  }
-
   // Show not found state
   if (!investigationRecord) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-lg">{t("Investigation record not found")}</div>
+        <div className="text-lg">{t("incident.not-found")}</div>
       </div>
     );
   }

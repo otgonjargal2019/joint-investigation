@@ -58,12 +58,13 @@ public class InvestigationController {
 			@RequestParam(required = false, defaultValue = "desc") String sortDirection,
 			Authentication authentication) {
 		try {
-			CustomUser user = (CustomUser)authentication.getPrincipal();
+			CustomUser user = (CustomUser) authentication.getPrincipal();
 			Direction direction = sortDirection.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
 			Sort sort = Sort.by(direction, sortBy);
 			Pageable pageable = PageRequest.of(page, size, sort);
 
-			Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus, caseId,
+			Map<String, Object> result = investigationService.getInvestigationRecords(recordName, progressStatus,
+					caseId,
 					pageable, user);
 			MappingJacksonValue mapping = new MappingJacksonValue(result);
 
@@ -72,7 +73,7 @@ public class InvestigationController {
 			return ResponseEntity.ok(mapping);
 		} catch (Exception e) {
 			log.error("Error getting investigation records: {}",
-				e.getMessage());
+					e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}
@@ -115,7 +116,8 @@ public class InvestigationController {
 			Authentication authentication) {
 
 		try {
-			InvestigationRecordDto record = investigationService.getInvestigationRecordById(recordId);
+			CustomUser user = (CustomUser) authentication.getPrincipal();
+			InvestigationRecordDto record = investigationService.getInvestigationRecordById(recordId, user);
 
 			MappingJacksonValue mapping = new MappingJacksonValue(record);
 			mapping.setFilters(UserController.getUserFilter());
@@ -124,11 +126,11 @@ public class InvestigationController {
 
 		} catch (IllegalArgumentException e) {
 			log.error("Invalid request for getting investigation record {}: {}",
-				recordId, e.getMessage());
+					recordId, e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 			log.error("Invalid request for getting investigation record {}: {}",
-				recordId, e.getMessage());
+					recordId, e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}
@@ -143,7 +145,9 @@ public class InvestigationController {
 			Authentication authentication) {
 
 		try {
-			InvestigationRecordDto updatedRecord = investigationService.updateInvestigationRecord(recordId, request);
+			CustomUser user = (CustomUser) authentication.getPrincipal();
+			InvestigationRecordDto updatedRecord = investigationService.updateInvestigationRecord(recordId, request,
+					user);
 
 			MappingJacksonValue mapping = new MappingJacksonValue(updatedRecord);
 			mapping.setFilters(UserController.getUserFilter());
@@ -176,8 +180,11 @@ public class InvestigationController {
 				throw new IllegalArgumentException("Record ID is required");
 			}
 
+			CustomUser user = (CustomUser) authentication.getPrincipal();
+
 			InvestigationRecordDto updatedRecord = investigationService.updateInvestigationRecordWithFiles(
-					request.getRecordId(), request, files, fileTypes, digitalEvidenceFlags, investigationReportFlags);
+					request.getRecordId(), request, files, fileTypes, digitalEvidenceFlags, investigationReportFlags,
+					user);
 
 			MappingJacksonValue mapping = new MappingJacksonValue(updatedRecord);
 			mapping.setFilters(UserController.getUserFilter());
@@ -202,8 +209,8 @@ public class InvestigationController {
 			Authentication authentication) {
 
 		try {
-			CustomUser user = (CustomUser)authentication.getPrincipal();
-			InvestigationRecordDto rejectedRecord = investigationService.rejectInvestigationRecord(request, user.getId());
+			CustomUser user = (CustomUser) authentication.getPrincipal();
+			InvestigationRecordDto rejectedRecord = investigationService.rejectInvestigationRecord(request, user);
 
 			MappingJacksonValue mapping = new MappingJacksonValue(rejectedRecord);
 			mapping.setFilters(UserController.getUserFilter());
@@ -212,11 +219,11 @@ public class InvestigationController {
 
 		} catch (IllegalArgumentException e) {
 			log.error("Invalid request for rejecting investigation record {}: {}",
-				request.getRecordId(), e.getMessage());
+					request.getRecordId(), e.getMessage());
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
 			log.error("Error rejecting investigation record {}: {}",
-				request.getRecordId(), e.getMessage());
+					request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}
@@ -230,8 +237,8 @@ public class InvestigationController {
 			Authentication authentication) {
 
 		try {
-			CustomUser user = (CustomUser)authentication.getPrincipal();
-			InvestigationRecordDto approvedRecord = investigationService.approveInvestigationRecord(request, user.getId());
+			CustomUser user = (CustomUser) authentication.getPrincipal();
+			InvestigationRecordDto approvedRecord = investigationService.approveInvestigationRecord(request, user);
 
 			MappingJacksonValue mapping = new MappingJacksonValue(approvedRecord);
 			mapping.setFilters(UserController.getUserFilter());
@@ -240,11 +247,11 @@ public class InvestigationController {
 
 		} catch (IllegalArgumentException e) {
 			log.error("Invalid request for approving investigation record {}: {}",
-				request.getRecordId(), e.getMessage());
+					request.getRecordId(), e.getMessage());
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
 			log.error("Error approving investigation record {}: {}",
-				request.getRecordId(), e.getMessage());
+					request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}
@@ -258,8 +265,9 @@ public class InvestigationController {
 			Authentication authentication) {
 
 		try {
-			CustomUser user = (CustomUser)authentication.getPrincipal();
-			InvestigationRecordDto reviewRequestedRecord = investigationService.requestReviewInvestigationRecord(request, user.getId());
+			CustomUser user = (CustomUser) authentication.getPrincipal();
+			InvestigationRecordDto reviewRequestedRecord = investigationService
+					.requestReviewInvestigationRecord(request, user);
 
 			MappingJacksonValue mapping = new MappingJacksonValue(reviewRequestedRecord);
 			mapping.setFilters(UserController.getUserFilter());
@@ -268,11 +276,11 @@ public class InvestigationController {
 
 		} catch (IllegalArgumentException e) {
 			log.error("Invalid request for requesting review of investigation record {}: {}",
-				request.getRecordId(), e.getMessage());
+					request.getRecordId(), e.getMessage());
 			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
 			log.error("Error requesting review for investigation record {}: {}",
-				request.getRecordId(), e.getMessage());
+					request.getRecordId(), e.getMessage());
 			return ResponseEntity.internalServerError().build();
 		}
 	}

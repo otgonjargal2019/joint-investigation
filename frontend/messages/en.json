@@ -72,7 +72,9 @@
     "save-changes": "Save Changes",
     "updating": "Updating...",
     "update-success": "Investigation record has been updated successfully.",
-    "update-error": "Failed to update investigation record. Please try again."
+    "update-error": "Failed to update investigation record. Please try again.",
+    "load-error": "Failed to load investigation record.",
+    "not-found": "Investigation record not found."
   },
   "case": "case",
   "total": "total",
@@ -115,7 +117,7 @@
   "stay-logged-in": "stay logged in",
   "delete-whole-thing": "Delete the whole thing",
   "full-reading": "full reading",
-  "create-new-investigation-record": "create new investigation record",
+  "create-new-investigation-record": "Create new",
   "upload-investigation-material": "upload investigation material",
   "create-new-incident": "create new",
   "edit-incident": "edit incident",
@@ -185,8 +187,8 @@
   },
   "header": {
     "title": "International Cooperation and Investigation Platform",
-    "current-state-entire-incident": "current state of entire incident",
-    "status-edition-summary": "status edition summary",
+    "current-state-entire-incident": "current incident",
+    "status-edition-summary": "status summary",
     "research": "research",
     "notice": "Notice",
     "messenger": "messenger",

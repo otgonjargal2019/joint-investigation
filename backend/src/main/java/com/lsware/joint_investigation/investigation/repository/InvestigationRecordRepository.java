@@ -64,16 +64,28 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         return rootPredicate;
     }
 
-    public Optional<InvestigationRecord> findByRecordId(UUID recordId) {
+    public Optional<InvestigationRecord> findByRecordId(UUID recordId, CustomUser user) {
         QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+        QCase qcase = QCase.case$;
+
+        BooleanExpression rootPredicate = q.recordId.eq(recordId);
+
+        if (user != null && user.getAuthorities() != null &&
+            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
+            rootPredicate = rootPredicate.and(
+                q.reviewStatus.eq(REVIEW_STATUS.PENDING)
+                .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+            );
+        }
 
         InvestigationRecord result = queryFactory
                 .selectFrom(q)
-                .leftJoin(q.caseInstance).fetchJoin()
+                .leftJoin(q.caseInstance, QCase.case$)
                 .leftJoin(q.creator).fetchJoin()
                 .leftJoin(q.reviewer).fetchJoin()
                 .leftJoin(q.attachedFiles).fetchJoin()
-                .where(q.recordId.eq(recordId))
+                .where(rootPredicate)
                 .fetchOne();
 
         return Optional.ofNullable(result);
