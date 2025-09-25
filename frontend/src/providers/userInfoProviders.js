@@ -29,6 +29,13 @@ export const UserInfoProvider = ({ children }) => {
     });
   };
 
+  const updateUserProfileImage = (newProfileImageUrl) => {
+    setUserInfo((prev) => {
+      if (!prev) return prev;
+      return { ...prev, profileImageUrl: newProfileImageUrl };
+    });
+  };
+
   return (
     <UserInfoContext.Provider
       value={{
@@ -37,6 +44,7 @@ export const UserInfoProvider = ({ children }) => {
         listHeadquarter,
         listDepartment,
         updateUserStatus,
+        updateUserProfileImage,
       }}
     >
       {children}

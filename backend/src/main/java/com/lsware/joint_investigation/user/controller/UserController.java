@@ -133,10 +133,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
 
-    @PostMapping(path = "/profile", consumes = { "multipart/form-data" })
+    @PostMapping(path = "/profile")
     public ResponseEntity<HashMap<String, Object>> profile(
-            @RequestPart(name = "profileImg", required = false) MultipartFile file,
-            @RequestPart("profile") UserDto profile,
+            @RequestBody UserDto profile,
             Authentication authentication) throws FileNotStoredException, CustomResponseException {
         if (authentication.isAuthenticated()) {
             HashMap<String, Object> response = new HashMap<String, Object>();
@@ -151,19 +150,12 @@ public class UserController {
                     }
                 }
 
-                String avatar = null;
-                if (file != null) {
-                    // SAVE TO S3
-                    avatar = fileService.storeProfileImage(file);
-                }
-
                 UserStatusHistory history = new UserStatusHistory();
                 history.setUser(me.get());
                 history.setCreator(me.get());
                 history.setFromStatus(Users.USER_STATUS.APPROVED);
                 history.setToStatus(Users.USER_STATUS.WAITING_TO_CHANGE);
                 history.setReason("Profile update request");
-                history.setProfileImageUrl(avatar);
                 history.setHeadquarterId(profile.getHeadquarterId());
                 history.setDepartmentId(profile.getDepartmentId());
                 history.setEmail(profile.getEmail());
@@ -199,6 +191,38 @@ public class UserController {
         return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
     }
 
+    @PostMapping(path = "/update-profile-img", consumes = { "multipart/form-data" })
+    public ResponseEntity<HashMap<String, Object>> profileImg(
+            @RequestPart(name = "profileImg", required = false) MultipartFile file,
+            Authentication authentication) throws FileNotStoredException, CustomResponseException {
+        if (authentication.isAuthenticated()) {
+            HashMap<String, Object> response = new HashMap<String, Object>();
+            try {
+
+                CustomUser userDetail = (CustomUser) authentication.getPrincipal();
+                Users me = userRepository.findByUserId(userDetail.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                String avatar = null;
+                if (file != null) {
+                    // SAVE TO S3
+                    avatar = fileService.storeProfileImage(file);
+                }
+                me.setProfileImageUrl(avatar);
+                userRepository.save(me);
+
+                response.put("success", true);
+                response.put("message", "info-msg.profileimg-updated-successfully");
+                response.put("avatarUrl", avatar);
+                return ResponseEntity.ok(response);
+            } catch (IllegalArgumentException e) {
+                response.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        }
+        return ResponseEntity.status(HttpStatusCode.valueOf(403)).build();
+    }
+
     @DeleteMapping("/deleteProfile")
     public ResponseEntity<HashMap<String, Object>> deleteProfile(Authentication authentication)
             throws CustomResponseException {
@@ -214,7 +238,7 @@ public class UserController {
                 userRepository.deleteProfileImgByUserId(userDetail.getId());
 
                 response.put("success", true);
-                response.put("message", "Profile image deleted successfully");
+                response.put("message", "info-msg.profileimg-deleted-successfully");
             } else {
                 response.put("success", false);
                 response.put("message", "No profile image to delete");

@@ -149,7 +149,9 @@
     "not-available-email-id": "이미 사용 중인 이메일 입니다.",
     "signup-successful": "회원가입 성공",
     "login-successful": "로그인 성공",
-    "role-changed": "계정 권한이 변경되었습니다."
+    "role-changed": "계정 권한이 변경되었습니다.",
+    "profileimg-updated-successfully": "프로필 이미지가 성공적으로 업데이트되었습니다.",
+    "profileimg-deleted-successfully": "프로필 이미지가 성공적으로 삭제되었습니다."
   },
   "form": {
     "id": "아이디",

@@ -73,6 +73,7 @@ export default function Home() {
               unreadNotifications={unreadNotifCount}
               department={userInfo?.departmentName}
               headquarters={userInfo?.headquarterName}
+              avatar={userInfo?.profileImageUrl}
             />
           </div>
         </div>

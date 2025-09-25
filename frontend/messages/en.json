@@ -149,7 +149,9 @@
     "not-available-email-id": "This EmailID is already in use.",
     "signup-successful": "Signup successful",
     "login-successful": "Login successful",
-    "role-changed": "The account role has been changed."
+    "role-changed": "The account role has been changed.",
+    "profileimg-updated-successfully": "Profile image updated successfully.",
+    "profileimg-deleted-successfully": "Profile image deleted successfully."
   },
   "form": {
     "id": "id",
