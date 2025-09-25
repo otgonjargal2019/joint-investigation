@@ -18,6 +18,7 @@ import {
   useInvestigationRecord,
   useRejectInvestigationRecord,
   useApproveInvestigationRecord,
+  REVIEW_STATUS,
 } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
@@ -171,22 +172,11 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show error state
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-red-500">
-          {t("Error loading investigation record")}: {error.message}
-        </div>
-      </div>
-    );
-  }
-
   // Show not found state
   if (!investigationRecord) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-lg">{t("Investigation record not found")}</div>
+        <div className="text-lg">{t("incident.not-found")}</div>
       </div>
     );
   }
@@ -208,24 +198,28 @@ const InquiryDetailPage = () => {
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="pink"
-              size="mediumWithShadow"
-              className="gap-3"
-              onClick={() => setDenyModalOpen(true)}
-            >
-              <CancelCircle />
-              {t("deny")}
-            </Button>
-            <Button
-              variant="yellow"
-              size="mediumWithShadow"
-              className="gap-3"
-              onClick={() => setApproveModalOpen(true)}
-            >
-              <CheckCircle />
-              {t("approve")}
-            </Button>
+            {(investigationRecord?.reviewStatus === REVIEW_STATUS.PENDING && (
+              <>
+                <Button
+                  variant="pink"
+                  size="mediumWithShadow"
+                  className="gap-3"
+                  onClick={() => setDenyModalOpen(true)}
+                >
+                  <CancelCircle />
+                  {t("deny")}
+                </Button>
+                <Button
+                  variant="yellow"
+                  size="mediumWithShadow"
+                  className="gap-3"
+                  onClick={() => setApproveModalOpen(true)}
+                >
+                  <CheckCircle />
+                  {t("approve")}
+                </Button>
+              </>
+            ))}
           </div>
         </div>
         <div className=" bg-white border border-color-36 rounded-10 px-[70px] py-6">

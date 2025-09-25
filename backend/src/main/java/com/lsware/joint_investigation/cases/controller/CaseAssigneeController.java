@@ -35,11 +35,11 @@ public class CaseAssigneeController {
     public ResponseEntity<MappingJacksonValue> assignUsersToCase(
             @RequestBody AssignUsersRequest request,
             Authentication authentication) {
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
-        log.info("User {} assigning users to case {}", customUser.getId(), request.getCaseId());
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+        log.info("User {} assigning users to case {}", user.getId(), request.getCaseId());
 
         try {
-            List<CaseAssigneeDto> assignments = caseAssigneeService.assignUsersToCase(request);
+            List<CaseAssigneeDto> assignments = caseAssigneeService.assignUsersToCase(request, user);
             log.info("Successfully assigned {} users to case {}",
                     request.getUserIds().size(), request.getCaseId());
             MappingJacksonValue mapping = new MappingJacksonValue(assignments);
@@ -98,11 +98,11 @@ public class CaseAssigneeController {
             @PathVariable UUID caseId,
             Authentication authentication) {
 
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
-        log.debug("User {} fetching assignees for case {}", customUser.getId(), caseId);
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+        log.debug("User {} fetching assignees for case {}", user.getId(), caseId);
 
         try {
-            List<CaseAssigneeDto> assignees = caseAssigneeService.getCaseAssignees(caseId);
+            List<CaseAssigneeDto> assignees = caseAssigneeService.getCaseAssignees(caseId, user);
             log.info("Retrieved {} assignees for case {}", assignees.size(), caseId);
 
             MappingJacksonValue mapping = new MappingJacksonValue(assignees);
@@ -127,14 +127,14 @@ public class CaseAssigneeController {
             @RequestBody AssignUsersRequest request,
             Authentication authentication) {
 
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
-        log.info("User {} updating all assignments for case {}", customUser.getId(), caseId);
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+        log.info("User {} updating all assignments for case {}", user.getId(), caseId);
 
         try {
             // Set the case ID in the request
             request.setCaseId(caseId);
 
-            List<CaseAssigneeDto> updatedAssignments = caseAssigneeService.updateCaseAssignments(request);
+            List<CaseAssigneeDto> updatedAssignments = caseAssigneeService.updateCaseAssignments(request, user);
             log.info("Successfully updated assignments for case {} with {} users",
                     caseId, request.getUserIds().size());
             return ResponseEntity.ok(updatedAssignments);

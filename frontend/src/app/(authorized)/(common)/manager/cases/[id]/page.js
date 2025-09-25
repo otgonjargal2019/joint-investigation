@@ -15,6 +15,7 @@ import TagCaseStatus from "@/shared/components/tagCaseStatus";
 
 import { useCaseById } from "@/entities/case";
 import { useInvestigationRecords } from "@/entities/investigation";
+import { REVIEW_STATUS } from "@/entities/investigation/model/constants";
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
@@ -72,7 +73,7 @@ function IncidentDetailPage() {
 				<div className="flex flex-col items-center">
 					<PageTitle title={t("header.incident-detail")} />
 					<div className="flex gap-4 justify-center mt-2">
-						<TagCaseStatus status={caseData.status} />
+						<TagCaseStatus status={caseData?.status} />
 						{/* <Tag status="ONGOING" />
 						<Tag status="COLLECTINGDIGITAL" /> */}
 					</div>
@@ -145,7 +146,17 @@ function IncidentDetailPage() {
 						return attachedFiles?.find(file => file.investigationReport) ? 'O' : 'X';
 					}
 					},
-					{ key: "progressStatus", title: "진행상태", render: (value) => t(`incident.PROGRESS_STATUS.${value}`) },
+					{ key: "reviewStatus", title: "진행상태", render: (value) => {
+						switch (value) {
+							case REVIEW_STATUS.PENDING:
+								return <span className="text-[#FF5759]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+							case REVIEW_STATUS.APPROVED:
+								return <span className="text-[#656161]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+							default:
+								break;
+						}
+						return "";
+					}},
 				]}
 				data={transformedData}
 				onClickRow={onClickRow}

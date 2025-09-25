@@ -5,8 +5,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.lsware.joint_investigation.cases.entity.QCase;
+import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
+import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.REVIEW_STATUS;
 import com.lsware.joint_investigation.util.QuerydslHelper;
 import com.lsware.joint_investigation.investigation.entity.QInvestigationRecord;
 
@@ -30,8 +33,9 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         super(InvestigationRecord.class, entityManager);
     }
 
-    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId) {
+    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId, CustomUser user) {
         QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+        QCase qcase = QCase.case$;
 
         BooleanExpression rootPredicate = q.recordId.isNotNull();
 
@@ -47,40 +51,91 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
             rootPredicate = rootPredicate.and(q.caseInstance.caseId.eq(UUID.fromString(caseId)));
         }
 
+        // Add role-based filtering for INV_ADMIN users
+        if (user != null && user.getAuthorities() != null &&
+            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
+            rootPredicate = rootPredicate.and(
+                q.reviewStatus.eq(REVIEW_STATUS.PENDING)
+                .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+            );
+        }
+
+        // Add role-based filtering for INVESTIGATOR and RESEARCHER users
+        if (user != null && user.getAuthorities() != null &&
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+                        || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(
+                q.creator.userId.eq(user.getId()).
+                or(
+                    q.creator.userId.ne(user.getId()).
+                    and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+                )
+            );
+        }
+
         return rootPredicate;
     }
 
-    public Optional<InvestigationRecord> findByRecordId(UUID recordId) {
+    public Optional<InvestigationRecord> findByRecordId(UUID recordId, CustomUser user) {
         QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+        QCase qcase = QCase.case$;
+
+        BooleanExpression rootPredicate = q.recordId.eq(recordId);
+
+        if (user != null && user.getAuthorities() != null &&
+            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
+            rootPredicate = rootPredicate.and(
+                q.reviewStatus.eq(REVIEW_STATUS.PENDING)
+                .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+            );
+        }
+
+        if (user != null && user.getAuthorities() != null &&
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+                        || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+            rootPredicate = rootPredicate.and(
+                q.creator.userId.eq(user.getId()).
+                or(
+                    q.creator.userId.ne(user.getId()).
+                    and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+                )
+            );
+        }
 
         InvestigationRecord result = queryFactory
                 .selectFrom(q)
-                .leftJoin(q.caseInstance).fetchJoin()
+                .leftJoin(q.caseInstance, QCase.case$)
                 .leftJoin(q.creator).fetchJoin()
                 .leftJoin(q.reviewer).fetchJoin()
                 .leftJoin(q.attachedFiles).fetchJoin()
-                .where(q.recordId.eq(recordId))
+                .where(rootPredicate)
                 .fetchOne();
 
         return Optional.ofNullable(result);
     }
 
     public Map<String, Object> findInvestigationRecord(String recordName, PROGRESS_STATUS progressStatus, String caseId,
-            Pageable pageable) {
+            Pageable pageable, CustomUser user) {
 
-        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus, caseId);
+        BooleanExpression combinedPredicate = createPredicate(recordName, progressStatus, caseId, user);
+
+        QInvestigationRecord q = QInvestigationRecord.investigationRecord;
 
         List<InvestigationRecord> rows = queryFactory
-                .selectFrom(QInvestigationRecord.investigationRecord)
+                .selectFrom(q)
+                .leftJoin(q.caseInstance, QCase.case$)
                 .where(combinedPredicate)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
-                .orderBy(QuerydslHelper.getSortedColumn(QInvestigationRecord.investigationRecord, pageable.getSort()))
+                .orderBy(QuerydslHelper.getSortedColumn(q, pageable.getSort()))
                 .fetch();
 
         Long total = queryFactory
-                .select(QInvestigationRecord.investigationRecord.recordId.count())
-                .from(QInvestigationRecord.investigationRecord)
+                .select(q.recordId.count())
+                .from(q)
+                .leftJoin(q.caseInstance, QCase.case$)
                 .where(combinedPredicate)
                 .fetchOne();
 

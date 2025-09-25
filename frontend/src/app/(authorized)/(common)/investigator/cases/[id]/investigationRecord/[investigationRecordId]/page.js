@@ -91,14 +91,14 @@ const InquiryDetailPage = () => {
 
   switch (investigationRecord?.reviewStatus) {
     case REVIEW_STATUS.REJECTED:
-      reviewResult = <span className="text-[red]">{`${reviewedAt}(${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)})`}</span>;
+      reviewResult = <span className="text-[#FF5759]">{`${reviewedAt}(${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)})`}</span>;
       break;
     case REVIEW_STATUS.APPROVED:
-      reviewResult = <span className="text-[#5D5996]">{`${reviewedAt}`}</span>;
+      reviewResult = <span className="text-[#656161]">{`${reviewedAt}`}</span>;
       break;
 
     case REVIEW_STATUS.PENDING:
-      reviewResult = <span className="text-[#6B62D3]">{`${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)}`}</span>;
+      reviewResult = <span className="text-[#9B9B9B]">{`${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)}`}</span>;
       break;
 
     default:

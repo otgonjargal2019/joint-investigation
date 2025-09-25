@@ -38,7 +38,7 @@ function CaseDetailGrid({ item }) {
 	return (
 		<div className="grid grid-cols-[130px_1fr_140px_1fr_165px_1fr_3fr] gap-0 text-color-24 text-[20px] font-normal leading-[31px]">
 			<GrayDiv className="border-t">{t("case-detail.case-number")}</GrayDiv>
-			<WhiteDiv className="border-t">{`#${item?.number}. ${item?.caseId}`}</WhiteDiv>
+			<WhiteDiv className="border-t">{`#${item?.number || ''}. ${item?.caseId || ''}`}</WhiteDiv>
 			<GrayDiv className="border-t">
 				{t("case-detail.date-of-occurrence")}
 			</GrayDiv>

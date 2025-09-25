@@ -52,9 +52,9 @@ public class InvestigationService {
 	private FileService fileService;
 
 	public Map<String, Object> getInvestigationRecords(String recordName, PROGRESS_STATUS progressStatus, String caseId,
-			Pageable pageable) {
+			Pageable pageable, CustomUser user) {
 		Map<String, Object> result = investigationRecordRepository.findInvestigationRecord(recordName, progressStatus,
-				caseId, pageable);
+				caseId, pageable, user);
 
 		@SuppressWarnings("unchecked")
 		List<InvestigationRecord> records = (List<InvestigationRecord>) result.get("rows");
@@ -204,8 +204,8 @@ public class InvestigationService {
 	 * @return The investigation record DTO with integrated case instance
 	 */
 	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
-	public InvestigationRecordDto getInvestigationRecordById(UUID recordId) {
-		InvestigationRecord record = investigationRecordRepository.findByRecordId(recordId)
+	public InvestigationRecordDto getInvestigationRecordById(UUID recordId, CustomUser user) {
+		InvestigationRecord record = investigationRecordRepository.findByRecordId(recordId, user)
 				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
 
 		InvestigationRecordDto dto = record.toDto();
@@ -227,9 +227,9 @@ public class InvestigationService {
 	 */
 	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	@Transactional
-	public InvestigationRecordDto updateInvestigationRecord(UUID recordId, UpdateInvestigationRecordRequest request) {
+	public InvestigationRecordDto updateInvestigationRecord(UUID recordId, UpdateInvestigationRecordRequest request, CustomUser user) {
 		// Get the existing record
-		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId)
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId, user)
 				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
 
 		// Validate request
@@ -292,10 +292,11 @@ public class InvestigationService {
 			MultipartFile[] files,
 			String[] fileTypes,
 			Boolean[] digitalEvidenceFlags,
-			Boolean[] investigationReportFlags) {
+			Boolean[] investigationReportFlags,
+			CustomUser user) {
 
 		// Get the existing record
-		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId)
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId, user)
 				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
 
 		// Update basic fields using existing logic
@@ -421,9 +422,9 @@ public class InvestigationService {
 	@Transactional
 	@PreAuthorize("hasRole('INV_ADMIN')")
 	public InvestigationRecordDto rejectInvestigationRecord(RejectInvestigationRecordRequest request,
-			UUID currentUserId) {
+			CustomUser user) {
 		// Get the existing record
-		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId(), user)
 				.orElseThrow(() -> new IllegalArgumentException(
 						"Investigation record not found with ID: " + request.getRecordId()));
 
@@ -432,7 +433,7 @@ public class InvestigationService {
 		existingRecord.setRejectionReason(request.getRejectionReason());
 
 		// Set reviewer and review timestamp
-		Users currentUser = userRepository.findByUserId(currentUserId)
+		Users currentUser = userRepository.findByUserId(user.getId())
 				.orElseThrow(() -> new IllegalArgumentException("Current user not found"));
 		existingRecord.setReviewer(currentUser);
 		existingRecord.setReviewedAt(LocalDateTime.now());
@@ -460,9 +461,9 @@ public class InvestigationService {
 	@Transactional
 	@PreAuthorize("hasRole('INV_ADMIN')")
 	public InvestigationRecordDto approveInvestigationRecord(ApproveInvestigationRecordRequest request,
-			UUID currentUserId) {
+			CustomUser user) {
 		// Get the existing record
-		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId(), user)
 				.orElseThrow(() -> new IllegalArgumentException(
 						"Investigation record not found with ID: " + request.getRecordId()));
 
@@ -471,7 +472,7 @@ public class InvestigationService {
 		existingRecord.setRejectionReason(null);
 
 		// Set reviewer and review timestamp
-		Users currentUser = userRepository.findByUserId(currentUserId)
+		Users currentUser = userRepository.findByUserId(user.getId())
 				.orElseThrow(() -> new IllegalArgumentException("Current user not found"));
 		existingRecord.setReviewer(currentUser);
 		existingRecord.setReviewedAt(LocalDateTime.now());
@@ -499,14 +500,14 @@ public class InvestigationService {
 	@Transactional
 	@PreAuthorize("hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	public InvestigationRecordDto requestReviewInvestigationRecord(RequestReviewInvestigationRecordRequest request,
-			UUID currentUserId) {
+			CustomUser user) {
 		// Get the existing record
-		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId())
+		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(request.getRecordId(), user)
 				.orElseThrow(() -> new IllegalArgumentException(
 						"Investigation record not found with ID: " + request.getRecordId()));
 
 		// Verify that the current user is the creator of the record
-		if (!existingRecord.getCreator().getUserId().equals(currentUserId)) {
+		if (!existingRecord.getCreator().getUserId().equals(user.getId())) {
 			throw new IllegalArgumentException("Only the creator can request review for this investigation record");
 		}
 
