@@ -8,11 +8,13 @@ export {
   useUserAssignments,
   useIsUserAssignedToCase,
   useCaseAssignmentCount,
-} from './case.query';
+} from "./case.query";
 
 // Case mutations
 export {
   useCreateCase,
   useAssignUsersToCase,
   useRemoveUsersFromCase,
-} from './case.mutation';
+} from "./case.mutation";
+
+export * from "./case.schema";

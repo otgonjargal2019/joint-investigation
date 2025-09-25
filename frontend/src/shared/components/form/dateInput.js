@@ -9,7 +9,7 @@ const DateInput = ({
   className = "",
   disabled = false,
   error,
-  showError = true,
+  showError = false,
   ...props
 }) => {
   const inputRef = useRef(null);
@@ -91,7 +91,7 @@ const DateInput = ({
     w-full h-[60px] border  rounded-13 text-color-4 text-[24.4px]
     font-normal placeholder-color-32 px-[20px] py-[6.5px] outline-none
     ${disabled ? "bg-color-71 cursor-not-allowed" : "bg-color-0"}
-    ${error ? "border-red-300 bg-red-50" : "border-color-36"}
+    ${error ? "border-color-86" : "border-color-36"}
   `
     .trim()
     .replace(/\s+/g, " ");
