@@ -11,7 +11,7 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import Cancel from "@/shared/components/icons/cancel";
 import EditFile from "@/shared/components/icons/editFile";
 import CreateDoc from "@/shared/components/icons/createDoc";
-import CaseForm from "@/shared/widgets/caseForm";
+import InvestigationRecordForm from "@/shared/widgets/invRecordForm";
 import {
   useInvestigationRecord,
   useUpdateInvestigationRecordWithFiles,
@@ -32,7 +32,8 @@ const InquiryDetailPage = () => {
   } = useInvestigationRecord(investigationRecordId);
 
   // Update investigation record with files mutation
-  const updateInvestigationRecordMutation = useUpdateInvestigationRecordWithFiles();
+  const updateInvestigationRecordMutation =
+    useUpdateInvestigationRecordWithFiles();
 
   // State for file management
   const [reportFiles, setReportFiles] = useState([]);
@@ -51,8 +52,7 @@ const InquiryDetailPage = () => {
     if (investigationRecord) {
       reset({
         securityLevel: `option${investigationRecord.securityLevel}`,
-        progressStatus:
-          investigationRecord.progressStatus,
+        progressStatus: investigationRecord.progressStatus,
         overview: investigationRecord.content || "",
         recordName: investigationRecord.recordName || "",
       });
@@ -60,28 +60,30 @@ const InquiryDetailPage = () => {
   }, [investigationRecord, reset]);
 
   const navigateBack = () => {
-    router.push(`/investigator/cases/${caseId}/investigationRecord/${investigationRecordId}`);
+    router.push(
+      `/investigator/cases/${caseId}/investigationRecord/${investigationRecordId}`
+    );
   };
 
   // File upload handler with categorization
   const handleFileUpload = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
+    const input = document.createElement("input");
+    input.type = "file";
     input.multiple = true;
-    input.accept = '*/*';
+    input.accept = "*/*";
 
     input.onchange = (event) => {
       const files = Array.from(event.target.files);
 
       // Simple categorization dialog or you could implement a modal
       const fileType = window.confirm(
-        'Click OK for Investigation Report files, Cancel for Digital Evidence files'
+        "Click OK for Investigation Report files, Cancel for Digital Evidence files"
       );
 
       if (fileType) {
-        setReportFiles(prev => [...prev, ...files]);
+        setReportFiles((prev) => [...prev, ...files]);
       } else {
-        setDigitalEvidenceFiles(prev => [...prev, ...files]);
+        setDigitalEvidenceFiles((prev) => [...prev, ...files]);
       }
     };
 
@@ -90,11 +92,11 @@ const InquiryDetailPage = () => {
 
   // Remove file handlers
   const removeReportFile = (index) => {
-    setReportFiles(prev => prev.filter((_, i) => i !== index));
+    setReportFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeDigitalEvidenceFile = (index) => {
-    setDigitalEvidenceFiles(prev => prev.filter((_, i) => i !== index));
+    setDigitalEvidenceFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUpdateInvestigationRecord = async (formData) => {
@@ -104,23 +106,26 @@ const InquiryDetailPage = () => {
         recordId: investigationRecordId,
         recordName: formData.recordName,
         content: formData.overview,
-        securityLevel: formData.securityLevel ? parseInt(formData.securityLevel.replace('option', '')) : investigationRecord.securityLevel,
-        progressStatus: formData.progressStatus || investigationRecord.progressStatus,
+        securityLevel: formData.securityLevel
+          ? parseInt(formData.securityLevel.replace("option", ""))
+          : investigationRecord.securityLevel,
+        progressStatus:
+          formData.progressStatus || investigationRecord.progressStatus,
       };
 
       // Prepare file arrays
       const allFiles = [...reportFiles, ...digitalEvidenceFiles];
       const fileTypes = [
-        ...reportFiles.map(() => 'REPORT'),
-        ...digitalEvidenceFiles.map(() => 'EVIDENCE')
+        ...reportFiles.map(() => "REPORT"),
+        ...digitalEvidenceFiles.map(() => "EVIDENCE"),
       ];
       const digitalEvidenceFlags = [
         ...reportFiles.map(() => false),
-        ...digitalEvidenceFiles.map(() => true)
+        ...digitalEvidenceFiles.map(() => true),
       ];
       const investigationReportFlags = [
         ...reportFiles.map(() => true),
-        ...digitalEvidenceFiles.map(() => false)
+        ...digitalEvidenceFiles.map(() => false),
       ];
 
       // Call the mutation with new files
@@ -129,7 +134,7 @@ const InquiryDetailPage = () => {
         files: allFiles,
         fileTypes: fileTypes,
         digitalEvidenceFlags: digitalEvidenceFlags,
-        investigationReportFlags: investigationReportFlags
+        investigationReportFlags: investigationReportFlags,
       });
 
       toast.success(t("incident.update-success"));
@@ -140,12 +145,8 @@ const InquiryDetailPage = () => {
 
       // Navigate back to view page
       router.push(`/investigator/cases/${caseId}`);
-
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-        t("incident.update-error")
-      );
+      toast.error(error.response?.data?.message || t("incident.update-error"));
     }
   };
 
@@ -157,21 +158,29 @@ const InquiryDetailPage = () => {
   if (investigationRecord?.reviewedAt) {
     const date = new Date(investigationRecord?.reviewedAt);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     reviewedAt = `${year}-${month}-${day}`;
   }
 
   switch (investigationRecord?.reviewStatus) {
     case REVIEW_STATUS.REJECTED:
-      reviewResult = <span className="text-[red]">{`${reviewedAt}(${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)})`}</span>;
+      reviewResult = (
+        <span className="text-[red]">{`${reviewedAt}(${t(
+          `incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`
+        )})`}</span>
+      );
       break;
     case REVIEW_STATUS.APPROVED:
       reviewResult = <span className="text-[#5D5996]">{`${reviewedAt}`}</span>;
       break;
 
     case REVIEW_STATUS.PENDING:
-      reviewResult = <span className="text-[#6B62D3]">{`${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)}`}</span>;
+      reviewResult = (
+        <span className="text-[#6B62D3]">{`${t(
+          `incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`
+        )}`}</span>
+      );
       break;
 
     default:
@@ -229,12 +238,15 @@ const InquiryDetailPage = () => {
               className="gap-3"
               onClick={handleFileUpload}
             >
-              <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
+              <div className="ml-[6px] w-[30px]">
+                <CreateDoc width={20} height={22} />
+              </div>
               {t("upload-investigation-material")}
             </Button>
           </div>
           <div className="flex gap-2">
-            {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING || investigationRecord.reviewStatus === REVIEW_STATUS.REJECTED) && (
+            {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING ||
+              investigationRecord.reviewStatus === REVIEW_STATUS.REJECTED) && (
               <>
                 <Button
                   variant="yellow"
@@ -246,8 +258,7 @@ const InquiryDetailPage = () => {
                   <EditFile />
                   {updateInvestigationRecordMutation.isPending
                     ? t("incident.updating")
-                    : t("incident.save-changes")
-                  }
+                    : t("incident.save-changes")}
                 </Button>
               </>
             )}
@@ -259,7 +270,7 @@ const InquiryDetailPage = () => {
               {t("header.case-investigation-record")}
             </h2>
           </div>
-          <CaseForm
+          <InvestigationRecordForm
             register={register}
             watch={watch}
             errors={errors}
@@ -300,8 +311,8 @@ const InquiryDetailPage = () => {
                 name: file.name,
                 size: `${(file.size / 1024).toFixed(1)}KB`,
                 onRemove: () => removeReportFile(index),
-                isNew: true
-              }))
+                isNew: true,
+              })),
             ]}
             digitalEvidence={[
               // Existing files
@@ -319,8 +330,8 @@ const InquiryDetailPage = () => {
                 name: file.name,
                 size: `${(file.size / 1024).toFixed(1)}KB`,
                 onRemove: () => removeDigitalEvidenceFile(index),
-                isNew: true
-              }))
+                isNew: true,
+              })),
             ]}
           />
         </div>

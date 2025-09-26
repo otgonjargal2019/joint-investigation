@@ -52,7 +52,8 @@
       "ANALYZING": "디지털 증거 분석 중",
       "REPORT_INVESTIGATION": "디지털 증거 보고 조사",
       "DISPOSE": "디지털 증거물 파기",
-      "ON_HOLD": "미해결"
+      "ON_HOLD": "미해결",
+      "CLOSED": "수사종료"
     },
     "saved-successfully": "성공적으로 저장되었습니다",
     "error-occurred": "요청 처리 중 오류가 발생했습니다.",
