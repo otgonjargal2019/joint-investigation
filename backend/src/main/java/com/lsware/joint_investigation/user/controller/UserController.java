@@ -340,7 +340,6 @@ public class UserController {
                     .orElse(null);
 
             if (lastHistory != null) {
-                user.setProfileImageUrl(lastHistory.getProfileImageUrl());
                 user.setHeadquarterId(lastHistory.getHeadquarterId());
                 user.setDepartmentId(lastHistory.getDepartmentId());
                 user.setEmail(lastHistory.getEmail());
