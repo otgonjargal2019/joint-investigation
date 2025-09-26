@@ -11,7 +11,7 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import ChevronLeft from "@/shared/components/icons/chevronLeft";
 import CheckCircle from "@/shared/components/icons/checkCircle";
 import CancelCircle from "@/shared/components/icons/cancelCircle";
-import CaseForm from "@/shared/widgets/caseForm";
+import InvestigationRecordForm from "@/shared/widgets/invRecordForm";
 import Modal from "@/shared/components/modal";
 import TypingOverlay from "@/shared/widgets/typingOverlay";
 import {
@@ -198,7 +198,7 @@ const InquiryDetailPage = () => {
             </Button>
           </div>
           <div className="flex gap-2">
-            {(investigationRecord?.reviewStatus === REVIEW_STATUS.PENDING && (
+            {investigationRecord?.reviewStatus === REVIEW_STATUS.PENDING && (
               <>
                 <Button
                   variant="pink"
@@ -219,7 +219,7 @@ const InquiryDetailPage = () => {
                   {t("approve")}
                 </Button>
               </>
-            ))}
+            )}
           </div>
         </div>
         <div className=" bg-white border border-color-36 rounded-10 px-[70px] py-6">
@@ -228,7 +228,7 @@ const InquiryDetailPage = () => {
               {t("header.case-investigation-record")}
             </h2>
           </div>
-          <CaseForm
+          <InvestigationRecordForm
             register={register}
             watch={watch}
             errors={errors}

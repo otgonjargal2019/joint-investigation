@@ -2,11 +2,11 @@
 
 import { useTranslations } from "next-intl";
 
+import Input from "@/shared/components/form/input";
 import RadioBox from "@/shared/components/form/radio";
 import Textarea from "@/shared/components/form/textarea";
-import Input from "@/shared/components/form/input";
-import QuestionMarkCircle from "../components/icons/questionMarkCircle";
 import AttachedFile from "../components/icons/attachedFile";
+import QuestionMarkCircle from "../components/icons/questionMarkCircle";
 import { PROGRESS_STATUS } from "@/entities/investigation/model/constants";
 
 const options = [
@@ -58,7 +58,7 @@ const TextDiv2 = ({ children, className }) => (
   </div>
 );
 
-const CaseForm = ({
+const InvestigationRecordForm = ({
   headerInfo,
   data,
   digitalEvidence,
@@ -72,14 +72,18 @@ const CaseForm = ({
   const textWriter = t("case-form.writer");
   const textReviewer = t("case-form.reviewer");
 
-  const options2 = Object.values(PROGRESS_STATUS).map(status => ({value: status, label: t(`incident.PROGRESS_STATUS.${status}`) })) || [];
+  const options2 =
+    Object.values(PROGRESS_STATUS).map((status) => ({
+      value: status,
+      label: t(`incident.PROGRESS_STATUS.${status}`),
+    })) || [];
 
   let requestedAt = "";
   if (headerInfo.requestedAt) {
     const date = new Date(headerInfo.requestedAt);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     requestedAt = `${year}-${month}-${day}`;
   }
 
@@ -130,12 +134,18 @@ const CaseForm = ({
         <TextDiv className="border-t border-r">
           {readonly ? (
             <div className="text-[18px] font-normal py-2">
-              {data.item1 || watch("recordName") || t("case-form.validation-enter-record-name")}
+              {data.item1 ||
+                watch("recordName") ||
+                t("case-form.validation-enter-record-name")}
             </div>
           ) : (
             <Input
               name="recordName"
-              register={(name) => register(name, { required: t("case-form.validation-enter-record-name") })}
+              register={(name) =>
+                register(name, {
+                  required: t("case-form.validation-enter-record-name"),
+                })
+              }
               error={errors.recordName}
               placeholder={t("case-form.validation-enter-record-name")}
             />
@@ -197,7 +207,9 @@ const CaseForm = ({
               <li key={idx} className="flex gap-1 items-center">
                 <span className="text-color-20">
                   {file.url ? (
-                    <a href={file.url} target="_blank">{file.name}</a>
+                    <a href={file.url} target="_blank">
+                      {file.name}
+                    </a>
                   ) : (
                     <span>{file.name}</span>
                   )}
@@ -228,7 +240,9 @@ const CaseForm = ({
               <li key={idx} className="flex gap-1 items-center">
                 <span className="text-color-20">
                   {file.url ? (
-                    <a href={file.url} target="_blank">{file.name}</a>
+                    <a href={file.url} target="_blank">
+                      {file.name}
+                    </a>
                   ) : (
                     <span>{file.name}</span>
                   )}
@@ -255,4 +269,4 @@ const CaseForm = ({
   );
 };
 
-export default CaseForm;
+export default InvestigationRecordForm;

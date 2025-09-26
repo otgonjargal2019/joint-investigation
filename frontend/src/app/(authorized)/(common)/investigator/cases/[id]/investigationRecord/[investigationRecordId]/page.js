@@ -12,7 +12,7 @@ import Cancel from "@/shared/components/icons/cancel";
 import CheckRectangle from "@/shared/components/icons/checkRectangle";
 import EditFile from "@/shared/components/icons/editFile";
 import CreateDoc from "@/shared/components/icons/createDoc";
-import CaseForm from "@/shared/widgets/caseForm";
+import InvestigationRecordForm from "@/shared/widgets/invRecordForm";
 import {
   useInvestigationRecord,
   useRequestReviewInvestigationRecord,
@@ -47,8 +47,7 @@ const InquiryDetailPage = () => {
     if (investigationRecord) {
       reset({
         securityLevel: `option${investigationRecord.securityLevel}`,
-        progressStatus:
-          investigationRecord.progressStatus,
+        progressStatus: investigationRecord.progressStatus,
         overview: investigationRecord.content || "",
         recordName: investigationRecord.recordName || "",
       });
@@ -62,20 +61,21 @@ const InquiryDetailPage = () => {
   const handleRequestReview = async () => {
     try {
       await requestReviewMutation.mutateAsync({
-        recordId: investigationRecordId
+        recordId: investigationRecordId,
       });
       toast.success(t("incident.request-review-success"));
       router.push(`/investigator/cases/${caseId}`);
     } catch (error) {
       toast.error(
-        error.response?.data?.message ||
-        t("incident.request-review-error")
+        error.response?.data?.message || t("incident.request-review-error")
       );
     }
   };
 
   const edit = () => {
-    router.push(`/investigator/cases/${caseId}/investigationRecord/${investigationRecordId}/edit`);
+    router.push(
+      `/investigator/cases/${caseId}/investigationRecord/${investigationRecordId}/edit`
+    );
   };
 
   let reviewResult = "";
@@ -84,21 +84,29 @@ const InquiryDetailPage = () => {
   if (investigationRecord?.reviewedAt) {
     const date = new Date(investigationRecord?.reviewedAt);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     reviewedAt = `${year}-${month}-${day}`;
   }
 
   switch (investigationRecord?.reviewStatus) {
     case REVIEW_STATUS.REJECTED:
-      reviewResult = <span className="text-[#FF5759]">{`${reviewedAt}(${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)})`}</span>;
+      reviewResult = (
+        <span className="text-[#FF5759]">{`${reviewedAt}(${t(
+          `incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`
+        )})`}</span>
+      );
       break;
     case REVIEW_STATUS.APPROVED:
       reviewResult = <span className="text-[#656161]">{`${reviewedAt}`}</span>;
       break;
 
     case REVIEW_STATUS.PENDING:
-      reviewResult = <span className="text-[#9B9B9B]">{`${t(`incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`)}`}</span>;
+      reviewResult = (
+        <span className="text-[#9B9B9B]">{`${t(
+          `incident.REVIEW_STATUS.${investigationRecord?.reviewStatus}`
+        )}`}</span>
+      );
       break;
 
     default:
@@ -160,7 +168,8 @@ const InquiryDetailPage = () => {
             </Button> */}
           </div>
           <div className="flex gap-2">
-            {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING || investigationRecord.reviewStatus === REVIEW_STATUS.REJECTED) && (
+            {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING ||
+              investigationRecord.reviewStatus === REVIEW_STATUS.REJECTED) && (
               <>
                 <Button
                   variant="yellow"
@@ -181,8 +190,7 @@ const InquiryDetailPage = () => {
                   <CheckRectangle />
                   {requestReviewMutation.isPending
                     ? t("incident.requesting-review")
-                    : t("incident.request-review")
-                  }
+                    : t("incident.request-review")}
                 </Button>
               </>
             )}
@@ -194,7 +202,7 @@ const InquiryDetailPage = () => {
               {t("header.case-investigation-record")}
             </h2>
           </div>
-          <CaseForm
+          <InvestigationRecordForm
             register={register}
             watch={watch}
             errors={errors}
