@@ -556,6 +556,63 @@ public class InvestigationService {
 						);
 					});
 			}
+
+			// Compute previous approved progress and check if changed
+			boolean progressChanged = false;
+			PROGRESS_STATUS previousApprovedProgress = null;
+			{
+				UUID caseId = existingRecord.getCaseInstance().getCaseId();
+				UUID currentRecordId = existingRecord.getRecordId();
+				var previousApprovedOpt = investigationRecordRepository.findPreviousApprovedByCase(caseId, currentRecordId);
+				if (previousApprovedOpt.isPresent()) {
+					previousApprovedProgress = previousApprovedOpt.get().getProgressStatus();
+					PROGRESS_STATUS currentProgress = existingRecord.getProgressStatus();
+					progressChanged = previousApprovedProgress != null && currentProgress != null && !previousApprovedProgress.equals(currentProgress);
+				}
+			}
+
+			// Send "Progress status changed" notification to case creator and all assignees ONLY when changed
+			if (progressChanged) {
+				Map<String, String> progressContent = new LinkedHashMap<>(contentMap);
+				// Add previous/current progress names
+				progressContent.put("이전 진행 상태", previousApprovedProgress.name());
+				progressContent.put("현재 진행 상태", existingRecord.getProgressStatus().name());
+
+				String relatedUrlManager = MessageFormat.format(
+					"/manager/cases/{0}",
+					investigationRecordDto.getCaseId().toString()
+				);
+
+				String relatedUrlInvestigator = MessageFormat.format(
+					"/investigator/cases/{0}",
+					investigationRecordDto.getCaseId().toString()
+				);
+
+				// Case creator
+				notificationService.notifyUser(
+					caseDto.getCreator().getUserId(),
+					"Progress status changed",
+					progressContent,
+					relatedUrlManager
+				);
+
+				// All assignees (excluding creator to avoid duplicate)
+				UUID caseCreatorId = caseDto.getCreator().getUserId();
+				if (caseEntity.getAssignees() != null) {
+					caseEntity.getAssignees().stream()
+						.map(a -> a.getUserId())
+						.filter(uid -> !uid.equals(caseCreatorId))
+						.distinct()
+						.forEach(uid -> {
+							notificationService.notifyUser(
+								uid,
+								"Progress status changed",
+								progressContent,
+								relatedUrlInvestigator
+							);
+						});
+				}
+			}
 		}
 
 		// Return DTO

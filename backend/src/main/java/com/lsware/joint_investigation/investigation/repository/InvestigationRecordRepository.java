@@ -144,4 +144,30 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
                 "total", total);
     }
 
+    /**
+     * Find the most recent APPROVED investigation record for a case, excluding a specific record ID.
+     * Useful to compare the newly approved record's progress with the previous approved one.
+     */
+    public Optional<InvestigationRecord> findPreviousApprovedByCase(UUID caseId, UUID excludeRecordId) {
+    QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+
+    InvestigationRecord result = queryFactory
+        .selectFrom(q)
+        .where(
+            q.caseInstance.caseId.eq(caseId)
+                .and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+                .and(q.recordId.ne(excludeRecordId))
+        )
+        .orderBy(
+            // Prefer reviewedAt desc; fallback to updatedAt/createdAt for stable ordering
+            q.reviewedAt.desc(),
+            q.updatedAt.desc(),
+            q.createdAt.desc()
+        )
+        .limit(1)
+        .fetchOne();
+
+    return Optional.ofNullable(result);
+    }
+
 }
