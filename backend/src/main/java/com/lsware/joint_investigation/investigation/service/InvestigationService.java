@@ -532,6 +532,7 @@ public class InvestigationService {
 			contentMap.put("사건 명", caseDto.getCaseName());
 			contentMap.put("변경 일시", formattedDateTime);
 
+			// Send approval notification to the creator
 			// http://localhost:3000/investigator/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/investigationRecord/d26278be-128b-41be-acd7-a607e4436d93
 			notificationService.notifyUser(
 				investigationRecordDto.getCreator().getUserId(),
@@ -539,6 +540,22 @@ public class InvestigationService {
 				contentMap,
 				MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
 			);
+
+			// Send "New investigation records registered" notification to all case assignees except the creator
+			Case caseEntity = existingRecord.getCaseInstance();
+			if (caseEntity.getAssignees() != null) {
+				UUID creatorUserId = investigationRecordDto.getCreator().getUserId();
+				caseEntity.getAssignees().stream()
+					.filter(assignee -> !assignee.getUserId().equals(creatorUserId))
+					.forEach(assignee -> {
+						notificationService.notifyUser(
+							assignee.getUserId(),
+							"New investigation records registered",
+							contentMap,
+							MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
+						);
+					});
+			}
 		}
 
 		// Return DTO

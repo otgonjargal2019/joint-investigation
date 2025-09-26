@@ -149,7 +149,7 @@ const InquiryDetailPage = () => {
               <Cancel />
               {t("incident.cancel-editing")}
             </Button>
-            <Button
+            {/* <Button
               type="button"
               variant="white"
               size="mediumWithShadow"
@@ -157,7 +157,7 @@ const InquiryDetailPage = () => {
             >
               <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
               {t("upload-investigation-material")}
-            </Button>
+            </Button> */}
           </div>
           <div className="flex gap-2">
             {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING || investigationRecord.reviewStatus === REVIEW_STATUS.REJECTED) && (
