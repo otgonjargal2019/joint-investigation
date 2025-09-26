@@ -42,13 +42,12 @@ const Header = () => {
   const { userInfo } = useUserInfo();
   const isActive = (path) => pathname.startsWith(path);
 
-  const incidentLink = useMemo(() => {
-    if (user?.role === ROLES.PLATFORM_ADMIN || user?.role === ROLES.INV_ADMIN) {
+  const caseLink = useMemo(() => {
+    if (user?.role === ROLES.INV_ADMIN) {
       return "/manager/cases";
     } else if (
       user?.role === ROLES.INVESTIGATOR ||
-      user?.role === ROLES.RESEARCHER ||
-      user?.role === ROLES.COPYRIGHT_HOLDER
+      user?.role === ROLES.RESEARCHER
     ) {
       return "/investigator/cases";
     }
@@ -80,13 +79,18 @@ const Header = () => {
 
       {/* Desktop Navigation */}
       <div className="hidden xl:flex items-center gap-2 flex-1 justify-center xl:justify-start">
-        <button
-          className={`header-btn ${isActive(incidentLink) ? "active" : ""}`}
-          onClick={() => router.push(incidentLink)}
-        >
-          <Dashboard color="currentColor" />
-          {t("header.current-state-entire-incident")}
-        </button>
+        {(user.role === ROLES.INVESTIGATOR ||
+          user.role === ROLES.INV_ADMIN ||
+          user.role === ROLES.RESEARCHER) && (
+          <button
+            className={`header-btn ${isActive(caseLink) ? "active" : ""}`}
+            onClick={() => router.push(caseLink)}
+          >
+            <Dashboard color="currentColor" />
+            {t("header.current-state-entire-incident")}
+          </button>
+        )}
+
         <button
           className={`header-btn ${
             isActive("/status-edition-summary") ? "active" : ""
@@ -237,16 +241,20 @@ const Header = () => {
 
             {/* Mobile Navigation Items */}
             <div className="space-y-2">
-              <button
-                className={`header-btn mobile-btn ${
-                  isActive(incidentLink) ? "active" : ""
-                }`}
-                onClick={() => handleNavigation(incidentLink)}
-              >
-                <Dashboard color="currentColor" />
+              {(user.role === ROLES.INVESTIGATOR ||
+                user.role === ROLES.INV_ADMIN ||
+                user.role === ROLES.RESEARCHER) && (
+                <button
+                  className={`header-btn mobile-btn ${
+                    isActive(caseLink) ? "active" : ""
+                  }`}
+                  onClick={() => handleNavigation(caseLink)}
+                >
+                  <Dashboard color="currentColor" />
 
-                {t("header.current-state-entire-incident")}
-              </button>
+                  {t("header.current-state-entire-incident")}
+                </button>
+              )}
 
               <button
                 className={`header-btn mobile-btn ${
