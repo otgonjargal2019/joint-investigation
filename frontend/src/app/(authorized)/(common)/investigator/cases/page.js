@@ -19,15 +19,15 @@ const tabs = [
 ];
 
 const COLOR_MAP = {
-  "PLATFORMS_SITES": "bg-color-91",
-  "LINK_SITES": "bg-color-107",
-  "WEBHARD_P2P": "bg-color-106",
-  "TORRENTS": "bg-color-90",
-  "SNS": "bg-color-93",
-  "COMMUNITIES": "bg-color-6",
-  "OTHER": "bg-color-105",
-  "DEFAULT": "black",
-}
+  PLATFORMS_SITES: "bg-color-91",
+  LINK_SITES: "bg-color-107",
+  WEBHARD_P2P: "bg-color-106",
+  TORRENTS: "bg-color-90",
+  SNS: "bg-color-93",
+  COMMUNITIES: "bg-color-6",
+  OTHER: "bg-color-105",
+  DEFAULT: "black",
+};
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
@@ -48,9 +48,12 @@ function IncidentPage() {
   // Get status filter based on active tab
   const getStatusFilter = (tabValue) => {
     switch (tabValue) {
-      case 1: return "OPEN"; // 진행중인 사건
-      case 2: return "CLOSED"; // 종료 사건
-      default: return undefined; // 전체 (no filter)
+      case 1:
+        return "OPEN"; // 진행중인 사건
+      case 2:
+        return "CLOSED"; // 종료 사건
+      default:
+        return undefined; // 전체 (no filter)
     }
   };
 
@@ -58,13 +61,13 @@ function IncidentPage() {
   const {
     data: casesResponse,
     isLoading,
-    error
+    error,
   } = useMyAssignedCase({
     page: page - 1, // API uses 0-based pagination
     size: ROWS_PER_PAGE,
     status: getStatusFilter(activeTab),
     sortBy: "createdAt",
-    sortDirection: "desc"
+    sortDirection: "desc",
   });
 
   const transformedData = useMemo(() => {
@@ -105,19 +108,27 @@ function IncidentPage() {
       <h3 className="text-[24px] text-color-8 font-medium mb-2">
         {t("subtitle.recent-investigation")}
       </h3>
-      <div className="w-full flex gap-6 justify-between">
-        {casesResponse?.recentCases?.map(item => (
-          <CaseCard
-            key={item.caseId}
-            size={"big"}
-            label={item?.infringementType ? t(`case_details.case_infringement_type.${item?.infringementType}`) : ""}
-            code={`#${item.number}. ${item.caseId}`}
-            desc={item.caseName}
-            color={`${COLOR_MAP[item?.infringementType || "DEFAULT"]}`}
-            country={item.relatedCountries}
-            isLoading={isLoading}
-            onClick={() => onClickRow(item)}
-          />
+      <div className="w-full flex gap-6">
+        {casesResponse?.recentCases?.map((item) => (
+          <div key={item.caseId} className="basis-1/3">
+            <CaseCard
+              key={item.caseId}
+              size={"big"}
+              label={
+                item?.infringementType
+                  ? t(
+                      `case_details.case_infringement_type.${item?.infringementType}`
+                    )
+                  : ""
+              }
+              code={`#${item.number}. ${item.caseId}`}
+              desc={item.caseName}
+              color={`${COLOR_MAP[item?.infringementType || "DEFAULT"]}`}
+              country={item.relatedCountries}
+              isLoading={isLoading}
+              onClick={() => onClickRow(item)}
+            />
+          </div>
         ))}
       </div>
 
@@ -146,35 +157,31 @@ function IncidentPage() {
             key: "investigationDate",
             title: t("incident.investigation-start-date"),
             render: (value) => {
-              if (!value) return '';
+              if (!value) return "";
               const date = new Date(value);
               const year = date.getFullYear();
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const day = String(date.getDate()).padStart(2, '0');
+              const month = String(date.getMonth() + 1).padStart(2, "0");
+              const day = String(date.getDate()).padStart(2, "0");
               return `${year}-${month}-${day}`;
-            }
+            },
           },
           {
             key: "infringementType",
             title: t("incident.infringement-type"),
             render: (value) => {
-              if (!value) return '';
+              if (!value) return "";
               return t(`case_details.case_infringement_type.${value}`);
-            }
+            },
           },
           {
             key: "status",
             title: t("incident.status"),
-            render: (value) => (
-              <TagCaseStatus status={value} />
-            )
+            render: (value) => <TagCaseStatus status={value} />,
           },
           {
             key: "latestRecord.progressStatus",
             title: t("incident.progress-detail"),
-            render: (value) => (
-              <TagProgressStatus status={value} />
-            )
+            render: (value) => <TagProgressStatus status={value} />,
           },
         ]}
         data={transformedData}
