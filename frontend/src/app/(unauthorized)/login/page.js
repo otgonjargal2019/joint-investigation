@@ -19,6 +19,8 @@ import { loginFormSchema } from "@/entities/auth";
 
 function LoginPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
   const {
     register,
     formState: { errors },
@@ -55,6 +57,10 @@ function LoginPage() {
       },
       onError: (err) => {
         if (err.response?.data?.message == "ADMIN_CONFIRMATION_NEEDED") {
+          setAlertMessage(t("auth.admin-approve-msg"));
+          setModalOpen(true);
+        } else if (err.response?.data?.message == "ADMIN_REJECTED") {
+          setAlertMessage(t("auth.admin-rejected-msg"));
           setModalOpen(true);
         } else {
           setError("root", {
@@ -141,7 +147,7 @@ function LoginPage() {
         showClose={false}
       >
         <h2 className="text-center text-[20px] text-color-24 mb-6">
-          {t("auth.admin-approve-msg")}
+          {alertMessage ? t(alertMessage) : ""}
         </h2>
         <div className="flex justify-center ">
           <Button

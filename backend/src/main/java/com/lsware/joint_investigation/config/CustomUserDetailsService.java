@@ -27,6 +27,9 @@ public class CustomUserDetailsService implements UserDetailsService {
                     if (u.getStatus() == Users.USER_STATUS.PENDING) {
                         throw new AdminNotCommittedException("ADMIN_CONFIRMATION_NEEDED");
                     }
+                    if (u.getStatus() == Users.USER_STATUS.REJECTED) {
+                        throw new AdminNotCommittedException("ADMIN_REJECTED");
+                    }
                     return u;
                 })
                 .orElseThrow(() -> new UsernameNotFoundException("LoginID not found"));

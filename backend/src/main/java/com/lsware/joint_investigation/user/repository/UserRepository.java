@@ -57,7 +57,8 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
         builder.and(
                 users.status.eq(Users.USER_STATUS.APPROVED)
                         .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))
-                        .or(users.status.eq(Users.USER_STATUS.PENDING)));
+                        .or(users.status.eq(Users.USER_STATUS.PENDING))
+                        .or(users.status.eq(Users.USER_STATUS.REJECTED)));
 
         return Optional.ofNullable(
                 queryFactory
