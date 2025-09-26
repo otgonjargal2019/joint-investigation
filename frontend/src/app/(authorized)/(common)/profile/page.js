@@ -404,15 +404,22 @@ function Membership() {
                     variant="form"
                     placeholder={t("placeholder.country-code")}
                     error={profileErrors.phone1}
+                    disabled={true}
                   />
-                  <Input
-                    register={registerProfile}
-                    name="phone2"
-                    showError={false}
-                    variant="form"
-                    placeholder={t("placeholder.contact-info")}
-                    error={profileErrors.phone2}
-                  />
+                  <div className="flex flex-col">
+                    <Input
+                      register={registerProfile}
+                      name="phone2"
+                      showError={false}
+                      variant="form"
+                      placeholder={t("placeholder.contact-info")}
+                      error={profileErrors.phone2}
+                      maxLength={15}
+                    />
+                    <p className="text-color-86 text-[16px] font-normal text-left mt-1">
+                      {profileErrors.phone2 && t("error-msg.error-phone-num")}
+                    </p>
+                  </div>
                 </div>
                 <Label color="gray" className="text-right mt-2">
                   {t("form.email")}
@@ -423,6 +430,7 @@ function Membership() {
                     name="email"
                     showError={false}
                     variant="form"
+                    maxLength={20}
                     error={profileErrors.email}
                   />
                   @
@@ -431,6 +439,7 @@ function Membership() {
                     name="email2"
                     showError={false}
                     variant="form"
+                    maxLength={20}
                     error={profileErrors.email2}
                   />
                   <Button

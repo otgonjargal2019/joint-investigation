@@ -101,7 +101,7 @@ export const registerFormSchema = withPasswordConfirm(
 export const profileFormSchema = withPasswordConfirm(
   z.object({
     phone1: z.string().optional(),
-    phone2: z.string().optional(),
+    phone2: z.coerce.number().int().min(3, "Required"),
     email: z.string().min(1, "Required"),
     email2: z.string().min(1, "Required"),
     //countryId: z.string().min(1, "Required"),
