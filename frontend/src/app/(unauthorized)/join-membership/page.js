@@ -307,7 +307,7 @@ function JoinMembershipPage() {
                 variant="form"
                 placeholder={t("placeholder.kor-name")}
                 error={errors.nameKr}
-                maxLength={20}
+                maxLength={30}
               />
               <Label color="gray" className="text-right mt-2">
                 {t("form.eng-name")}
@@ -319,7 +319,7 @@ function JoinMembershipPage() {
                   showError={false}
                   variant="form"
                   placeholder={t("placeholder.eng-name")}
-                  maxLength={20}
+                  maxLength={50}
                 />
                 <p className="text-color-86 text-[16px] font-normal text-left">
                   {errors.nameEn && t("error-msg.namekr-or-nameen-required")}
@@ -376,15 +376,22 @@ function JoinMembershipPage() {
                   placeholder={t("placeholder.country-code")}
                   disabled={true}
                 />
-                <Input
-                  register={register}
-                  name="phone2"
-                  showError={false}
-                  variant="form"
-                  placeholder={t("placeholder.contact-info")}
-                  maxLength={20}
-                />
+                <div className="flex flex-col">
+                  <Input
+                    register={register}
+                    name="phone2"
+                    showError={false}
+                    variant="form"
+                    placeholder={t("placeholder.contact-info")}
+                    maxLength={15}
+                    error={errors.phone2}
+                  />
+                  <p className="text-color-86 text-[16px] font-normal text-left mt-1">
+                    {errors.phone2 && t("error-msg.error-phone-num")}
+                  </p>
+                </div>
               </div>
+
               <Label color="gray" className="text-right mt-2">
                 {t("form.email")}
               </Label>

@@ -136,7 +136,8 @@
     "enter-all-membership-info": "Please enter all your membership information.",
     "passwords-not-match": "Passwords does not match. Please try again.",
     "namekr-or-nameen-required": "Either Korean name or English name is required",
-    "error-login-id": "Login ID must contain English letters and numbers."
+    "error-login-id": "Login ID must contain English letters and numbers.",
+    "error-phone-num": "Please enter numbers only."
   },
   "info-msg": {
     "password": "* 8-16 characters / case, number, special character combination",
@@ -172,7 +173,8 @@
     "after-change": "after the change"
   },
   "auth": {
-    "admin-approve-msg": "You can log in after your administrator approves it."
+    "admin-approve-msg": "You can log in after your administrator approves it.",
+    "admin-rejected-msg": "Please contact ADMIN."
   },
   "placeholder": {
     "id": "Please enter your ID.",
