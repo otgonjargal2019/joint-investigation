@@ -203,6 +203,9 @@ public class UserController {
                 Users me = userRepository.findByUserId(userDetail.getId())
                         .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+                if (me.getProfileImageUrl() != null && !me.getProfileImageUrl().isEmpty())
+                    fileService.deleteFile(me.getProfileImageUrl());
+
                 String avatar = null;
                 if (file != null) {
                     // SAVE TO S3
@@ -500,17 +503,4 @@ public class UserController {
         email.setContent(html);
         emailService.sendEmailHtml(email);
     }
-
-    @PostMapping("/testemail")
-    public ResponseEntity<HashMap<String, Object>> testEmail() {
-
-        String mailSubject = "[JOINT-INVESTIGATION] EMAIL VERIFICATION";
-        String templateName = "mail_template1";
-        Map<String, Object> objectMap = new HashMap<String, Object>();
-        objectMap.put("reason", "Sorry bro");
-        sendEmail(mailSubject, templateName, "batzorigtchimeddorj@gmail.com", objectMap);
-
-        return ResponseEntity.status(HttpStatusCode.valueOf(200)).build();
-    }
-
 }

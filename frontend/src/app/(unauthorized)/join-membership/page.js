@@ -459,7 +459,7 @@ function JoinMembershipPage() {
         showClose={false}
       >
         <h2 className="text-center text-[20px] text-color-24 mb-6">
-          {t(alertMessage)}
+          {alertMessage ? t(alertMessage) : ""}
         </h2>
         <div className="flex justify-center ">
           <Button
