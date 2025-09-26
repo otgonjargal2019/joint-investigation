@@ -2,9 +2,12 @@ package com.lsware.joint_investigation.investigation.service;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.security.MessageDigest;
+import java.text.MessageFormat;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.lsware.joint_investigation.investigation.repository.AttachFileRepository;
 import com.lsware.joint_investigation.investigation.repository.InvestigationRecordRepository;
+import com.lsware.joint_investigation.notification.service.NotificationService;
 import com.lsware.joint_investigation.investigation.entity.AttachFile;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord;
 import com.lsware.joint_investigation.investigation.entity.InvestigationRecord.PROGRESS_STATUS;
@@ -22,6 +26,7 @@ import com.lsware.joint_investigation.investigation.dto.UpdateInvestigationRecor
 import com.lsware.joint_investigation.investigation.dto.RejectInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationRecordRequest;
 import com.lsware.joint_investigation.investigation.dto.RequestReviewInvestigationRecordRequest;
+import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.user.entity.Users;
@@ -51,6 +56,9 @@ public class InvestigationService {
 
 	@Autowired
 	private FileService fileService;
+
+	@Autowired
+	private NotificationService notificationService;
 
 	public Map<String, Object> getInvestigationRecords(String recordName, PROGRESS_STATUS progressStatus, String caseId,
 			Pageable pageable, CustomUser user) {
@@ -444,16 +452,37 @@ public class InvestigationService {
 
 		// Save the record
 		InvestigationRecord savedRecord = investigationRecordRepository.save(existingRecord);
+		InvestigationRecordDto investigationRecordDto = savedRecord.toDto();
+		CaseDto caseDto = null;
 
 		// Update case updated_at timestamp
 		if (existingRecord.getCaseInstance() != null) {
 			Case caseEntity = existingRecord.getCaseInstance();
 			caseEntity.setUpdatedAt(LocalDateTime.now());
 			caseRepository.save(caseEntity);
+			caseDto = caseEntity.toDto();
+		}
+
+		if (caseDto != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			String formattedDateTime = investigationRecordDto.getReviewedAt().format(formatter);
+			Map<String, String> contentMap = new LinkedHashMap<>();
+			contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
+			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(), caseDto.getCaseId().toString()));
+			contentMap.put("사건 명", caseDto.getCaseName());
+			contentMap.put("변경 일시", formattedDateTime);
+
+			// http://localhost:3000/investigator/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/investigationRecord/d26278be-128b-41be-acd7-a607e4436d93
+			notificationService.notifyUser(
+				investigationRecordDto.getCreator().getUserId(),
+				"Rejected investigation record",
+				contentMap,
+				MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
+			);
 		}
 
 		// Return DTO
-		return savedRecord.toDto();
+		return investigationRecordDto;
 	}
 
 	/**
@@ -483,16 +512,111 @@ public class InvestigationService {
 
 		// Save the record
 		InvestigationRecord savedRecord = investigationRecordRepository.save(existingRecord);
+		InvestigationRecordDto investigationRecordDto = savedRecord.toDto();
+		CaseDto caseDto = null;
 
 		// Update case updated_at timestamp
 		if (existingRecord.getCaseInstance() != null) {
 			Case caseEntity = existingRecord.getCaseInstance();
 			caseEntity.setUpdatedAt(LocalDateTime.now());
 			caseRepository.save(caseEntity);
+			caseDto = caseEntity.toDto();
+		}
+
+		if (caseDto != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			String formattedDateTime = investigationRecordDto.getReviewedAt().format(formatter);
+			Map<String, String> contentMap = new LinkedHashMap<>();
+			contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
+			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(), caseDto.getCaseId().toString()));
+			contentMap.put("사건 명", caseDto.getCaseName());
+			contentMap.put("변경 일시", formattedDateTime);
+
+			// Send approval notification to the creator
+			// http://localhost:3000/investigator/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/investigationRecord/d26278be-128b-41be-acd7-a607e4436d93
+			notificationService.notifyUser(
+				investigationRecordDto.getCreator().getUserId(),
+				"Approved investigation record",
+				contentMap,
+				MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
+			);
+
+			// Send "New investigation records registered" notification to all case assignees except the creator
+			Case caseEntity = existingRecord.getCaseInstance();
+			if (caseEntity.getAssignees() != null) {
+				UUID creatorUserId = investigationRecordDto.getCreator().getUserId();
+				caseEntity.getAssignees().stream()
+					.filter(assignee -> !assignee.getUserId().equals(creatorUserId))
+					.forEach(assignee -> {
+						notificationService.notifyUser(
+							assignee.getUserId(),
+							"New investigation records registered",
+							contentMap,
+							MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
+						);
+					});
+			}
+
+			// Compute previous approved progress and check if changed
+			boolean progressChanged = false;
+			PROGRESS_STATUS previousApprovedProgress = null;
+			{
+				UUID caseId = existingRecord.getCaseInstance().getCaseId();
+				UUID currentRecordId = existingRecord.getRecordId();
+				var previousApprovedOpt = investigationRecordRepository.findPreviousApprovedByCase(caseId, currentRecordId);
+				if (previousApprovedOpt.isPresent()) {
+					previousApprovedProgress = previousApprovedOpt.get().getProgressStatus();
+					PROGRESS_STATUS currentProgress = existingRecord.getProgressStatus();
+					progressChanged = previousApprovedProgress != null && currentProgress != null && !previousApprovedProgress.equals(currentProgress);
+				}
+			}
+
+			// Send "Progress status changed" notification to case creator and all assignees ONLY when changed
+			if (progressChanged) {
+				Map<String, String> progressContent = new LinkedHashMap<>(contentMap);
+				// Add previous/current progress names
+				progressContent.put("이전 진행 상태", previousApprovedProgress.name());
+				progressContent.put("현재 진행 상태", existingRecord.getProgressStatus().name());
+
+				String relatedUrlManager = MessageFormat.format(
+					"/manager/cases/{0}",
+					investigationRecordDto.getCaseId().toString()
+				);
+
+				String relatedUrlInvestigator = MessageFormat.format(
+					"/investigator/cases/{0}",
+					investigationRecordDto.getCaseId().toString()
+				);
+
+				// Case creator
+				notificationService.notifyUser(
+					caseDto.getCreator().getUserId(),
+					"Progress status changed",
+					progressContent,
+					relatedUrlManager
+				);
+
+				// All assignees (excluding creator to avoid duplicate)
+				UUID caseCreatorId = caseDto.getCreator().getUserId();
+				if (caseEntity.getAssignees() != null) {
+					caseEntity.getAssignees().stream()
+						.map(a -> a.getUserId())
+						.filter(uid -> !uid.equals(caseCreatorId))
+						.distinct()
+						.forEach(uid -> {
+							notificationService.notifyUser(
+								uid,
+								"Progress status changed",
+								progressContent,
+								relatedUrlInvestigator
+							);
+						});
+				}
+			}
 		}
 
 		// Return DTO
-		return savedRecord.toDto();
+		return investigationRecordDto;
 	}
 
 	/**
@@ -534,16 +658,37 @@ public class InvestigationService {
 
 		// Save the record
 		InvestigationRecord savedRecord = investigationRecordRepository.save(existingRecord);
+		InvestigationRecordDto investigationRecordDto = savedRecord.toDto();
+		CaseDto caseDto = null;
 
 		// Update case updated_at timestamp
 		if (existingRecord.getCaseInstance() != null) {
 			Case caseEntity = existingRecord.getCaseInstance();
 			caseEntity.setUpdatedAt(LocalDateTime.now());
 			caseRepository.save(caseEntity);
+			savedRecord.setCaseInstance(caseEntity);
+			caseDto = caseEntity.toDto();
 		}
 
-		// Return DTO
-		return savedRecord.toDto();
+		if (caseDto != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			String formattedDateTime = investigationRecordDto.getRequestedAt().format(formatter);
+			Map<String, String> contentMap = new LinkedHashMap<>();
+			contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
+			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(), caseDto.getCaseId().toString()));
+			contentMap.put("사건 명", caseDto.getCaseName());
+			contentMap.put("변경 일시", formattedDateTime);
+
+			// http://localhost:3000/manager/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/inquiry/d26278be-128b-41be-acd7-a607e4436d93
+			notificationService.notifyUser(
+				caseDto.getCreator().getUserId(),
+				"Request to review",
+				contentMap,
+				MessageFormat.format("/manager/cases/{0}/inquiry/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
+			);
+		}
+
+		return investigationRecordDto;
 	}
 
 	/**

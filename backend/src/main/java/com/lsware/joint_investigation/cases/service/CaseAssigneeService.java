@@ -7,18 +7,27 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lsware.joint_investigation.cases.dto.AssignUsersRequest;
 import com.lsware.joint_investigation.cases.dto.CaseAssigneeDto;
+import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.cases.dto.RemoveAssigneesRequest;
+import com.lsware.joint_investigation.cases.entity.Case;
 import com.lsware.joint_investigation.cases.entity.CaseAssignee;
+import com.lsware.joint_investigation.cases.entity.QCase;
 import com.lsware.joint_investigation.cases.repository.CaseAssigneeRepository;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.config.CustomUser;
+import com.lsware.joint_investigation.notification.service.NotificationService;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
 import com.querydsl.core.Tuple;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,6 +40,7 @@ public class CaseAssigneeService {
     private final CaseAssigneeRepository caseAssigneeRepository;
     private final CaseRepository caseRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * Assign users to a case
@@ -180,11 +190,30 @@ public class CaseAssigneeService {
             throw new IllegalArgumentException("Case not found with ID: " + request.getCaseId());
         }
 
+        // Get case details for notification
+        Case caseEntity = caseInstance.get(QCase.case$);
+        CaseDto caseDto = caseEntity.toDto();
+
         // Validate users exist
         List<Users> users = userRepository.findByUserIds(request.getUserIds());
         if (users.size() != request.getUserIds().size()) {
             throw new IllegalArgumentException("One or more users not found");
         }
+
+        // Get current assignees before making changes
+        Set<UUID> currentAssignees = caseAssigneeRepository.findByCaseIdWithUserDetails(request.getCaseId(), user.getId())
+                .stream()
+                .map(CaseAssignee::getUserId)
+                .collect(Collectors.toSet());
+
+        // Determine newly assigned and newly unassigned users
+        Set<UUID> newAssignees = request.getUserIds().stream()
+                .filter(userId -> !currentAssignees.contains(userId))
+                .collect(Collectors.toSet());
+
+        Set<UUID> removedAssignees = currentAssignees.stream()
+                .filter(userId -> !request.getUserIds().contains(userId))
+                .collect(Collectors.toSet());
 
         // Remove all existing assignments for this case
         caseAssigneeRepository.deleteByCaseId(request.getCaseId());
@@ -205,6 +234,48 @@ public class CaseAssigneeService {
         List<CaseAssignee> savedAssignments = caseAssigneeRepository.saveAll(assignments);
         log.info("Successfully updated {} assignments for case {}",
                 savedAssignments.size(), request.getCaseId());
+
+        // Send notifications to newly assigned users
+        for (UUID userId : newAssignees) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                String formattedDateTime = now.format(formatter);
+                Map<String, String> contentMap = new LinkedHashMap<>();
+                contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
+                contentMap.put("사건 명", caseDto.getCaseName());
+                contentMap.put("할당 일시", formattedDateTime);
+
+                notificationService.notifyUser(
+                    userId,
+                    "Case Assignment",
+                    contentMap,
+                    MessageFormat.format("/investigator/cases/{0}", caseDto.getCaseId().toString())
+                );
+            } catch (Exception e) {
+                log.error("Failed to send notification to newly assigned user {}: {}", userId, e.getMessage());
+            }
+        }
+
+        // Send notifications to newly unassigned users
+        for (UUID userId : removedAssignees) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                String formattedDateTime = now.format(formatter);
+                Map<String, String> contentMap = new LinkedHashMap<>();
+                contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
+                contentMap.put("사건 명", caseDto.getCaseName());
+                contentMap.put("할당 해제 일시", formattedDateTime);
+
+                notificationService.notifyUser(
+                    userId,
+                    "Case Unassignment",
+                    contentMap,
+                    "/investigator/cases"
+                );
+            } catch (Exception e) {
+                log.error("Failed to send notification to newly unassigned user {}: {}", userId, e.getMessage());
+            }
+        }
 
         // Fetch assignments with user details for return
         return getCaseAssignees(request.getCaseId(), user);
