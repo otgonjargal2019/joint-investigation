@@ -39,10 +39,9 @@ export const useGetLastWaitingToChangeByUserId = () => {
   });
 };
 
-export const useCreateUser = () => {
+export const useUpdateUser = () => {
   return useMutation({
     mutationFn: async ({
-      profileImg,
       countryId,
       headquarterId,
       departmentId,
@@ -50,14 +49,18 @@ export const useCreateUser = () => {
       email,
     }) => {
       const profile = { countryId, headquarterId, departmentId, phone, email };
+      return axiosInstance.post(`/api/user/profile`, profile);
+    },
+  });
+};
+
+export const useUpdateUserProfileImg = () => {
+  return useMutation({
+    mutationFn: async ({ profileImg }) => {
       const formData = new FormData();
-      formData.append(
-        "profile",
-        new Blob([JSON.stringify(profile)], { type: "application/json" })
-      );
       formData.append("profileImg", profileImg);
 
-      return axiosInstance.post(`/api/user/profile`, formData, {
+      return axiosInstance.post(`/api/user/update-profile-img`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

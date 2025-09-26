@@ -14,9 +14,10 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import SuccessNotice from "@/shared/components/successNotice";
 import { USERSTATUS } from "@/shared/dictionary";
 import {
-  useCreateUser,
+  useUpdateUser,
   useDeleteProfileImg,
   useChangePassword,
+  useUpdateUserProfileImg,
 } from "@/entities/user";
 import { toast } from "react-toastify";
 import { useCheckEmail } from "@/entities/auth/auth.mutation";
@@ -55,10 +56,11 @@ function Membership() {
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const headquarterSet = useRef(false);
   const departmentSet = useRef(false);
-  const profileMutation = useCreateUser();
+  const profileMutation = useUpdateUser();
   const checkEmailMutation = useCheckEmail();
   const deleteProfileImgMutation = useDeleteProfileImg();
   const changePasswordMutation = useChangePassword();
+  const changeImgMutation = useUpdateUserProfileImg();
   const selectedQuarterCode = watch("headquarterId");
   const [alertMessage, setAlertMessage] = useState("");
   const email = watch("email");
@@ -71,6 +73,7 @@ function Membership() {
     listDepartment,
     listHeadquarter,
     updateUserStatus,
+    updateUserProfileImage,
   } = useUserInfo();
 
   useEffect(() => {
@@ -123,7 +126,6 @@ function Membership() {
     }
   }, [departmentOptions]);
 
-  // Filter departments by selected headquarter using state/effect
   useEffect(() => {
     if (!listDepartment) {
       setDepartmentOptions([]);
@@ -148,6 +150,32 @@ function Membership() {
       setEmailChecked(true);
     }
   }, [email, email2]);
+
+  useEffect(() => {
+    if (uploadImg) {
+      changeImgMutation.mutate(
+        { profileImg: uploadImg },
+        {
+          onSuccess: (res) => {
+            const { success, message, avatarUrl } = res.data;
+            if (success) {
+              toast.success(t(message), {
+                autoClose: 3000,
+                position: "top-center",
+              });
+            }
+            updateUserProfileImage(avatarUrl);
+          },
+          onError: (err) => {
+            toast.error(`${err.data.message}`, {
+              autoClose: 3000,
+              position: "top-center",
+            });
+          },
+        }
+      );
+    }
+  }, [uploadImg]);
 
   const onSubmit = async (values) => {
     const payload = {
@@ -208,10 +236,11 @@ function Membership() {
     deleteProfileImgMutation.mutate(null, {
       onSuccess: (res) => {
         setProfileImg(null);
-        toast.success(`${res.data.message}`, {
+        toast.success(t(res.data.message), {
           autoClose: 3000,
           position: "top-center",
         });
+        updateUserProfileImage("");
       },
       onError: (err) => {
         setError("email", {
@@ -297,14 +326,6 @@ function Membership() {
                 >
                   {t("change-password")}
                 </Button>
-              </div>
-
-              <div className="w-full h-px bg-color-24 mb-4" />
-
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "120px 600px" }}
-              >
                 <Label color="gray" className="text-right">
                   {t("home.profile")}
                 </Label>
@@ -321,10 +342,17 @@ function Membership() {
                     variant="white2"
                     size="extraSmall"
                     onClick={() => handleDeleteProfileImg()}
+                    disabled={!profileImg}
                   >
                     {t("remove")}
                   </Button>
                 </div>
+              </div>
+              <div className="w-full h-px bg-color-24 mb-4" />
+              <div
+                className="grid gap-4"
+                style={{ gridTemplateColumns: "120px 600px" }}
+              >
                 <Label color="gray" className="text-right">
                   {t("form.name")}
                 </Label>

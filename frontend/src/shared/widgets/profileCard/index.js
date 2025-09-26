@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import Bell from "../../components/icons/bell";
-import User from "../../components/icons/user";
+import DashboardAvatar from "./dashboardAvatar";
 import PaperPlane from "../../components/icons/paperplane";
 import "./profileCard.css";
 
@@ -13,6 +13,7 @@ const ProfileCard = ({
   unreadMessages,
   department,
   headquarters,
+  avatar,
 }) => {
   const t = useTranslations();
 
@@ -30,7 +31,7 @@ const ProfileCard = ({
       </div>
 
       <div className="flex flex-col gap-4 justify-center items-center text-center mt-8">
-        <User />
+        <DashboardAvatar avatar={avatar} />
         <p className="text-white text-[24px]">{name}</p>
         <div className="flex items-center gap-[10px] bg-color-88 rounded-[5px] px-8 py-[5px] text-color-89 text-[20px]">
           <p>{headquarters}</p>
