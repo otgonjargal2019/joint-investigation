@@ -464,7 +464,6 @@ public class InvestigationService {
 		}
 
 		if (caseDto != null) {
-			// notification bichihdee duudah code
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formattedDateTime = investigationRecordDto.getReviewedAt().format(formatter);
 			Map<String, String> contentMap = new LinkedHashMap<>();
@@ -525,7 +524,6 @@ public class InvestigationService {
 		}
 
 		if (caseDto != null) {
-			// notification bichihdee duudah code
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formattedDateTime = investigationRecordDto.getReviewedAt().format(formatter);
 			Map<String, String> contentMap = new LinkedHashMap<>();
@@ -599,7 +597,6 @@ public class InvestigationService {
 		}
 
 		if (caseDto != null) {
-			// notification bichihdee duudah code
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formattedDateTime = investigationRecordDto.getRequestedAt().format(formatter);
 			Map<String, String> contentMap = new LinkedHashMap<>();
