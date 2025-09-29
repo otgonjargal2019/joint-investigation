@@ -220,7 +220,7 @@ io.on("connection", (socket) => {
           const user = await User.findByPk(peerId, { raw: true });
           return {
             userId: user.userId,
-            displayName: user.nameEn || user.nameKr || user.loginId,
+            displayName: user.loginId || user.nameEn || user.nameKr,
             lastMessage: lastMsg?.content || null,
             lastMessageTime: lastMsg?.createdAt || null,
             hasUnreadMessages: unreadCount > 0,
@@ -254,7 +254,13 @@ io.on("connection", (socket) => {
             { nameKr: { [Op.iLike]: `%${text}%` } },
           ],
         },
-        attributes: ["userId", "nameEn", "nameKr", "loginId"],
+        attributes: [
+          "userId",
+          "nameEn",
+          "nameKr",
+          "loginId",
+          "profileImageUrl",
+        ],
         order: [["nameEn", "ASC"]],
         raw: true,
       });
@@ -262,7 +268,8 @@ io.on("connection", (socket) => {
       ack?.(
         users.map((u) => ({
           userId: u.userId,
-          displayName: u.nameEn || u.nameKr || u.loginId,
+          displayName: u.loginId || u.nameEn || u.nameKr,
+          profileImageUrl: u.profileImageUrl,
         }))
       );
     } catch (e) {

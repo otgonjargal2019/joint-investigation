@@ -31,7 +31,6 @@ export const RealtimeProvider = ({ children }) => {
   const [unreadUsers, setUnreadUsers] = useState(new Set());
   const [unreadUsersCount, setUnreadUsersCount] = useState(0);
 
-  // Update unread count whenever unreadUsers changes
   useEffect(() => {
     setUnreadUsersCount(unreadUsers.size);
   }, [unreadUsers]);
@@ -76,7 +75,6 @@ export const RealtimeProvider = ({ children }) => {
         if (pages.length === 0) fetchNextPage();
       });
 
-      // New notification
       socket.on("notification:new", (notif) => {
         setLastNotifications((prev) => [notif, ...prev].slice(0, 5));
         setPages((prev) => {
@@ -87,7 +85,6 @@ export const RealtimeProvider = ({ children }) => {
         setUnreadNotifCount((prev) => prev + 1);
       });
 
-      // Attach event listeners
       socket.on("directMessage", async (msg) => {
         if (msg.recipientId === user.userId) {
           if (msg.senderId !== user.userId) {
@@ -182,7 +179,6 @@ export const RealtimeProvider = ({ children }) => {
     });
   }, []);
 
-  // Handle marking messages as read
   const markMessagesAsRead = useCallback((peerId) => {
     if (!socketRef.current || !peerId) return;
 
