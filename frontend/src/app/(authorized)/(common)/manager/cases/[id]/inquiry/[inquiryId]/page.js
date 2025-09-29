@@ -19,6 +19,7 @@ import {
   useRejectInvestigationRecord,
   useApproveInvestigationRecord,
   REVIEW_STATUS,
+  PROGRESS_STATUS,
 } from "@/entities/investigation";
 
 const InquiryDetailPage = () => {
@@ -285,7 +286,9 @@ const InquiryDetailPage = () => {
       >
         <div className="space-y-8">
           <h3 className="text-color-8 text-[24px] font-medium text-center">
-            {t("approval-investigation-records")}
+            {investigationRecord.progressStatus === PROGRESS_STATUS?.CLOSED
+              ? t("approval-of-closed-investigation-records")
+              : t("approval-investigation-records")}
           </h3>
           <div className="bg-color-77 rounded-20 text-color-24 text-[20px] font-normal text-center p-4">
             {t("incident.approval-guideline-1")}
@@ -293,7 +296,11 @@ const InquiryDetailPage = () => {
             {t("incident.approval-guideline-2")}
           </div>
           <TypingOverlay
-            text={t("incident.approval-statement")}
+            text={
+              investigationRecord.progressStatus === PROGRESS_STATUS?.CLOSED
+                ? t("incident.approval-statement-of-closing")
+                : t("incident.approval-statement")
+            }
             onComplete={() => setCaptchaCompleted(true)}
           />
           <div className="flex justify-center gap-4">
