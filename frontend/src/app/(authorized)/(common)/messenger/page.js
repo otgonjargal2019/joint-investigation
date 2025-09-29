@@ -20,19 +20,18 @@ export default function MessengerPage() {
 
   const t = useTranslations();
   const currentUserId = user.userId;
-  const { socket, connectionStatus, unreadUsers, markMessagesAsRead } =
-    useRealTime();
+  const { socket, unreadUsers, markMessagesAsRead } = useRealTime();
 
   const selectedPeerRef = useRef(null);
   const chatContainerRef = useRef(null);
   const oldestMessageRef = useRef(null);
 
-  const [users, setUsers] = useState([]);
+  const [chatUsers, setChatUsers] = useState([]);
+  const [displayedUsers, setDisplayedUsers] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [selectedPeer, setSelectedPeer] = useState(null);
   const [allMessages, setAllMessages] = useState([]);
   const [messageContent, setMessageContent] = useState("");
-  const [status, setStatus] = useState("disconnected");
   const [isFetchingOlder, setIsFetchingOlder] = useState(false);
 
   const mergeMessages = (prevMessages, newMessages, prepend = false) => {
@@ -46,16 +45,25 @@ export default function MessengerPage() {
     );
   };
 
+  const movePeerFirst = (list, peer) => {
+    if (!peer) return list;
+    const rest = list.filter((u) => u.userId !== peer.userId);
+
+    const top = {
+      userId: peer.userId,
+      displayName: peer.displayName ?? peer.name ?? peer.loginId ?? "Unknown",
+      profileImageUrl: peer.profileImageUrl ?? null,
+      lastMessage: peer.lastMessage ?? "",
+      lastMessageTime: peer.lastMessageTime ?? null,
+      ...peer,
+    };
+    return [top, ...rest];
+  };
+
   useEffect(() => {
     if (!socket) return;
 
-    setStatus(connectionStatus);
-
     const handleDirectMessage = (msg) => {
-      console.log(
-        `[Messenger] Received message from ${msg.senderId} to ${msg.recipientId}: "${msg.content}"`
-      );
-
       const container = chatContainerRef.current;
       const isMessageForSelected =
         selectedPeerRef.current &&
@@ -72,12 +80,10 @@ export default function MessengerPage() {
 
         setAllMessages((prev) => mergeMessages(prev, [msg]));
 
-        // If message is from current peer and chat is open, mark as read
         if (
           msg.senderId === selectedPeerRef.current.userId &&
           msg.recipientId === currentUserId
         ) {
-          console.log("Marking message as read from:", msg.senderId);
           markMessagesAsRead(msg.senderId);
         }
 
@@ -90,46 +96,44 @@ export default function MessengerPage() {
         msg.senderId !== currentUserId &&
         msg.recipientId === currentUserId
       ) {
-        // Message is for current user but from a different peer
-        console.log("Received message from different peer:", msg.senderId);
-
-        // Refresh the user list to include the new sender
         socket.emit("getChatUsers", (res) => {
-          console.log("Refreshing users after new message:", res);
-          setUsers((prevUsers) => {
-            // Check if the sender is already in the list
-            if (!prevUsers.some((u) => u.userId === msg.senderId)) {
-              // Add the new sender to the list if they're in the response
-              const newSender = res.find((u) => u.userId === msg.senderId);
-              if (newSender) {
-                return [...prevUsers, newSender];
-              }
-            }
-            return res;
-          });
+          setChatUsers(res);
+
+          if (!searchText.trim()) {
+            setDisplayedUsers((prev) => {
+              return selectedPeerRef.current
+                ? movePeerFirst(res, selectedPeerRef.current)
+                : res;
+            });
+          }
         });
       }
     };
 
     socket.on("directMessage", handleDirectMessage);
 
-    // Handle user list updates
     socket.on("refreshUserList", (updatedUsers) => {
-      console.log(`[Messenger] Refreshing user list:`, updatedUsers);
-      setUsers(updatedUsers);
+      setChatUsers(updatedUsers);
+      if (!searchText.trim()) {
+        setDisplayedUsers((prev) =>
+          selectedPeerRef.current
+            ? movePeerFirst(updatedUsers, selectedPeerRef.current)
+            : updatedUsers
+        );
+      }
     });
 
     // Initial user list fetch
     socket.emit("getChatUsers", (res) => {
-      console.log(`[Messenger] Fetched ${res.length} chat users`);
-      setUsers(res);
+      setChatUsers(res);
+      setDisplayedUsers(res);
     });
 
     return () => {
       socket.off("directMessage", handleDirectMessage);
       socket.off("refreshUserList");
     };
-  }, [socket, connectionStatus, currentUserId]);
+  }, [socket, currentUserId]);
 
   useEffect(() => {
     selectedPeerRef.current = selectedPeer;
@@ -138,19 +142,22 @@ export default function MessengerPage() {
   const handleSelectPeer = (peer) => {
     setSelectedPeer(peer);
 
-    // Mark messages as read through the provider
     markMessagesAsRead(peer.userId);
 
-    if (!socket) return;
+    if (socket) {
+      socket.emit("getHistory", { peerId: peer.userId, limit }, (res) => {
+        if (!res) return;
+        const sorted = [...res].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        setAllMessages(sorted);
+        if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
+      });
+    }
 
-    socket.emit("getHistory", { peerId: peer.userId, limit }, (res) => {
-      if (!res) return;
-      const sorted = [...res].sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-      );
-      setAllMessages(sorted);
-      if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
-    });
+    setSearchText("");
+    setDisplayedUsers((prev) => movePeerFirst(chatUsers, peer));
+    setChatUsers((prev) => movePeerFirst(prev, peer));
   };
 
   useLayoutEffect(() => {
@@ -259,10 +266,15 @@ export default function MessengerPage() {
 
     setSearchText(text);
     if (!text.trim()) {
-      socket.emit("getChatUsers", (res) => setUsers(res));
+      setDisplayedUsers(
+        selectedPeerRef.current
+          ? movePeerFirst(chatUsers, selectedPeerRef.current)
+          : chatUsers
+      );
       return;
     }
-    socket.emit("searchUsers", text, (res) => setUsers(res));
+
+    socket.emit("searchUsers", text, (res) => setDisplayedUsers(res || []));
   };
 
   const handleScroll = () => {
@@ -286,11 +298,8 @@ export default function MessengerPage() {
     <div className="messenger">
       <PageTitle title={t("header.messenger")} />
 
-      {/* Container with fixed height */}
       <div className="flex gap-4 h-[680px]">
-        {/* Left panel: Users list */}
         <div className="w-[450px] bg-white border border-color-36 rounded-10 pb-4 overflow-auto">
-          {/* Search bar */}
           <div className="m-5 h-[60px] bg-color-74 rounded-5 flex items-center p-4 gap-3">
             <MagnifyingGlass />
             <input
@@ -302,13 +311,12 @@ export default function MessengerPage() {
             />
           </div>
 
-          {/* Users */}
-          {users.length === 0 ? (
+          {displayedUsers.length === 0 ? (
             <div className="text-sm text-gray-500 text-center">
               No users found
             </div>
           ) : (
-            users.map((u) => (
+            displayedUsers.map((u) => (
               <div
                 key={u.userId}
                 className={`p-4 flex items-center gap-4 cursor-pointer hover:bg-color-80 transition-colors ${
@@ -321,17 +329,17 @@ export default function MessengerPage() {
                     <Ellipse color="#564CDF" width={15} height={15} />
                   )}
                 </div>
-                <div className="w-[60px] flex-shrink-0">
+                <div className="relative w-[60px] h-[60px] flex-shrink-0">
                   {u?.profileImageUrl ? (
                     <Image
                       src={u.profileImageUrl}
                       alt={u.displayName || "user image"}
-                      width={60}
-                      height={60}
+                      fill
+                      sizes="60px"
                       className="rounded-full object-cover"
                     />
                   ) : (
-                    <Circle width={60} />
+                    <Circle width={60} height={60} />
                   )}
                 </div>
                 <div className="w-full">
@@ -345,10 +353,11 @@ export default function MessengerPage() {
                       </div>
                     </div>
                     <div className="text-color-35 text-[16px] font-normal">
-                      {new Date(u.lastMessageTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {u.lastMessageTime &&
+                        new Date(u.lastMessageTime).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                     </div>
                   </div>
                 </div>
@@ -357,16 +366,13 @@ export default function MessengerPage() {
           )}
         </div>
 
-        {/* Right panel: Chat box */}
         <div className="flex-1 flex flex-col bg-white border border-color-36 rounded-10">
-          {/* Header */}
           <div className="h-[89px] border-b border-color-36 flex items-center px-6">
             <h3 className="text-black text-[24px] font-semibold">
               {selectedPeer?.displayName || ""}
             </h3>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 flex flex-col p-4 overflow-hidden">
             <div
               ref={chatContainerRef}
@@ -429,7 +435,6 @@ export default function MessengerPage() {
               )}
             </div>
 
-            {/* Send message */}
             {selectedPeer && (
               <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 min-h-[62px] max-h-[62px] items-start py-2 bg-white">
                 <textarea
