@@ -63,7 +63,8 @@ public class InvestigationRecord {
         ANALYZING,
         REPORT_INVESTIGATION,
         DISPOSE,
-        ON_HOLD
+        ON_HOLD,
+        CLOSED
     }
 
     @Column(name = "REVIEW_STATUS", nullable = false)
