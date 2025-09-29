@@ -201,7 +201,8 @@ public class CaseAssigneeService {
         }
 
         // Get current assignees before making changes
-        Set<UUID> currentAssignees = caseAssigneeRepository.findByCaseIdWithUserDetails(request.getCaseId(), user.getId())
+        Set<UUID> currentAssignees = caseAssigneeRepository
+                .findByCaseIdWithUserDetails(request.getCaseId(), user.getId())
                 .stream()
                 .map(CaseAssignee::getUserId)
                 .collect(Collectors.toSet());
@@ -241,16 +242,15 @@ public class CaseAssigneeService {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String formattedDateTime = now.format(formatter);
                 Map<String, String> contentMap = new LinkedHashMap<>();
-                contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
-                contentMap.put("사건 명", caseDto.getCaseName());
-                contentMap.put("할당 일시", formattedDateTime);
+                contentMap.put("NOTIFICATION-KEY.CASE-NUMBER", MessageFormat.format("#{0}", caseDto.getNumber()));
+                contentMap.put("NOTIFICATION-KEY.CASE-TITLE", caseDto.getCaseName());
+                contentMap.put("NOTIFICATION-KEY.ALLOCATION-DATE", formattedDateTime);
 
                 notificationService.notifyUser(
-                    userId,
-                    "Case Assignment",
-                    contentMap,
-                    MessageFormat.format("/investigator/cases/{0}", caseDto.getCaseId().toString())
-                );
+                        userId,
+                        "NOTIFICATION-KEY.TITLE.CASE-ASSIGNMENT",
+                        contentMap,
+                        MessageFormat.format("/investigator/cases/{0}", caseDto.getCaseId().toString()));
             } catch (Exception e) {
                 log.error("Failed to send notification to newly assigned user {}: {}", userId, e.getMessage());
             }
@@ -262,16 +262,15 @@ public class CaseAssigneeService {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String formattedDateTime = now.format(formatter);
                 Map<String, String> contentMap = new LinkedHashMap<>();
-                contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
-                contentMap.put("사건 명", caseDto.getCaseName());
-                contentMap.put("할당 해제 일시", formattedDateTime);
+                contentMap.put("NOTIFICATION-KEY.CASE-NUMBER", MessageFormat.format("#{0}", caseDto.getNumber()));
+                contentMap.put("NOTIFICATION-KEY.CASE-TITLE", caseDto.getCaseName());
+                contentMap.put("NOTIFICATION-KEY.DEALLOCATION-DATE", formattedDateTime);
 
                 notificationService.notifyUser(
-                    userId,
-                    "Case Unassignment",
-                    contentMap,
-                    "/investigator/cases"
-                );
+                        userId,
+                        "NOTIFICATION-KEY.TITLE.CASE-DEALLOCATION",
+                        contentMap,
+                        "/investigator/cases");
             } catch (Exception e) {
                 log.error("Failed to send notification to newly unassigned user {}: {}", userId, e.getMessage());
             }

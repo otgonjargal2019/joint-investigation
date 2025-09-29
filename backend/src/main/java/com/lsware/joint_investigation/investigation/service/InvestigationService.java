@@ -241,7 +241,8 @@ public class InvestigationService {
 	 */
 	@PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	@Transactional
-	public InvestigationRecordDto updateInvestigationRecord(UUID recordId, UpdateInvestigationRecordRequest request, CustomUser user) {
+	public InvestigationRecordDto updateInvestigationRecord(UUID recordId, UpdateInvestigationRecordRequest request,
+			CustomUser user) {
 		// Get the existing record
 		InvestigationRecord existingRecord = investigationRecordRepository.findByRecordId(recordId, user)
 				.orElseThrow(() -> new IllegalArgumentException("Investigation record not found with ID: " + recordId));
@@ -472,18 +473,20 @@ public class InvestigationService {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formattedDateTime = investigationRecordDto.getReviewedAt().format(formatter);
 			Map<String, String> contentMap = new LinkedHashMap<>();
-			contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
-			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(), caseDto.getCaseId().toString()));
-			contentMap.put("사건 명", caseDto.getCaseName());
-			contentMap.put("변경 일시", formattedDateTime);
+			contentMap.put("NOTIFICATION-KEY.CASE-NUMBER", MessageFormat.format("#{0}", caseDto.getNumber()));
+			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(),
+			// caseDto.getCaseId().toString()));
+			contentMap.put("NOTIFICATION-KEY.CASE-TITLE", caseDto.getCaseName());
+			contentMap.put("NOTIFICATION-KEY.CHANGE-DATE", formattedDateTime);
 
 			// http://localhost:3000/investigator/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/investigationRecord/d26278be-128b-41be-acd7-a607e4436d93
 			notificationService.notifyUser(
-				investigationRecordDto.getCreator().getUserId(),
-				"Rejected investigation record",
-				contentMap,
-				MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
-			);
+					investigationRecordDto.getCreator().getUserId(),
+					"NOTIFICATION-KEY.TITLE.REJECTED-INVESTIGATION-RECORD",
+					contentMap,
+					MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}",
+							investigationRecordDto.getCaseId().toString(),
+							investigationRecordDto.getRecordId().toString()));
 		}
 
 		// Return DTO
@@ -542,34 +545,38 @@ public class InvestigationService {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formattedDateTime = investigationRecordDto.getReviewedAt().format(formatter);
 			Map<String, String> contentMap = new LinkedHashMap<>();
-			contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
-			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(), caseDto.getCaseId().toString()));
-			contentMap.put("사건 명", caseDto.getCaseName());
-			contentMap.put("변경 일시", formattedDateTime);
+			contentMap.put("NOTIFICATION-KEY.CASE-NUMBER", MessageFormat.format("#{0}", caseDto.getNumber()));
+			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(),
+			// caseDto.getCaseId().toString()));
+			contentMap.put("NOTIFICATION-KEY.CASE-TITLE", caseDto.getCaseName());
+			contentMap.put("NOTIFICATION-KEY.CHANGE-DATE", formattedDateTime);
 
 			// Send approval notification to the creator
 			// http://localhost:3000/investigator/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/investigationRecord/d26278be-128b-41be-acd7-a607e4436d93
 			notificationService.notifyUser(
-				investigationRecordDto.getCreator().getUserId(),
-				"Approved investigation record",
-				contentMap,
-				MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
-			);
+					investigationRecordDto.getCreator().getUserId(),
+					"NOTIFICATION-KEY.TITLE.APPROVED-INVESTIGATION-RECORD",
+					contentMap,
+					MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}",
+							investigationRecordDto.getCaseId().toString(),
+							investigationRecordDto.getRecordId().toString()));
 
-			// Send "New investigation records registered" notification to all case assignees except the creator
+			// Send "New investigation records registered" notification to all case
+			// assignees except the creator
 			Case caseEntity = existingRecord.getCaseInstance();
 			if (caseEntity.getAssignees() != null) {
 				UUID creatorUserId = investigationRecordDto.getCreator().getUserId();
 				caseEntity.getAssignees().stream()
-					.filter(assignee -> !assignee.getUserId().equals(creatorUserId))
-					.forEach(assignee -> {
-						notificationService.notifyUser(
-							assignee.getUserId(),
-							"New investigation records registered",
-							contentMap,
-							MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
-						);
-					});
+						.filter(assignee -> !assignee.getUserId().equals(creatorUserId))
+						.forEach(assignee -> {
+							notificationService.notifyUser(
+									assignee.getUserId(),
+									"NOTIFICATION-KEY.TITLE.NEW-INVESTIGATION-RECORD",
+									contentMap,
+									MessageFormat.format("/investigator/cases/{0}/investigationRecord/{1}",
+											investigationRecordDto.getCaseId().toString(),
+											investigationRecordDto.getRecordId().toString()));
+						});
 			}
 
 			// Compute previous approved progress and check if changed
@@ -578,56 +585,56 @@ public class InvestigationService {
 			{
 				UUID caseId = existingRecord.getCaseInstance().getCaseId();
 				UUID currentRecordId = existingRecord.getRecordId();
-				var previousApprovedOpt = investigationRecordRepository.findPreviousApprovedByCase(caseId, currentRecordId);
+				var previousApprovedOpt = investigationRecordRepository.findPreviousApprovedByCase(caseId,
+						currentRecordId);
 				if (previousApprovedOpt.isPresent()) {
 					previousApprovedProgress = previousApprovedOpt.get().getProgressStatus();
 					PROGRESS_STATUS currentProgress = existingRecord.getProgressStatus();
-					progressChanged = previousApprovedProgress != null && currentProgress != null && !previousApprovedProgress.equals(currentProgress);
+					progressChanged = previousApprovedProgress != null && currentProgress != null
+							&& !previousApprovedProgress.equals(currentProgress);
 				} else {
 					progressChanged = true;
 				}
 			}
 
-			// Send "Progress status changed" notification to case creator and all assignees ONLY when changed
+			// Send "Progress status changed" notification to case creator and all assignees
+			// ONLY when changed
 			if (progressChanged) {
 				Map<String, String> progressContent = new LinkedHashMap<>(contentMap);
 				// Add previous/current progress names
-				progressContent.put("이전 진행 상태", previousApprovedProgress != null ? previousApprovedProgress.name() : "");
-				progressContent.put("현재 진행 상태", existingRecord.getProgressStatus().name());
+				progressContent.put("NOTIFICATION-KEY.PREVIOUS-PROGRESS",
+						previousApprovedProgress != null ? previousApprovedProgress.name() : "");
+				progressContent.put("NOTIFICATION-KEY.CURRENT-PROGRESS", existingRecord.getProgressStatus().name());
 
 				String relatedUrlManager = MessageFormat.format(
-					"/manager/cases/{0}",
-					investigationRecordDto.getCaseId().toString()
-				);
+						"/manager/cases/{0}",
+						investigationRecordDto.getCaseId().toString());
 
 				String relatedUrlInvestigator = MessageFormat.format(
-					"/investigator/cases/{0}",
-					investigationRecordDto.getCaseId().toString()
-				);
+						"/investigator/cases/{0}",
+						investigationRecordDto.getCaseId().toString());
 
 				// Case creator
 				notificationService.notifyUser(
-					caseDto.getCreator().getUserId(),
-					"Progress status changed",
-					progressContent,
-					relatedUrlManager
-				);
+						caseDto.getCreator().getUserId(),
+						"NOTIFICATION-KEY.TITLE.PROGRESS-STATUS-CHANGED",
+						progressContent,
+						relatedUrlManager);
 
 				// All assignees (excluding creator to avoid duplicate)
 				UUID caseCreatorId = caseDto.getCreator().getUserId();
 				if (caseEntity.getAssignees() != null) {
 					caseEntity.getAssignees().stream()
-						.map(a -> a.getUserId())
-						.filter(uid -> !uid.equals(caseCreatorId))
-						.distinct()
-						.forEach(uid -> {
-							notificationService.notifyUser(
-								uid,
-								"Progress status changed",
-								progressContent,
-								relatedUrlInvestigator
-							);
-						});
+							.map(a -> a.getUserId())
+							.filter(uid -> !uid.equals(caseCreatorId))
+							.distinct()
+							.forEach(uid -> {
+								notificationService.notifyUser(
+										uid,
+										"NOTIFICATION-KEY.TITLE.PROGRESS-STATUS-CHANGED",
+										progressContent,
+										relatedUrlInvestigator);
+							});
 				}
 
 				// Notify to all related users that case has been closed
@@ -636,26 +643,24 @@ public class InvestigationService {
 
 					// Case creator
 					notificationService.notifyUser(
-						caseDto.getCreator().getUserId(),
-						"Case closed",
-						caseClosed,
-						relatedUrlManager
-					);
+							caseDto.getCreator().getUserId(),
+							"NOTIFICATION-KEY.TITLE.CASE-CLOSED",
+							caseClosed,
+							relatedUrlManager);
 
 					// All assignees (excluding creator to avoid duplicate)
 					if (caseEntity.getAssignees() != null) {
 						caseEntity.getAssignees().stream()
-							.map(a -> a.getUserId())
-							.filter(uid -> !uid.equals(caseCreatorId))
-							.distinct()
-							.forEach(uid -> {
-								notificationService.notifyUser(
-									uid,
-									"Case closed",
-									caseClosed,
-									relatedUrlInvestigator
-								);
-							});
+								.map(a -> a.getUserId())
+								.filter(uid -> !uid.equals(caseCreatorId))
+								.distinct()
+								.forEach(uid -> {
+									notificationService.notifyUser(
+											uid,
+											"NOTIFICATION-KEY.TITLE.CASE-CLOSED",
+											caseClosed,
+											relatedUrlInvestigator);
+								});
 					}
 				}
 			}
@@ -720,18 +725,20 @@ public class InvestigationService {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formattedDateTime = investigationRecordDto.getRequestedAt().format(formatter);
 			Map<String, String> contentMap = new LinkedHashMap<>();
-			contentMap.put("사건번호", MessageFormat.format("#{0}", caseDto.getNumber()));
-			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(), caseDto.getCaseId().toString()));
-			contentMap.put("사건 명", caseDto.getCaseName());
-			contentMap.put("변경 일시", formattedDateTime);
+			contentMap.put("NOTIFICATION-KEY.CASE-NUMBER", MessageFormat.format("#{0}", caseDto.getNumber()));
+			// contentMap.put("사건번호", MessageFormat.format("#{0}. {1}", caseDto.getNumber(),
+			// caseDto.getCaseId().toString()));
+			contentMap.put("NOTIFICATION-KEY.CASE-TITLE", caseDto.getCaseName());
+			contentMap.put("NOTIFICATION-KEY.CHANGE-DATE", formattedDateTime);
 
 			// http://localhost:3000/manager/cases/1ad260ba-5a8e-47fa-913b-7eeea20ac701/inquiry/d26278be-128b-41be-acd7-a607e4436d93
 			notificationService.notifyUser(
-				caseDto.getCreator().getUserId(),
-				"Request to review",
-				contentMap,
-				MessageFormat.format("/manager/cases/{0}/inquiry/{1}", investigationRecordDto.getCaseId().toString(), investigationRecordDto.getRecordId().toString())
-			);
+					caseDto.getCreator().getUserId(),
+					"NOTIFICATION-KEY.TITLE.REQUEST-TO-REVIEW",
+					contentMap,
+					MessageFormat.format("/manager/cases/{0}/inquiry/{1}",
+							investigationRecordDto.getCaseId().toString(),
+							investigationRecordDto.getRecordId().toString()));
 		}
 
 		return investigationRecordDto;

@@ -169,14 +169,15 @@ public class UserController {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                     String formattedDateTime = LocalDateTime.now().format(formatter);
                     Map<String, String> contentMap = new LinkedHashMap<>();
-                    contentMap.put("ID", me.get().getLoginId());
-                    contentMap.put("성명",
+                    contentMap.put("NOTIFICATION-KEY.ID", me.get().getLoginId());
+                    contentMap.put("NOTIFICATION-KEY.NAME",
                             (me.get().getNameKr() != null && !me.get().getNameKr().isEmpty()) ? me.get().getNameKr()
                                     : me.get().getNameEn());
-                    contentMap.put("요청 일시", formattedDateTime);
+                    contentMap.put("NOTIFICATION-KEY.REQUEST-DATE", formattedDateTime);
 
                     for (Users admin : adminList)
-                        notificationService.notifyUser(admin.getUserId(), "회원 정보 변경 승인", contentMap,
+                        notificationService.notifyUser(admin.getUserId(),
+                                "NOTIFICATION-KEY.TITLE.MEMBER-INFORMATION-CHANGE-APPROVAL", contentMap,
                                 "/admin/account-management/" + me.get().getUserId());
                 }
 
@@ -380,13 +381,13 @@ public class UserController {
             String title = "";
 
             if (request.getHistoryStatus() == Users.USER_STATUS.APPROVED) {
-                title = "회원 정보 변경 승인";
-                contentMap.put("승인 일시", formattedDateTime);
+                title = "NOTIFICATION-KEY.TITLE.MEMBER-INFORMATION-CHANGE-APPROVAL";
+                contentMap.put("NOTIFICATION-KEY.APPROVAL-DATE", formattedDateTime);
 
             } else if (request.getHistoryStatus() == Users.USER_STATUS.REJECTED) {
-                title = "회원 정보 변경 거절";
-                contentMap.put("승인 일시", formattedDateTime);
-                contentMap.put("사유", (reason == null || reason.isBlank()) ? "" : reason.trim());
+                title = "NOTIFICATION-KEY.TITLE.MEMBER-INFORMATION-CHANGE-REJECTION";
+                contentMap.put("NOTIFICATION-KEY.APPROVAL-DATE", formattedDateTime);
+                contentMap.put("NOTIFICATION-KEY.REASON", (reason == null || reason.isBlank()) ? "" : reason.trim());
 
             }
 
@@ -418,14 +419,14 @@ public class UserController {
         String formattedDateTime = LocalDateTime.now().format(formatter);
         Map<String, String> contentMap = new LinkedHashMap<>();
 
-        contentMap.put("승인 일시", formattedDateTime);
+        contentMap.put("NOTIFICATION-KEY.APPROVAL-DATE", formattedDateTime);
         contentMap.put(
-                "상세",
+                "NOTIFICATION-KEY.DETAILS",
                 String.format("계정 권한이 %s 에서 %s 으로 변경되었습니다.", oldRole, request.getRole()));
 
         notificationService.notifyUser(
                 request.getUserId(),
-                "계정 권한 변동",
+                "NOTIFICATION-KEY.TITLE.ACCOUNT-PERMISSION-CHANGED",
                 contentMap,
                 "/profile");
 

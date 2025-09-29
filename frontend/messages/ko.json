@@ -298,5 +298,34 @@
     "rejected": "거절"
   },
   "no-more-notification": "알람이 없습니다.",
-  "no-data": "데이터가 없습니다."
+  "no-data": "데이터가 없습니다.",
+  "NOTIFICATION-KEY": {
+    "ID": "ID",
+    "NAME": "성명",
+    "REQUEST-DATE": "요청 일시",
+    "CASE-NUMBER": "사건번호",
+    "CASE-TITLE": "사건 명",
+    "ALLOCATION-DATE": "할당 일시",
+    "DEALLOCATION-DATE": "할당 해제 일시",
+    "CHANGE-DATE": "변경 일시",
+    "PREVIOUS-PROGRESS": "이전 진행 상태",
+    "CURRENT-PROGRESS": "현재 진행 상태",
+    "APPROVAL-DATE": "승인 일시",
+    "REASON": "사유",
+    "DETAILS": "상세",
+    "TITLE": {
+      "NEW-ACCOUNT-REGISTERED": "신규 계정 등록",
+      "CASE-ASSIGNMENT": "CASE ASSIGNMENT",
+      "CASE-DEALLOCATION": "CASE DEALLOCATION",
+      "CASE-CLOSED": "CASE-CLOSED",
+      "REJECTED-INVESTIGATION-RECORD": "REJECTED INVESTIGATION RECORD",
+      "APPROVED-INVESTIGATION-RECORD": "APPROVED INVESTIGATION RECORD",
+      "NEW-INVESTIGATION-RECORD": "NEW INVESTIGATION RECORD",
+      "PROGRESS-STATUS-CHANGED": "PROGRESS STATUS CHANGED",
+      "REQUEST-TO-REVIEW": "REQUEST TO REVIEW",
+      "MEMBER-INFORMATION-CHANGE-APPROVAL": "회원 정보 변경 승인",
+      "MEMBER-INFORMATION-CHANGE-REJECTION": "회원 정보 변경 거절",
+      "ACCOUNT-PERMISSION-CHANGED": "계정 권한 변동"
+    }
+  }
 }

@@ -193,14 +193,15 @@ public class AuthController {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String formattedDateTime = LocalDateTime.now().format(formatter);
                 Map<String, String> contentMap = new LinkedHashMap<>();
-                contentMap.put("ID", userDto.getLoginId());
-                contentMap.put("성명",
+                contentMap.put("NOTIFICATION-KEY.ID", userDto.getLoginId());
+                contentMap.put("NOTIFICATION-KEY.NAME",
                         (userDto.getNameKr() != null && !userDto.getNameKr().isEmpty()) ? userDto.getNameKr()
                                 : userDto.getNameEn());
-                contentMap.put("요청 일시", formattedDateTime);
+                contentMap.put("NOTIFICATION-KEY.REQUEST-DATE", formattedDateTime);
 
                 for (Users admin : adminList)
-                    notificationService.notifyUser(admin.getUserId(), "신규 계정 등록", contentMap,
+                    notificationService.notifyUser(admin.getUserId(), "NOTIFICATION-KEY.TITLE.NEW-ACCOUNT-REGISTERED",
+                            contentMap,
                             "/admin/account-management/" + user.getUserId());
             }
 
