@@ -28,6 +28,7 @@ import com.lsware.joint_investigation.investigation.dto.ApproveInvestigationReco
 import com.lsware.joint_investigation.investigation.dto.RequestReviewInvestigationRecordRequest;
 import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.cases.entity.Case;
+import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 import com.lsware.joint_investigation.user.entity.Users;
 import com.lsware.joint_investigation.user.repository.UserRepository;
@@ -105,6 +106,10 @@ public class InvestigationService {
 		// Validate and get the case
 		Case caseEntity = caseRepository.findById(request.getCaseId())
 				.orElseThrow(() -> new IllegalArgumentException("Case not found with ID: " + request.getCaseId()));
+
+		if (caseEntity.getStatus() == CASE_STATUS.CLOSED) {
+			throw new IllegalArgumentException("Case is already closed!");
+		}
 
 		// Get the creator user
 		Users creator = userRepository.findByUserId(currentUserId)
@@ -519,6 +524,16 @@ public class InvestigationService {
 		if (existingRecord.getCaseInstance() != null) {
 			Case caseEntity = existingRecord.getCaseInstance();
 			caseEntity.setUpdatedAt(LocalDateTime.now());
+			switch (savedRecord.getProgressStatus()) {
+				case PROGRESS_STATUS.CLOSED:
+					caseEntity.setStatus(CASE_STATUS.CLOSED);
+					break;
+				case PROGRESS_STATUS.ON_HOLD:
+					caseEntity.setStatus(CASE_STATUS.ON_HOLD);
+					break;
+				default:
+					break;
+			}
 			caseRepository.save(caseEntity);
 			caseDto = caseEntity.toDto();
 		}
@@ -568,6 +583,8 @@ public class InvestigationService {
 					previousApprovedProgress = previousApprovedOpt.get().getProgressStatus();
 					PROGRESS_STATUS currentProgress = existingRecord.getProgressStatus();
 					progressChanged = previousApprovedProgress != null && currentProgress != null && !previousApprovedProgress.equals(currentProgress);
+				} else {
+					progressChanged = true;
 				}
 			}
 
@@ -575,7 +592,7 @@ public class InvestigationService {
 			if (progressChanged) {
 				Map<String, String> progressContent = new LinkedHashMap<>(contentMap);
 				// Add previous/current progress names
-				progressContent.put("이전 진행 상태", previousApprovedProgress.name());
+				progressContent.put("이전 진행 상태", previousApprovedProgress != null ? previousApprovedProgress.name() : "");
 				progressContent.put("현재 진행 상태", existingRecord.getProgressStatus().name());
 
 				String relatedUrlManager = MessageFormat.format(
@@ -611,6 +628,35 @@ public class InvestigationService {
 								relatedUrlInvestigator
 							);
 						});
+				}
+
+				// Notify to all related users that case has been closed
+				if (existingRecord.getProgressStatus() == PROGRESS_STATUS.CLOSED) {
+					Map<String, String> caseClosed = new LinkedHashMap<>(contentMap);
+
+					// Case creator
+					notificationService.notifyUser(
+						caseDto.getCreator().getUserId(),
+						"Case closed",
+						caseClosed,
+						relatedUrlManager
+					);
+
+					// All assignees (excluding creator to avoid duplicate)
+					if (caseEntity.getAssignees() != null) {
+						caseEntity.getAssignees().stream()
+							.map(a -> a.getUserId())
+							.filter(uid -> !uid.equals(caseCreatorId))
+							.distinct()
+							.forEach(uid -> {
+								notificationService.notifyUser(
+									uid,
+									"Case closed",
+									caseClosed,
+									relatedUrlInvestigator
+								);
+							});
+					}
 				}
 			}
 		}

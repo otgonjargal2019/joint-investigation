@@ -9,9 +9,8 @@ export const useCreateInvestigationRecord = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data) => {
-      const response = await axiosInstance.post('/investigation-records/create', data);
-      return response.data;
+    mutationFn: (data) => {
+      return axiosInstance.post('/investigation-records/create', data);
     },
     onSuccess: () => {
       // Invalidate investigation records list query to refetch the updated data
@@ -28,7 +27,7 @@ export const useCreateInvestigationRecordWithFiles = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       record,
       files = [],
       fileTypes = [],
@@ -69,7 +68,7 @@ export const useCreateInvestigationRecordWithFiles = () => {
         }
       }
 
-      const response = await axiosInstance.post(
+      return axiosInstance.post(
         '/investigation-records/create-with-files',
         formData,
         {
@@ -78,8 +77,6 @@ export const useCreateInvestigationRecordWithFiles = () => {
           },
         }
       );
-
-      return response.data;
     },
     onSuccess: () => {
       // Invalidate investigation records list query to refetch the updated data
