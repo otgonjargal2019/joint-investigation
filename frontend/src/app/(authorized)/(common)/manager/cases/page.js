@@ -80,7 +80,9 @@ function CaseListPage() {
       <div className="mt-10 mb-4 flex justify-between items-end">
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
         <Button size="mediumWithShadow" onClick={onClickAdd}>
-          <div className="mr-[6px]"><Plus /></div>
+          <div className="mr-[6px]">
+            <Plus />
+          </div>
           {t("create-new-incident")}
         </Button>
       </div>
@@ -106,35 +108,31 @@ function CaseListPage() {
             key: "investigationDate",
             title: t("incident.investigation-start-date"),
             render: (value) => {
-              if (!value) return '';
+              if (!value) return "";
               const date = new Date(value);
               const year = date.getFullYear();
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const day = String(date.getDate()).padStart(2, '0');
+              const month = String(date.getMonth() + 1).padStart(2, "0");
+              const day = String(date.getDate()).padStart(2, "0");
               return `${year}-${month}-${day}`;
-            }
+            },
           },
           {
             key: "infringementType",
             title: t("incident.infringement-type"),
             render: (value) => {
-              if (!value) return '';
+              if (!value) return "";
               return t(`case_details.case_infringement_type.${value}`);
-            }
+            },
           },
           {
             key: "status",
             title: t("incident.status"),
-            render: (value) => (
-              <TagCaseStatus status={value} />
-            )
+            render: (value) => <TagCaseStatus status={value} />,
           },
           {
             key: "latestRecord.progressStatus",
             title: t("incident.progress-detail"),
-            render: (value) => (
-              <TagProgressStatus status={value} />
-            )
+            render: (value) => <TagProgressStatus status={value} />,
           },
         ]}
         data={transformedData}

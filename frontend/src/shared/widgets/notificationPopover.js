@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import * as Popover from "@radix-ui/react-popover";
@@ -10,9 +10,10 @@ import Button from "../components/button";
 const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
   const t = useTranslations();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   return (
-    <Popover.Root>
+    <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <button
           title="Notifications"
@@ -35,52 +36,68 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
           className="rounded-20 bg-color-4 shadow w-[419px] h-[425px] p-4 z-50 flex flex-col"
         >
           <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2">
-            {notifications?.map((notif) => (
-              <div
-                key={notif.notificationId}
-                className={`bg-color-9 ${
-                  notif.isRead ? "" : "border-[2px] border-color-61"
-                } rounded-10 py-3 px-5 cursor-pointer`}
-                onClick={() => {
-                  if (notif.relatedUrl) {
-                    router.push(notif.relatedUrl);
-                  }
-                  markAsRead(notif.notificationId);
-                }}
-              >
-                <div className="flex justify-between items-center">
-                  <div className="text-white text-[18px] font-bold">
-                    {notif.title}
+            {notifications?.length > 0 ? (
+              notifications?.map((notif) => (
+                <div
+                  key={notif.notificationId}
+                  className={`bg-color-9 ${
+                    notif.isRead ? "" : "border-[2px] border-color-61"
+                  } rounded-10 py-3 px-5 cursor-pointer`}
+                  onClick={() => {
+                    if (notif.relatedUrl) {
+                      router.push(notif.relatedUrl);
+                    }
+                    markAsRead(notif.notificationId);
+                    setTimeout(() => {
+                      setOpen(false);
+                    }, 1.5);
+                  }}
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="text-white text-[18px] font-bold">
+                      {t(notif.title)}
+                    </div>
+                    <div>{!notif.isRead && <Ellipse />}</div>
                   </div>
-                  <div>{!notif.isRead && <Ellipse />}</div>
+                  <div className="grid grid-cols-[100px_1fr] gap-x-4 gap-y-1">
+                    {notif?.content &&
+                      Object.entries(JSON.parse(notif.content)).map(
+                        ([label, value], idx) => (
+                          <React.Fragment key={`${label}-${idx}`}>
+                            <div className="text-color-43 text-[16px] font-medium">
+                              {t(label)}
+                            </div>
+                            <div className="text-color-59 text-[16px] font-normal">
+                              {value}
+                            </div>
+                          </React.Fragment>
+                        )
+                      )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-[100px_1fr] gap-x-4 gap-y-1">
-                  {notif?.content &&
-                    Object.entries(JSON.parse(notif.content)).map(
-                      ([label, value], idx) => (
-                        <React.Fragment key={`${label}-${idx}`}>
-                          <div className="text-color-43 text-[16px] font-medium">
-                            {label}
-                          </div>
-                          <div className="text-color-59 text-[16px] font-normal">
-                            {value}
-                          </div>
-                        </React.Fragment>
-                      )
-                    )}
-                </div>
+              ))
+            ) : (
+              <div className="text-color-43 text-[16px] font-medium text-center pt-20">
+                {t("no-more-notification")}
               </div>
-            ))}
+            )}
           </div>
 
           <div className="flex justify-center pt-2">
-            <Button
-              size="extraSmall"
-              variant="dark2"
-              onClick={() => router.push("/notification")}
-            >
-              {t("see-more")}
-            </Button>
+            {notifications?.length > 0 && (
+              <Button
+                size="extraSmall"
+                variant="dark2"
+                onClick={() => {
+                  router.push("/notification");
+                  setTimeout(() => {
+                    setOpen(false);
+                  }, 1.5);
+                }}
+              >
+                {t("see-more")}
+              </Button>
+            )}
           </div>
 
           <Popover.Arrow className="fill-color-4" />
