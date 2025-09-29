@@ -182,7 +182,7 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
-				.where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+				.where(qRecord.caseInstance.caseId.eq(qCase.caseId).and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
 		// Main query with join to case_assignees
 		List<Tuple> results = queryFactory
@@ -235,7 +235,7 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
-				.where(qRecord.caseInstance.caseId.eq(qCase.caseId));
+				.where(qRecord.caseInstance.caseId.eq(qCase.caseId).and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
 		// Main query to get cases with their latest investigation records
 		List<Tuple> results = queryFactory

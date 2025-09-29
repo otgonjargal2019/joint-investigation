@@ -156,14 +156,12 @@ const IncidentCreatePage = () => {
       // Navigate back to case detail
       router.push(`/investigator/cases/${caseId}`);
     } catch (error) {
-      console.error("Failed to create investigation record:", error);
-
       // Show error message
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
         "Failed to create investigation record";
-      alert(`${t("Error")}: ${errorMessage}`);
+      toast.error(`${t("incident.error-occurred")}: ${errorMessage}`);
     }
   };
 

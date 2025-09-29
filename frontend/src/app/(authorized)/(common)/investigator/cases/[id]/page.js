@@ -15,6 +15,7 @@ import { useInvestigationRecords } from "@/entities/investigation";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
 import TagProgressStatus from "@/shared/components/tagProgressStatus";
 import { REVIEW_STATUS } from "@/entities/investigation/model/constants";
+import { CASE_STATUS } from "@/entities/case/model/constants";
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
@@ -54,8 +55,8 @@ function IncidentDetailPage() {
   };
 
   const onClickRow = (row) => {
-		router.push(`/investigator/cases/${params.id}/investigationRecord/${row.recordId}`);
-	};
+    router.push(`/investigator/cases/${params.id}/investigationRecord/${row.recordId}`);
+  };
 
   // Define investigation records table columns
   const investigationRecordsColumns = [
@@ -90,33 +91,35 @@ function IncidentDetailPage() {
         return attachedFiles?.find(file => file.investigationReport) ? 'O' : 'X';
       }
     },
-    { key: "reviewStatus", title: "진행상태", render: (value) => {
-      switch (value) {
-        case REVIEW_STATUS.WRITING:
-          return <span className="text-[#6B62D3]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
-        case REVIEW_STATUS.PENDING:
-          return <span className="text-[#9B9B9B]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
-        case REVIEW_STATUS.APPROVED:
-          return <span className="text-[#656161]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
-        case REVIEW_STATUS.REJECTED:
-          return <span className="text-[#FF5759]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
-        default:
-          break;
+    {
+      key: "reviewStatus", title: "진행상태", render: (value) => {
+        switch (value) {
+          case REVIEW_STATUS.WRITING:
+            return <span className="text-[#6B62D3]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+          case REVIEW_STATUS.PENDING:
+            return <span className="text-[#9B9B9B]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+          case REVIEW_STATUS.APPROVED:
+            return <span className="text-[#656161]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+          case REVIEW_STATUS.REJECTED:
+            return <span className="text-[#FF5759]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+          default:
+            break;
+        }
+        return "";
       }
-      return "";
-    }},
+    },
   ];
 
   const transformedData = useMemo(() => {
-      if (!investigationRecordsData?.rows) return [];
-      return investigationRecordsData.rows.map(row => ({
-        ...row,
-        // Pre-compute nested values for table rendering
-        "creator.nameKr": getNestedValue(row, "creator.nameKr"),
-        "creator.country": getNestedValue(row, "creator.country"),
-        // "latestRecord.progressStatus": getNestedValue(row, "latestRecord.progressStatus")
-      }));
-    }, [investigationRecordsData]);
+    if (!investigationRecordsData?.rows) return [];
+    return investigationRecordsData.rows.map(row => ({
+      ...row,
+      // Pre-compute nested values for table rendering
+      "creator.nameKr": getNestedValue(row, "creator.nameKr"),
+      "creator.country": getNestedValue(row, "creator.country"),
+      // "latestRecord.progressStatus": getNestedValue(row, "latestRecord.progressStatus")
+    }));
+  }, [investigationRecordsData]);
 
   // Show loading state
   if (isLoading) {
@@ -163,21 +166,23 @@ function IncidentDetailPage() {
         <h3 className="text-[24px] text-color-8 font-medium mb-2 border-l-[9px] border-black pl-[10px]">
           {t("subtitle.incident-information")}
         </h3>
-        <CaseDetailGrid item={caseData}/>
+        <CaseDetailGrid item={caseData} />
       </div>
       <h3 className="text-[24px] text-color-8 font-medium mb-2 border-l-[9px] border-black pl-[10px]">
         {t("subtitle.investigation-records")}
       </h3>
       <div className="mb-4">
-        <Button
-          variant="white"
-          size="mediumWithShadow"
-          className="gap-3 w-[228.5px]"
-          onClick={onClickNew}
-        >
-          <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
-          {t("create-new-investigation-record")}
-        </Button>
+        {caseData.status !== CASE_STATUS.CLOSED && (
+          <Button
+            variant="white"
+            size="mediumWithShadow"
+            className="gap-3 w-[228.5px]"
+            onClick={onClickNew}
+          >
+            <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
+            {t("create-new-investigation-record")}
+          </Button>
+        )}
       </div>
       <SimpleDataTable
         columns={investigationRecordsColumns}
