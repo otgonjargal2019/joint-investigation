@@ -59,7 +59,7 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
                     </div>
                     <div>{!notif.isRead && <Ellipse />}</div>
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] gap-x-4 gap-y-1">
+                  <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                     {notif?.content &&
                       Object.entries(JSON.parse(notif.content)).map(
                         ([label, value], idx) => (

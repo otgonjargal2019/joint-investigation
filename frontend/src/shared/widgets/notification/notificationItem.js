@@ -23,7 +23,7 @@ const NotificationItem = ({
         {t(title)}
       </div>
 
-      <div className="grid grid-cols-[150px_1fr] gap-x-4 gap-y-1 text-[18px] font-medium text-color-25">
+      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[18px] font-medium text-color-25">
         {Object.entries(contentObj).map(([label, value], idx) => (
           <React.Fragment key={`${label}-${idx}`}>
             <div>{t(label)}</div>
