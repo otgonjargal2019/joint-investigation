@@ -106,7 +106,7 @@ function IncidentPage() {
     <div>
       <PageTitle title={t("header.current-state-entire-incident")} />
       <h3 className="text-[24px] text-color-8 font-medium mb-2">
-        {t("subtitle.recent-investigation")}
+        {casesResponse?.recentCases?.length > 0 && t("subtitle.recent-investigation")}
       </h3>
       <div className="w-full flex gap-6">
         {casesResponse?.recentCases?.map((item) => (
@@ -190,7 +190,7 @@ function IncidentPage() {
       />
       <Pagination
         currentPage={page}
-        totalPages={casesResponse?.totalPages || 1}
+        totalPages={casesResponse?.totalPages}
         onPageChange={setPage}
       />
     </div>
