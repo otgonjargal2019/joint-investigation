@@ -26,10 +26,12 @@ const InquiryDetailPage = () => {
 
   // Fetch investigation record data
   const {
-    data: investigationRecord,
+    data: investigationRecordRes,
     isLoading,
     error,
   } = useInvestigationRecord(investigationRecordId);
+
+  const investigationRecord = investigationRecordRes?.data;
 
   // Update investigation record with files mutation
   const updateInvestigationRecordMutation =
