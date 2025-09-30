@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import * as Popover from "@radix-ui/react-popover";
 
 import Bell from "../components/icons/bell";
@@ -11,6 +11,7 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -45,7 +46,11 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
                   } rounded-10 py-3 px-5 cursor-pointer`}
                   onClick={() => {
                     if (notif.relatedUrl) {
-                      router.push(notif.relatedUrl);
+                      if (pathname === notif.relatedUrl) {
+                        window.location.reload();
+                      } else {
+                        router.push(notif.relatedUrl);
+                      }
                     }
                     markAsRead(notif.notificationId);
                     setTimeout(() => {

@@ -1,10 +1,7 @@
 export { useInvestigationRecords, useInvestigationRecord } from './api/investigationRecord.query';
 export {
-  useCreateInvestigationRecord,
   useCreateInvestigationRecordWithFiles,
-  useUpdateInvestigationRecord,
   useUpdateInvestigationRecordWithFiles,
-  useGetInvestigationRecord,
   useRejectInvestigationRecord,
   useApproveInvestigationRecord,
   useRequestReviewInvestigationRecord

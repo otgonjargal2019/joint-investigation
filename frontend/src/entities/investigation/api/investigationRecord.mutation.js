@@ -1,28 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosInstance } from '@/shared/api/baseAxiosApi';
 
-/**
- * Hook for creating investigation record without files (legacy method)
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
-export const useCreateInvestigationRecord = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data) => {
-      return axiosInstance.post('/investigation-records/create', data);
-    },
-    onSuccess: () => {
-      // Invalidate investigation records list query to refetch the updated data
-      queryClient.invalidateQueries({ queryKey: ['investigationRecords'] });
-    }
-  });
-};
-
-/**
- * Hook for creating investigation record with file uploads
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
 export const useCreateInvestigationRecordWithFiles = () => {
   const queryClient = useQueryClient();
 
@@ -85,36 +63,11 @@ export const useCreateInvestigationRecordWithFiles = () => {
   });
 };
 
-/**
- * Hook for updating investigation record
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
-export const useUpdateInvestigationRecord = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ recordId, data }) => {
-      const response = await axiosInstance.put(`/investigation-records/${recordId}`, data);
-      return response.data;
-    },
-    onSuccess: (data, variables) => {
-      // Invalidate related queries to refetch updated data
-      queryClient.invalidateQueries({ queryKey: ['investigationRecords'] });
-      queryClient.invalidateQueries({ queryKey: ['investigationRecord', variables.recordId] });
-    }
-  });
-};
-
-/**
- * Hook for updating investigation record with new file attachments
- * New files are added to existing attachments without overwriting
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
 export const useUpdateInvestigationRecordWithFiles = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       record,
       files = [],
       fileTypes = [],
@@ -155,7 +108,7 @@ export const useUpdateInvestigationRecordWithFiles = () => {
         }
       }
 
-      const response = await axiosInstance.put(
+      return axiosInstance.put(
         '/investigation-records/update-with-files',
         formData,
         {
@@ -164,44 +117,24 @@ export const useUpdateInvestigationRecordWithFiles = () => {
           },
         }
       );
-
-      return response.data;
     },
     onSuccess: (data, variables) => {
       // Invalidate related queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['investigationRecords'] });
       queryClient.invalidateQueries({ queryKey: ['investigationRecord', variables.record.recordId] });
-    }
+    },
   });
 };
 
-/**
- * Hook for getting investigation record by ID
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
-export const useGetInvestigationRecord = () => {
-  return useMutation({
-    mutationFn: async (recordId) => {
-      const response = await axiosInstance.get(`/investigation-records/${recordId}`);
-      return response.data;
-    }
-  });
-};
-
-/**
- * Hook for rejecting investigation record
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
 export const useRejectInvestigationRecord = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ recordId, rejectionReason }) => {
-      const response = await axiosInstance.post('/investigation-records/reject', {
+    mutationFn: ({ recordId, rejectionReason }) => {
+      return axiosInstance.post('/investigation-records/reject', {
         recordId,
         rejectionReason
       });
-      return response.data;
     },
     onSuccess: (data, variables) => {
       // Invalidate related queries to refetch updated data
@@ -211,19 +144,14 @@ export const useRejectInvestigationRecord = () => {
   });
 };
 
-/**
- * Hook for approving investigation record
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
 export const useApproveInvestigationRecord = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ recordId }) => {
-      const response = await axiosInstance.post('/investigation-records/approve', {
+    mutationFn: ({ recordId }) => {
+      return axiosInstance.post('/investigation-records/approve', {
         recordId
       });
-      return response.data;
     },
     onSuccess: (data, variables) => {
       // Invalidate related queries to refetch updated data
@@ -233,19 +161,14 @@ export const useApproveInvestigationRecord = () => {
   });
 };
 
-/**
- * Hook for requesting review of investigation record
- * @returns {import('@tanstack/react-query').UseMutationResult}
- */
 export const useRequestReviewInvestigationRecord = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ recordId }) => {
-      const response = await axiosInstance.patch('/investigation-records/requestReview', {
+    mutationFn: ({ recordId }) => {
+      return axiosInstance.patch('/investigation-records/requestReview', {
         recordId
       });
-      return response.data;
     },
     onSuccess: (data, variables) => {
       // Invalidate related queries to refetch updated data

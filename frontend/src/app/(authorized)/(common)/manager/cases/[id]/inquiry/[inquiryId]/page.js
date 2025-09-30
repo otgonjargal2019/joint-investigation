@@ -36,10 +36,12 @@ const InquiryDetailPage = () => {
 
   // Fetch investigation record data
   const {
-    data: investigationRecord,
+    data: investigationRecordRes,
     isLoading,
-    error,
   } = useInvestigationRecord(inquiryId);
+
+  const investigationRecord = investigationRecordRes?.data;
+
 
   // Reject mutation
   const rejectMutation = useRejectInvestigationRecord();
