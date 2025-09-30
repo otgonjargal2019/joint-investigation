@@ -535,6 +535,7 @@ public class InvestigationService {
 					caseEntity.setStatus(CASE_STATUS.ON_HOLD);
 					break;
 				default:
+					caseEntity.setStatus(CASE_STATUS.OPEN);
 					break;
 			}
 			caseRepository.save(caseEntity);
