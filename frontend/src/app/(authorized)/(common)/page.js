@@ -9,11 +9,34 @@ import ProfileCard from "@/shared/widgets/profileCard";
 import DonutChart from "@/shared/components/pieChart";
 import CaseCard from "@/shared/components/caseCard";
 import Notice from "@/shared/components/notice";
-import { caseData } from "@/shared/widgets/mockData/homepage";
 import { userQuery } from "@/entities/user/user.query";
 import { useAuth } from "@/providers/authProviders";
 import { useRealTime } from "@/providers/realtimeProvider";
 import { useUserInfo } from "@/providers/userInfoProviders";
+
+export const caseData = [
+  {
+    label: "불법 유통",
+    code: "156-8156",
+    desc: "해외 공유 플랫폼 사이트에 업로드 사건",
+    color: "bg-color-91",
+    country: "태국",
+  },
+  {
+    label: "불법 복제",
+    code: "156-8156",
+    desc: "해외 공유 플랫폼 사이트에 업로드 사건",
+    color: "bg-color-93",
+    country: "대한민국",
+  },
+  {
+    label: "모방",
+    code: "156-8156",
+    desc: "해외 공유 플랫폼 사이트에 업로드 사건",
+    color: "bg-color-90",
+    country: "베트남",
+  },
+];
 
 export default function Home() {
   const { user } = useAuth();
