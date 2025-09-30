@@ -13,12 +13,15 @@ import Button from "@/shared/components/button";
 import TreeView from "@/shared/components/treeView";
 import Modal from "@/shared/components/modal";
 import { Table, Thead2, Tbody, Tr, Th2, Td } from "@/shared/components/table";
-import { useCurrentCountryOrganizationTree, useForeignInvAdminsTree } from "@/entities/organizationalData";
+import {
+  useCurrentCountryOrganizationTree,
+  useForeignInvAdminsTree,
+} from "@/entities/organizationalData";
 import { useAssignUsersToCase } from "@/entities/case/api";
 import {
   tableColumns,
   tableColumns2,
-} from "@/shared/widgets/manager/mockData";
+} from "@/shared/widgets/manager/tableHelper";
 
 function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   const router = useRouter();
@@ -31,52 +34,60 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   const t = useTranslations();
 
   // Fetch organizational data with search functionality
-  const { data: currentCountryData, isLoading, error } = useCurrentCountryOrganizationTree(queryCurrentCountry);
+  const {
+    data: currentCountryData,
+    isLoading,
+    error,
+  } = useCurrentCountryOrganizationTree(queryCurrentCountry);
 
   // Fetch foreign INV_ADMIN data with search functionality
-  const { data: foreignInvAdminsData, isLoading: isForeignLoading, error: foreignError } = useForeignInvAdminsTree(queryOtherCountries);
+  const {
+    data: foreignInvAdminsData,
+    isLoading: isForeignLoading,
+    error: foreignError,
+  } = useForeignInvAdminsTree(queryOtherCountries);
 
   // Case assignment mutation
   const assignUsersMutation = useAssignUsersToCase();
 
   const transformToTreeData = (currentCountry) => {
     if (!currentCountry) return [];
-    return (currentCountry.headquarters || []).map(hq => ({
+    return (currentCountry.headquarters || []).map((hq) => ({
       name: hq.headquarterName,
       label: hq.headquarterName,
       type: "headquarter",
       nation: currentCountry.countryName,
-      children: (hq.departments || []).map(dept => ({
+      children: (hq.departments || []).map((dept) => ({
         name: dept.departmentName,
         label: dept.departmentName,
         type: "department",
         nation: currentCountry.countryName,
-        children: (dept.investigators || []).map(inv => ({
+        children: (dept.investigators || []).map((inv) => ({
           name: inv.nameKr,
           label: inv.nameKr,
           type: "employee",
-          role: t(`user-role.${inv.role}`)  || "-",
+          role: t(`user-role.${inv.role}`) || "-",
           nation: currentCountry.countryName,
           headquarterName: hq.headquarterName,
           departmentName: dept.departmentName,
           userId: inv.userId,
           email: inv.email,
-          phone: inv.phone
-        }))
-      }))
+          phone: inv.phone,
+        })),
+      })),
     }));
   };
 
   const transformForeignInvAdminsToTreeData = (foreignInvAdmins) => {
     if (!foreignInvAdmins || !Array.isArray(foreignInvAdmins)) return [];
 
-    return foreignInvAdmins.map(country => {
+    return foreignInvAdmins.map((country) => {
       return {
         name: country.countryName,
         label: country.countryName,
         type: "headquarter",
         nation: country.countryName,
-        children: country.invAdmins.map(invAdmin => {
+        children: country.invAdmins.map((invAdmin) => {
           return {
             name: invAdmin.nameKr || invAdmin.nameEn,
             label: invAdmin.nameKr || invAdmin.nameEn,
@@ -85,7 +96,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
             role: t(`user-role.${invAdmin.role}`) || "-",
             userId: invAdmin.userId,
             email: invAdmin.email,
-            phone: invAdmin.phone
+            phone: invAdmin.phone,
           };
         }),
       };
@@ -102,7 +113,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
 
   const chooseCurrentCountryInvestigator = (obj) => {
     // console.log("obj", obj);
-    if (data.find(item => item.id === obj.userId)) {
+    if (data.find((item) => item.id === obj.userId)) {
       return;
     }
     setData((prev) => [
@@ -126,7 +137,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
 
   const onClickSave = async () => {
     // Extract user IDs from the data state
-    const userIds = data.map(item => item.id);
+    const userIds = data.map((item) => item.id);
 
     if (!createdCaseId) {
       console.error("No case ID provided");
@@ -139,26 +150,28 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
     }
 
     try {
-      console.log("Assigning investigators to case:", { caseId: createdCaseId, userIds });
+      console.log("Assigning investigators to case:", {
+        caseId: createdCaseId,
+        userIds,
+      });
 
       const result = await assignUsersMutation.mutateAsync({
         caseId: createdCaseId,
-        userIds: userIds
+        userIds: userIds,
       });
 
       console.log("Successfully assigned investigators:", result);
 
-      toast.success(t('case-detail.create-success'), {
+      toast.success(t("case-detail.create-success"), {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
-        draggable: true
+        draggable: true,
       });
 
       router.push("/manager/cases");
-
     } catch (error) {
       console.error("Failed to assign investigators:", error);
       // TODO: Show error notification to user
@@ -171,7 +184,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
 
   const chooseForeignInvestigator = (obj) => {
     // console.log(obj);
-    if (data2.find(item => item.id === obj.userId)) {
+    if (data2.find((item) => item.id === obj.userId)) {
       return;
     }
     if (obj.type === "employee") {
@@ -315,15 +328,23 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
             onClick={() => {
               setData((prev) => [
                 ...prev,
-                ...data2.filter(item => data.find(existing => existing.id === item.id) === undefined).map((item, index) => ({
-                  ...item,
-                  action: (
-                    <Trash2
-                      size={20}
-                      onClick={() => removeCurrentCountryInvestigator(item.id)}
-                    />
-                  ),
-                })),
+                ...data2
+                  .filter(
+                    (item) =>
+                      data.find((existing) => existing.id === item.id) ===
+                      undefined
+                  )
+                  .map((item, index) => ({
+                    ...item,
+                    action: (
+                      <Trash2
+                        size={20}
+                        onClick={() =>
+                          removeCurrentCountryInvestigator(item.id)
+                        }
+                      />
+                    ),
+                  })),
               ]);
               setModalOpen(false);
               setData2([]);
