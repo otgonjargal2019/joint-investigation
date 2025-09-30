@@ -603,9 +603,14 @@ public class InvestigationService {
 			if (progressChanged) {
 				Map<String, String> progressContent = new LinkedHashMap<>(contentMap);
 				// Add previous/current progress names
-				progressContent.put("NOTIFICATION-KEY.PREVIOUS-PROGRESS",
-						previousApprovedProgress != null ? previousApprovedProgress.name() : "");
-				progressContent.put("NOTIFICATION-KEY.CURRENT-PROGRESS", existingRecord.getProgressStatus().name());
+				progressContent.put(
+						"NOTIFICATION-KEY.PREVIOUS-PROGRESS",
+						previousApprovedProgress != null ? MessageFormat.format(
+								"incident.PROGRESS_STATUS.{0}",
+								previousApprovedProgress.name()) : "");
+				progressContent.put("NOTIFICATION-KEY.CURRENT-PROGRESS", MessageFormat.format(
+								"incident.PROGRESS_STATUS.{0}",
+								existingRecord.getProgressStatus().name()));
 
 				String relatedUrlManager = MessageFormat.format(
 						"/manager/cases/{0}",
