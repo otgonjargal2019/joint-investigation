@@ -20,7 +20,6 @@ app.get("/", (req, res) => res.send("Socket.IO server running!"));
 // Listen for REST-triggered notification pushes
 app.post("/notify-user", async (req, res) => {
   const { userId, title, content, relatedUrl } = req.body;
-  console.log("NOTIFY USER DUUUDAGDAV>>>>>>>>>>>>>>>>>>>>>>>>>>>>", req.body);
   if (!userId || !title)
     return res.status(400).json({ error: "Missing fields" });
 
@@ -64,7 +63,6 @@ io.use((socket, next) => {
   if (!token) return next(new Error("No token provided"));
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    //console.log("Socket auth payload:", payload);
     socket.userId = payload.sub; //daraa solivol solih userId bolgoj
     next();
   } catch (err) {
@@ -82,7 +80,6 @@ io.on("connection", (socket) => {
 
   //-------------------------notification start-----------------------------------------
 
-  // Get last 5 notifications
   socket.on("notifications:getLast5", async (ack) => {
     try {
       const notifications = await Notification.findAll({
@@ -97,7 +94,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Paginated notifications
   socket.on("notifications:getPage", async ({ before, limit = 20 }, ack) => {
     try {
       const where = { userId: socket.userId };
@@ -117,7 +113,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Mark notification as read
   socket.on("notifications:markRead", async (notifId, ack) => {
     try {
       const notif = await Notification.findByPk(notifId);
@@ -133,7 +128,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Mark all notifications as read
   socket.on("notifications:markAllRead", async (ack) => {
     try {
       await Notification.update(
@@ -148,14 +142,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // --- Delete all notifications ---
   socket.on("notifications:deleteAll", async (ack) => {
     await Notification.destroy({ where: { userId: socket.userId } });
 
     ack?.({ success: true });
   });
 
-  // Unread count
   socket.on("notifications:getUnreadCount", async (ack) => {
     try {
       const count = await Notification.count({
@@ -170,7 +162,6 @@ io.on("connection", (socket) => {
 
   //-------------------------notification end-----------------------------------------
 
-  // Handle chat users
   socket.on("getChatUsers", async (ack) => {
     const userId = socket.userId;
     if (!userId) return ack?.([]);
@@ -236,7 +227,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Search users
   socket.on("searchUsers", async (searchText, ack) => {
     const userId = socket.userId;
     if (!userId) return ack?.([]);
@@ -248,6 +238,7 @@ io.on("connection", (socket) => {
       const users = await User.findAll({
         where: {
           userId: { [Op.not]: userId },
+          status: { [Op.not]: "REJECTED" },
           [Op.or]: [
             { loginId: { [Op.iLike]: `%${text}%` } },
             { nameEn: { [Op.iLike]: `%${text}%` } },
@@ -278,7 +269,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Send message
   socket.on("sendDirectMessage", async ({ recipientId, content }, callback) => {
     const userId = socket.userId;
     if (!userId || !recipientId || !content) {
@@ -291,7 +281,7 @@ io.on("connection", (socket) => {
         senderId: userId,
         recipientId,
         content,
-        isRead: false, // explicitly set isRead to false for new messages
+        isRead: false,
       });
 
       // Emit to sender
@@ -343,7 +333,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // mark messages as read
   socket.on("markMessagesAsRead", async ({ peerId }) => {
     const userId = socket.userId;
     try {
