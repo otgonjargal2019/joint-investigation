@@ -52,11 +52,11 @@ function NotificationPage() {
         <div className="border border-color-36 rounded-10 mt-4 bg-white p-8">
           <InfiniteScroll
             className="space-y-3"
-            dataLength={pages.flat().length} // number of items currently loaded
-            next={fetchNextPage} // fetch next page when scrolling
-            hasMore={hasMore} // true/false from provider
+            dataLength={pages.flat().length}
+            next={fetchNextPage}
+            hasMore={hasMore}
             loader={<p className="text-center mt-2">{t("loading")}...</p>}
-            height={600} // or any container height
+            height={600}
             endMessage={
               <p className="text-center mt-2 text-color-25">
                 {t("no-more-notification")}
@@ -70,7 +70,6 @@ function NotificationPage() {
                 content={item.content}
                 createdAt={item.createdAtFormated}
                 isRead={item.isRead}
-                relatedUrl={item?.relatedUrl || null}
                 onClick={() => markNotificationAsRead(item.notificationId)}
               />
             ))}

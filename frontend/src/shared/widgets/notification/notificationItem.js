@@ -1,14 +1,7 @@
 import React from "react";
 import { useTranslations } from "next-intl";
 
-const NotificationItem = ({
-  title,
-  content,
-  createdAt,
-  isRead,
-  relatedUrl,
-  onClick,
-}) => {
+const NotificationItem = ({ title, content, createdAt, isRead, onClick }) => {
   const t = useTranslations();
   const contentObj = content ? JSON.parse(content) : {};
 
@@ -27,7 +20,14 @@ const NotificationItem = ({
         {Object.entries(contentObj).map(([label, value], idx) => (
           <React.Fragment key={`${label}-${idx}`}>
             <div>{t(label)}</div>
-            <div>{value}</div>
+            <div>
+              {label === "NOTIFICATION-KEY.PREVIOUS-PROGRESS" ||
+              label === "NOTIFICATION-KEY.CURRENT-PROGRESS" ||
+              label === "NOTIFICATION-KEY.PREVIOUS-ROLE" ||
+              label === "NOTIFICATION-KEY.CURRENT-ROLE"
+                ? t(value)
+                : value}
+            </div>
           </React.Fragment>
         ))}
       </div>
