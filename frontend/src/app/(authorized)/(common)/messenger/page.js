@@ -25,7 +25,6 @@ export default function MessengerPage() {
   const chatContainerRef = useRef(null);
   const oldestMessageRef = useRef(null);
 
-  const [chatUsers, setChatUsers] = useState([]);
   const [displayedUsers, setDisplayedUsers] = useState([]);
 
   const [selectedPeer, setSelectedPeer] = useState(null);
@@ -46,16 +45,22 @@ export default function MessengerPage() {
 
   const movePeerFirst = (list, peer) => {
     if (!peer) return list;
-    const rest = list.filter((u) => u.userId !== peer.userId);
+
+    const existing = Array.isArray(list)
+      ? list.find((u) => u.userId === peer.userId)
+      : null;
 
     const top = {
-      userId: peer.userId,
-      displayName: peer.displayName ?? "Unknown",
-      profileImageUrl: peer.profileImageUrl ?? null,
-      lastMessage: peer.lastMessage ?? "",
-      lastMessageTime: peer.lastMessageTime ?? null,
       ...peer,
+      lastMessage: peer.lastMessage ?? existing?.lastMessage ?? "",
+      lastMessageTime:
+        peer.lastMessageTime ?? existing?.lastMessageTime ?? null,
     };
+
+    const rest = Array.isArray(list)
+      ? list.filter((u) => u.userId !== peer.userId)
+      : [];
+
     return [top, ...rest];
   };
 
@@ -96,8 +101,6 @@ export default function MessengerPage() {
         msg.recipientId === currentUserId
       ) {
         socket.emit("getChatUsers", (res) => {
-          setChatUsers(res);
-
           setDisplayedUsers((prev) => {
             return selectedPeerRef.current
               ? movePeerFirst(res, selectedPeerRef.current)
@@ -110,7 +113,6 @@ export default function MessengerPage() {
     socket.on("directMessage", handleDirectMessage);
 
     socket.on("refreshUserList", (updatedUsers) => {
-      setChatUsers(updatedUsers);
       setDisplayedUsers((prev) =>
         selectedPeerRef.current
           ? movePeerFirst(updatedUsers, selectedPeerRef.current)
@@ -120,7 +122,6 @@ export default function MessengerPage() {
 
     // Initial user list fetch
     socket.emit("getChatUsers", (res) => {
-      setChatUsers(res);
       setDisplayedUsers(res);
     });
 
@@ -264,10 +265,7 @@ export default function MessengerPage() {
   };
 
   const handlePickSearchUser = (user) => {
-    setDisplayedUsers((prev) =>
-      movePeerFirst(prev.length ? prev : chatUsers, user)
-    );
-    setChatUsers((prev) => movePeerFirst(prev, user));
+    setDisplayedUsers((prev) => movePeerFirst(prev, user));
     handleSelectPeer(user);
   };
 
