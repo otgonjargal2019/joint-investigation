@@ -1,16 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 
 import { useAuth } from "@/providers/authProviders";
 import { useRealTime } from "@/providers/realtimeProvider";
 import PageTitle from "@/shared/components/pageTitle/page";
-import Circle from "@/shared/components/icons/circle";
-import Ellipse from "@/shared/components/icons/ellipse";
-import PaperPlane from "@/shared/components/icons/paperplane";
+import ChatComposer from "@/shared/widgets/messenger/chatComposer";
+import ChatMessages from "@/shared/widgets/messenger/chatMessages";
 import UserSearchBox from "@/shared/widgets/messenger/userSearchBox";
+import SidebarUserList from "@/shared/widgets/messenger/sidebarUserList";
 
 const limit = 10;
 
@@ -51,7 +50,7 @@ export default function MessengerPage() {
 
     const top = {
       userId: peer.userId,
-      displayName: peer.displayName ?? peer.name ?? peer.loginId ?? "Unknown",
+      displayName: peer.displayName ?? "Unknown",
       profileImageUrl: peer.profileImageUrl ?? null,
       lastMessage: peer.lastMessage ?? "",
       lastMessageTime: peer.lastMessageTime ?? null,
@@ -272,18 +271,6 @@ export default function MessengerPage() {
     handleSelectPeer(user);
   };
 
-  const filteredMessages = selectedPeer
-    ? allMessages.filter(
-        (m) =>
-          (m.senderId === currentUserId &&
-            m.recipientId === selectedPeer.userId) ||
-          (m.senderId === selectedPeer.userId &&
-            m.recipientId === currentUserId)
-      )
-    : [];
-
-  // Popover keyboard navigation is handled inside UserSearchBox
-
   return (
     <div className="messenger">
       <PageTitle title={t("header.messenger")} />
@@ -294,59 +281,12 @@ export default function MessengerPage() {
             <UserSearchBox onPick={handlePickSearchUser} />
           </div>
 
-          {displayedUsers.length === 0 ? (
-            <div className="text-sm text-gray-500 text-center">
-              No users found
-            </div>
-          ) : (
-            displayedUsers.map((u) => (
-              <div
-                key={u.userId}
-                className={`p-4 flex items-center gap-4 cursor-pointer hover:bg-color-80 transition-colors ${
-                  selectedPeer?.userId === u.userId ? "bg-color-80" : ""
-                }`}
-                onClick={() => handleSelectPeer(u)}
-              >
-                <div className="w-[15px] flex-shrink-0">
-                  {unreadUsers.has(u.userId) && (
-                    <Ellipse color="#564CDF" width={15} height={15} />
-                  )}
-                </div>
-                <div className="relative w-[60px] h-[60px] flex-shrink-0">
-                  {u?.profileImageUrl ? (
-                    <Image
-                      src={u.profileImageUrl}
-                      alt={u.displayName || "user image"}
-                      fill
-                      sizes="60px"
-                      className="rounded-full object-cover"
-                    />
-                  ) : (
-                    <Circle width={60} height={60} />
-                  )}
-                </div>
-                <div className="w-full">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="text-black text-[18px] font-semibold">
-                        {u.displayName}
-                      </div>
-                      <div className="text-color-41 font-normal text-[18px] truncate w-[208px]">
-                        {u.lastMessage}
-                      </div>
-                    </div>
-                    <div className="text-color-35 text-[16px] font-normal">
-                      {u.lastMessageTime &&
-                        new Date(u.lastMessageTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+          <SidebarUserList
+            users={displayedUsers}
+            selectedPeer={selectedPeer}
+            unreadUsers={unreadUsers}
+            onSelect={handleSelectPeer}
+          />
         </div>
 
         <div className="flex-1 flex flex-col bg-white border border-color-36 rounded-10">
@@ -357,109 +297,20 @@ export default function MessengerPage() {
           </div>
 
           <div className="flex-1 flex flex-col p-4 overflow-hidden">
-            <div
-              ref={chatContainerRef}
-              className="flex-1 overflow-auto space-y-3 px-2"
+            <ChatMessages
+              containerRef={chatContainerRef}
+              messages={allMessages}
+              selectedPeer={selectedPeer}
+              currentUserId={currentUserId}
               onScroll={handleScroll}
-            >
-              {filteredMessages.length === 0 ? (
-                <div className="text-sm text-gray-500 text-center mt-4">
-                  No messages
-                </div>
-              ) : (
-                filteredMessages.map((m, index) => {
-                  const isMe = m.senderId === currentUserId;
-                  return (
-                    <div
-                      key={
-                        m.messageId || `${m.senderId}-${m.createdAt}-${index}`
-                      }
-                      className={`flex gap-4 ${
-                        isMe ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      {!isMe && (
-                        <div className="relative w-[50px] h-[50px] flex-shrink-0">
-                          {selectedPeer?.profileImageUrl ? (
-                            <Image
-                              src={selectedPeer.profileImageUrl}
-                              alt={selectedPeer.displayName || "user image"}
-                              fill
-                              sizes="50px"
-                              className="rounded-full object-cover"
-                            />
-                          ) : (
-                            <Circle width={50} height={50} />
-                          )}
-                        </div>
-                      )}
-
-                      <div
-                        className={`flex flex-col ${
-                          isMe ? "items-end" : "items-start"
-                        } max-w-[70%]`}
-                      >
-                        <div className="flex gap-2 items-center mb-1">
-                          {!isMe && (
-                            <span className="text-black text-[18px] font-normal">
-                              {selectedPeer.displayName}
-                            </span>
-                          )}
-                          <span className="text-color-35 text-[14px] font-normal">
-                            {new Date(m.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                        <div
-                          className={`message-bubble px-4 py-3 rounded-5 text-[16px] break-words whitespace-pre-wrap ${
-                            isMe
-                              ? "bg-color-61 text-black"
-                              : "bg-color-1 text-black"
-                          }`}
-                          data-message-id={m.messageId}
-                          data-sender-id={m.senderId}
-                          data-is-read={m.isRead || isMe ? "true" : "false"}
-                        >
-                          {m.content}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+            />
 
             {selectedPeer && (
-              <div className="mt-4 flex gap-3 border border-color-36 rounded-5 px-3 min-h-[62px] max-h-[62px] items-start py-2 bg-white">
-                <textarea
-                  className="flex-1 outline-none placeholder-color-35 text-[16px] text-color-4 resize-none py-2 h-[50px] overflow-y-auto"
-                  placeholder="메시지를 입력하세요."
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      if (e.shiftKey) {
-                        // Allow new line with Shift+Enter
-                        return;
-                      } else {
-                        // Prevent default Enter behavior and send message
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  className="bg-color-20 text-white px-3 py-2 rounded-5 transition-colors mt-1"
-                  onClick={handleSend}
-                  aria-label="Send message"
-                >
-                  <PaperPlane />
-                </button>
-              </div>
+              <ChatComposer
+                value={messageContent}
+                onChange={setMessageContent}
+                onSend={handleSend}
+              />
             )}
           </div>
         </div>
