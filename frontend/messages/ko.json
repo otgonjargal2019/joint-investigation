@@ -310,9 +310,10 @@
     "CHANGE-DATE": "변경 일시",
     "PREVIOUS-PROGRESS": "이전 진행 상태",
     "CURRENT-PROGRESS": "현재 진행 상태",
+    "PREVIOUS-ROLE": "PREVIOUS ROLE",
+    "CURRENT-ROLE": "CURRENT ROLE",
     "APPROVAL-DATE": "승인 일시",
     "REASON": "사유",
-    "DETAILS": "상세",
     "TITLE": {
       "NEW-ACCOUNT-REGISTERED": "신규 계정 등록",
       "CASE-ASSIGNMENT": "CASE ASSIGNMENT",

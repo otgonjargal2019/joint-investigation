@@ -52,6 +52,7 @@ import com.lsware.joint_investigation.user.dto.CountryDto;
 import com.lsware.joint_investigation.user.dto.DepartmentDto;
 import com.lsware.joint_investigation.user.dto.HeadquarterDto;
 
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -420,9 +421,13 @@ public class UserController {
         Map<String, String> contentMap = new LinkedHashMap<>();
 
         contentMap.put("NOTIFICATION-KEY.APPROVAL-DATE", formattedDateTime);
-        contentMap.put(
-                "NOTIFICATION-KEY.DETAILS",
-                String.format("계정 권한이 %s 에서 %s 으로 변경되었습니다.", oldRole, request.getRole()));
+
+        contentMap.put("NOTIFICATION-KEY.PREVIOUS-ROLE", MessageFormat.format(
+                "user-role.{0}",
+                oldRole));
+        contentMap.put("NOTIFICATION-KEY.CURRENT-ROLE", MessageFormat.format(
+                "user-role.{0}",
+                request.getRole()));
 
         notificationService.notifyUser(
                 request.getUserId(),

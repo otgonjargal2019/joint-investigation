@@ -73,7 +73,12 @@ const NotificationPopover = ({ notifications, unreadCount, markAsRead }) => {
                               {t(label)}
                             </div>
                             <div className="text-color-59 text-[16px] font-normal">
-                              {value}
+                              {label === "NOTIFICATION-KEY.PREVIOUS-PROGRESS" ||
+                              label === "NOTIFICATION-KEY.CURRENT-PROGRESS" ||
+                              label === "NOTIFICATION-KEY.PREVIOUS-ROLE" ||
+                              label === "NOTIFICATION-KEY.CURRENT-ROLE"
+                                ? t(value)
+                                : value}
                             </div>
                           </React.Fragment>
                         )
