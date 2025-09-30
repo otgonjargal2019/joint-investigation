@@ -1,17 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/shared/api/baseAxiosApi";
 
-/**
- * Hook for fetching investigation records with pagination and filtering
- * @param {import('../model/query-params').InvestigationRecordQueryParams} params
- * @returns {import('@tanstack/react-query').UseQueryResult<{
- *   content: import('../model/types').InvestigationRecord[],
- *   totalElements: number,
- *   totalPages: number,
- *   size: number,
- *   number: number
- * }>}
- */
 export const useInvestigationRecords = ({
   sortBy = "createdAt",
   sortDirection = "desc",
@@ -42,23 +32,28 @@ export const useInvestigationRecords = ({
   });
 };
 
-/**
- * Hook for fetching a single investigation record by ID
- * @param {string} recordId - UUID of the investigation record
- * @param {boolean} enabled - Whether the query should run
- * @returns {import('@tanstack/react-query').UseQueryResult<import('../model/types').InvestigationRecord>}
- */
 export const useInvestigationRecord = (recordId, { enabled = true } = {}) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["investigationRecord", recordId],
     queryFn: async () => {
       if (!recordId) {
         throw new Error("Record ID is required");
       }
 
-      const { data } = await axiosInstance.get(`/investigation-records/${recordId}`);
-      return data;
+      return axiosInstance.get(`/investigation-records/${recordId}`);
     },
     enabled: enabled && Boolean(recordId),
   });
+
+  useEffect(() => {
+      if (query.error?.response?.status === 404) {
+        console.info(`Investigation record with ID ${recordId} not found.`);
+        // side effect on error
+        queryClient.removeQueries({ queryKey: ["investigationRecord", recordId] });
+      }
+  }, [query.error, recordId, queryClient]);
+
+  return query;
 };
