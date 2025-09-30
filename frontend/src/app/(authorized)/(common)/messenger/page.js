@@ -10,7 +10,7 @@ import PageTitle from "@/shared/components/pageTitle/page";
 import Circle from "@/shared/components/icons/circle";
 import Ellipse from "@/shared/components/icons/ellipse";
 import PaperPlane from "@/shared/components/icons/paperplane";
-import MagnifyingGlass from "@/shared/components/icons/magnifyingGlass";
+import UserSearchBox from "@/shared/widgets/messenger/userSearchBox";
 
 const limit = 10;
 
@@ -28,7 +28,7 @@ export default function MessengerPage() {
 
   const [chatUsers, setChatUsers] = useState([]);
   const [displayedUsers, setDisplayedUsers] = useState([]);
-  const [searchText, setSearchText] = useState("");
+
   const [selectedPeer, setSelectedPeer] = useState(null);
   const [allMessages, setAllMessages] = useState([]);
   const [messageContent, setMessageContent] = useState("");
@@ -99,13 +99,11 @@ export default function MessengerPage() {
         socket.emit("getChatUsers", (res) => {
           setChatUsers(res);
 
-          if (!searchText.trim()) {
-            setDisplayedUsers((prev) => {
-              return selectedPeerRef.current
-                ? movePeerFirst(res, selectedPeerRef.current)
-                : res;
-            });
-          }
+          setDisplayedUsers((prev) => {
+            return selectedPeerRef.current
+              ? movePeerFirst(res, selectedPeerRef.current)
+              : res;
+          });
         });
       }
     };
@@ -114,13 +112,11 @@ export default function MessengerPage() {
 
     socket.on("refreshUserList", (updatedUsers) => {
       setChatUsers(updatedUsers);
-      if (!searchText.trim()) {
-        setDisplayedUsers((prev) =>
-          selectedPeerRef.current
-            ? movePeerFirst(updatedUsers, selectedPeerRef.current)
-            : updatedUsers
-        );
-      }
+      setDisplayedUsers((prev) =>
+        selectedPeerRef.current
+          ? movePeerFirst(updatedUsers, selectedPeerRef.current)
+          : updatedUsers
+      );
     });
 
     // Initial user list fetch
@@ -154,10 +150,6 @@ export default function MessengerPage() {
         if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
       });
     }
-
-    setSearchText("");
-    setDisplayedUsers((prev) => movePeerFirst(chatUsers, peer));
-    setChatUsers((prev) => movePeerFirst(prev, peer));
   };
 
   useLayoutEffect(() => {
@@ -230,6 +222,17 @@ export default function MessengerPage() {
     });
   };
 
+  // Add: handle scroll to load older messages when reaching top
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (!container || !selectedPeer) return;
+
+    // If user scrolled to top area, try to fetch older messages
+    if (container.scrollTop <= 10 && oldestMessageRef.current) {
+      fetchHistory(selectedPeer.userId, oldestMessageRef.current);
+    }
+  };
+
   const handleSend = () => {
     if (!currentUserId || !selectedPeer || !messageContent.trim() || !socket) {
       return;
@@ -261,27 +264,12 @@ export default function MessengerPage() {
     });
   };
 
-  const handleSearch = (text) => {
-    if (!socket) return;
-
-    setSearchText(text);
-    if (!text.trim()) {
-      setDisplayedUsers(
-        selectedPeerRef.current
-          ? movePeerFirst(chatUsers, selectedPeerRef.current)
-          : chatUsers
-      );
-      return;
-    }
-
-    socket.emit("searchUsers", text, (res) => setDisplayedUsers(res || []));
-  };
-
-  const handleScroll = () => {
-    const container = chatContainerRef.current;
-    if (container.scrollTop === 0 && selectedPeer) {
-      fetchHistory(selectedPeer.userId, oldestMessageRef.current);
-    }
+  const handlePickSearchUser = (user) => {
+    setDisplayedUsers((prev) =>
+      movePeerFirst(prev.length ? prev : chatUsers, user)
+    );
+    setChatUsers((prev) => movePeerFirst(prev, user));
+    handleSelectPeer(user);
   };
 
   const filteredMessages = selectedPeer
@@ -294,21 +282,16 @@ export default function MessengerPage() {
       )
     : [];
 
+  // Popover keyboard navigation is handled inside UserSearchBox
+
   return (
     <div className="messenger">
       <PageTitle title={t("header.messenger")} />
 
       <div className="flex gap-4 h-[680px]">
         <div className="w-[450px] bg-white border border-color-36 rounded-10 pb-4 overflow-auto">
-          <div className="m-5 h-[60px] bg-color-74 rounded-5 flex items-center p-4 gap-3">
-            <MagnifyingGlass />
-            <input
-              type="text"
-              className="px-4 outline-none text-color-4 text-[18px] font-normal w-full"
-              placeholder={t("placeholder.chat-search")}
-              value={searchText}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
+          <div className="m-5">
+            <UserSearchBox onPick={handlePickSearchUser} />
           </div>
 
           {displayedUsers.length === 0 ? (
@@ -396,8 +379,21 @@ export default function MessengerPage() {
                       }`}
                     >
                       {!isMe && (
-                        <Circle width={50} height={50} className="mt-1" />
+                        <div className="relative w-[50px] h-[50px] flex-shrink-0">
+                          {selectedPeer?.profileImageUrl ? (
+                            <Image
+                              src={selectedPeer.profileImageUrl}
+                              alt={selectedPeer.displayName || "user image"}
+                              fill
+                              sizes="50px"
+                              className="rounded-full object-cover"
+                            />
+                          ) : (
+                            <Circle width={50} height={50} />
+                          )}
+                        </div>
                       )}
+
                       <div
                         className={`flex flex-col ${
                           isMe ? "items-end" : "items-start"
@@ -457,7 +453,7 @@ export default function MessengerPage() {
                 />
                 <button
                   type="button"
-                  className="bg-color-20 text-white px-4 py-2 rounded-5 transition-colors mt-1"
+                  className="bg-color-20 text-white px-3 py-2 rounded-5 transition-colors mt-1"
                   onClick={handleSend}
                   aria-label="Send message"
                 >
