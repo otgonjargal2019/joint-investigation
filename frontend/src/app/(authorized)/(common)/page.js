@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -12,7 +12,7 @@ import { useAuth } from "@/providers/authProviders";
 import { useRealTime } from "@/providers/realtimeProvider";
 import { useUserInfo } from "@/providers/userInfoProviders";
 import { useDashboardMain } from "@/entities/dashboard/api/dashboard.query";
-import { COLOR_MAP } from "@/entities/case/model/constants"
+import { COLOR_MAP } from "@/entities/case/model/constants";
 
 export default function Home() {
   const { user } = useAuth();
@@ -21,8 +21,7 @@ export default function Home() {
   const t = useTranslations();
   const router = useRouter();
 
-  const [isLoading, setLoading] = useState(true);
-  const { data: dataRes } = useDashboardMain();
+  const { data: dataRes, isLoading } = useDashboardMain();
   const data = dataRes?.data || {};
   const { userInfo } = useUserInfo();
   const { unreadUsersCount, unreadNotifCount } = useRealTime();
@@ -41,11 +40,6 @@ export default function Home() {
     };
   }, [user?.role]);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-  }, []);
 
   const onClickNoticeRow = (row) => {
     if (row && row?.postId) {
@@ -88,7 +82,19 @@ export default function Home() {
             </h2>
             <button
               className="text-color-27 text-[18px] font-medium cursor-pointer"
-              onClick={() => router.push("/")}
+              onClick={() => {
+                switch (userInfo?.role) {
+                  case ROLES.INVESTIGATOR:
+                  case ROLES.RESEARCHER:
+                    router.push("/investigator/cases");
+                    break;
+                  case ROLES.INV_ADMIN:
+                    router.push("/manager/cases");
+                    break;
+                  default:
+                    break;
+                }
+              }}
             >
               {t("see-more")}+
             </button>
