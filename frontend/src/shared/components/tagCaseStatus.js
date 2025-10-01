@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 
 import Ellipse from "./icons/ellipse";
 
-const StatusTag = ({ status }) => {
+const StatusTag = ({ status, border = false }) => {
   const t = useTranslations();
 
   let text = "";
@@ -21,6 +21,20 @@ const StatusTag = ({ status }) => {
       break;
     default:
       break;
+  }
+
+  if (border) {
+    switch (status) {
+      case "OPEN":
+        statusClasses = "border border-color-61 bg-white text-color-24";
+        break;
+      case "ON_HOLD":
+      case "CLOSED":
+        statusClasses = "border border-color-60 bg-white text-color-24";
+        break;
+      default:
+        break;
+    }
   }
 
   const baseClasses =

@@ -167,7 +167,7 @@ function IncidentDetailPage() {
       <PageTitle title={t("header.incident-detail")} />
 
       <div className="flex gap-4 justify-center mt-2">
-        <TagCaseStatus status={caseData.status} />
+        <TagCaseStatus status={caseData.status} border/>
         <TagProgressStatus status={caseData?.latestRecord?.progressStatus} />
       </div>
 
