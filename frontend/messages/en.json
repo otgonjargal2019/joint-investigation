@@ -274,6 +274,7 @@
     "investigative-report": "investigative report",
     "digital-evidence": "digital evidence",
     "validation-enter-record-name": "Enter investigation record name",
+    "validation-enter-overview": "Enter overview",
     "no-content": "No content"
   },
   "enter-incident-info": "enter incident info",

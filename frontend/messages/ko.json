@@ -274,6 +274,7 @@
     "investigative-report": "수사 보고서",
     "digital-evidence": "디지털 증거물",
     "validation-enter-record-name": "수사 기록명을 입력해주세요.",
+    "validation-enter-overview": "수사 개요를 입력해주세요.",
     "no-content": "내용이 없습니다."
   },
   "enter-incident-info": "사건 정보 입력",

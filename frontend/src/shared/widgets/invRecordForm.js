@@ -184,10 +184,15 @@ const InvestigationRecordForm = ({
           ) : (
             <Textarea
               name="overview"
-              register={register}
+              register={(name) =>
+                register(name, {
+                  required: t("case-form.validation-enter-overview"),
+                })
+              }
               error={errors.overview}
               placeholder="Enter your message here..."
               rows={8}
+              showError={false}
             />
           )}
         </TextDiv>
