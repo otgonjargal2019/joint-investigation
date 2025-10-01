@@ -1,0 +1,10 @@
+ALTER TABLE investigation_records
+ALTER COLUMN content TYPE TEXT;
+
+
+ALTER TABLE cases
+ALTER COLUMN case_outline TYPE TEXT;
+
+
+ALTER TABLE cases
+ALTER COLUMN etc TYPE TEXT;
