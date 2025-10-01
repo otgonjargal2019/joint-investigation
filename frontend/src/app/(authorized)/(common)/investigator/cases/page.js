@@ -11,23 +11,13 @@ import CaseCard from "@/shared/components/caseCard";
 import { useMyAssignedCase } from "@/entities/case";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
 import TagProgressStatus from "@/shared/components/tagProgressStatus";
+import { COLOR_MAP } from "@/entities/case/model/constants"
 
 const tabs = [
   { label: "전체", value: 0 },
   { label: "진행중인 사건", value: 1 },
   { label: "종료 사건", value: 2 },
 ];
-
-const COLOR_MAP = {
-  PLATFORMS_SITES: "bg-color-91",
-  LINK_SITES: "bg-color-107",
-  WEBHARD_P2P: "bg-color-106",
-  TORRENTS: "bg-color-90",
-  SNS: "bg-color-93",
-  COMMUNITIES: "bg-color-6",
-  OTHER: "bg-color-105",
-  DEFAULT: "black",
-};
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 

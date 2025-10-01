@@ -219,16 +219,11 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		return new PageImpl<>(cases, pageable, total != null ? total : 0);
 	}
 
-	/**
-	 * Find the most recent 3 updated cases for a specific assignee
-	 *
-	 * @param userId The ID of the assigned user
-	 * @return List of the 3 most recently updated cases assigned to the user
-	 */
-	public List<Case> findRecentAssignedCases(UUID userId) {
+	public List<Case> findRecentAssignedCases(CustomUser user) {
 		QCase qCase = QCase.case$;
-		QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
 		QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+
+		List<Tuple> results = null;
 
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
@@ -236,23 +231,46 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 				.where(qRecord.caseInstance.caseId.eq(qCase.caseId)
 						.and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
-		List<Tuple> results = queryFactory
-				.select(qCase, qRecord)
-				.from(qCase)
-				.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
-				.leftJoin(qRecord).on(
-						qRecord.caseInstance.caseId.eq(qCase.caseId)
-								.and(qRecord.createdAt.eq(latestRecordSubquery)))
-				.where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
-				.orderBy(
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+			results = queryFactory
+					.select(qCase, qRecord)
+					.from(qCase)
+					.leftJoin(qRecord).on(
+							qRecord.caseInstance.caseId.eq(qCase.caseId)
+									.and(qRecord.createdAt.eq(latestRecordSubquery)))
+					.where(qCase.creator.userId.eq(user.getId()).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+					.orderBy(
+							Expressions.dateTimeTemplate(
+									java.time.LocalDateTime.class,
+									"GREATEST({0}, {1})",
+									qRecord.updatedAt.coalesce(qCase.updatedAt),
+									qCase.updatedAt).desc())
+					.limit(3)
+					.fetch();
+		}
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+						|| "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+			QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
 
-						Expressions.dateTimeTemplate(
-								java.time.LocalDateTime.class,
-								"GREATEST({0}, {1})",
-								qRecord.updatedAt.coalesce(qCase.updatedAt),
-								qCase.updatedAt).desc())
-				.limit(3)
-				.fetch();
+			results = queryFactory
+					.select(qCase, qRecord)
+					.from(qCase)
+					.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+					.leftJoin(qRecord).on(
+							qRecord.caseInstance.caseId.eq(qCase.caseId)
+									.and(qRecord.createdAt.eq(latestRecordSubquery)))
+					.where(qAssignee.userId.eq(user.getId()).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+					.orderBy(
+							Expressions.dateTimeTemplate(
+									java.time.LocalDateTime.class,
+									"GREATEST({0}, {1})",
+									qRecord.updatedAt.coalesce(qCase.updatedAt),
+									qCase.updatedAt).desc())
+					.limit(3)
+					.fetch();
+		}
 
 		return results.stream()
 				.map(tuple -> {
@@ -264,5 +282,56 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 					return caseEntity;
 				})
 				.toList();
+	}
+
+	public Map<CASE_STATUS, Long> getAssignedCaseSummary(CustomUser user) {
+		QCase qCase = QCase.case$;
+
+		List<Tuple> results = null;
+
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+			BooleanExpression predicate = qCase.creator.userId.eq(user.getId());
+
+			results = queryFactory
+					.select(qCase.status, qCase.caseId.count())
+					.from(qCase)
+					.where(predicate)
+					.groupBy(qCase.status)
+					.fetch();
+		}
+
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+						|| "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+			QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+
+			BooleanExpression assigneePredicate = qAssignee.userId.eq(user.getId());
+
+			results = queryFactory
+					.select(qCase.status, qCase.caseId.count())
+					.from(qCase)
+					.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+					.where(assigneePredicate)
+					.groupBy(qCase.status)
+					.fetch();
+		}
+
+		// Initialize map with all statuses set to 0
+		Map<CASE_STATUS, Long> summary = new java.util.EnumMap<>(CASE_STATUS.class);
+		for (CASE_STATUS status : CASE_STATUS.values()) {
+			summary.put(status, 0L);
+		}
+
+		// Update with actual counts
+		results.forEach(tuple -> {
+			CASE_STATUS status = tuple.get(qCase.status);
+			Long count = tuple.get(qCase.caseId.count());
+			if (status != null && count != null) {
+				summary.put(status, count);
+			}
+		});
+
+		return summary;
 	}
 }

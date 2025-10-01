@@ -1,42 +1,18 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 
 import { ROLES } from "@/shared/dictionary";
 import ProfileCard from "@/shared/widgets/profileCard";
 import DonutChart from "@/shared/components/pieChart";
 import CaseCard from "@/shared/components/caseCard";
 import Notice from "@/shared/components/notice";
-import { userQuery } from "@/entities/user/user.query";
 import { useAuth } from "@/providers/authProviders";
 import { useRealTime } from "@/providers/realtimeProvider";
 import { useUserInfo } from "@/providers/userInfoProviders";
-
-export const caseData = [
-  {
-    label: "불법 유통",
-    code: "156-8156",
-    desc: "해외 공유 플랫폼 사이트에 업로드 사건",
-    color: "bg-color-91",
-    country: "태국",
-  },
-  {
-    label: "불법 복제",
-    code: "156-8156",
-    desc: "해외 공유 플랫폼 사이트에 업로드 사건",
-    color: "bg-color-93",
-    country: "대한민국",
-  },
-  {
-    label: "모방",
-    code: "156-8156",
-    desc: "해외 공유 플랫폼 사이트에 업로드 사건",
-    color: "bg-color-90",
-    country: "베트남",
-  },
-];
+import { useDashboardMain } from "@/entities/dashboard/api/dashboard.query";
+import { COLOR_MAP } from "@/entities/case/model/constants";
 
 export default function Home() {
   const { user } = useAuth();
@@ -45,8 +21,8 @@ export default function Home() {
   const t = useTranslations();
   const router = useRouter();
 
-  const [isLoading, setLoading] = useState(true);
-  const { data } = useQuery(userQuery.getUserDashboard());
+  const { data: dataRes, isLoading } = useDashboardMain();
+  const data = dataRes?.data || {};
   const { userInfo } = useUserInfo();
   const { unreadUsersCount, unreadNotifCount } = useRealTime();
 
@@ -64,11 +40,6 @@ export default function Home() {
     };
   }, [user?.role]);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-  }, []);
 
   const onClickNoticeRow = (row) => {
     if (row && row?.postId) {
@@ -79,6 +50,20 @@ export default function Home() {
   const onClickResearchRow = (row) => {
     if (row && row?.postId) {
       router.push(`${researchLink}/${row.postId}`);
+    }
+  };
+
+  const onClickRecentCase = (row) => {
+    switch (userInfo?.role) {
+      case ROLES.INVESTIGATOR:
+      case ROLES.RESEARCHER:
+        router.push(`/investigator/cases/${row.caseId}`);
+        break;
+        case ROLES.INV_ADMIN:
+        router.push(`/manager/cases/${row.caseId}`);
+        break;
+      default:
+        break;
     }
   };
 
@@ -107,7 +92,19 @@ export default function Home() {
             </h2>
             <button
               className="text-color-27 text-[18px] font-medium cursor-pointer"
-              onClick={() => router.push("/")}
+              onClick={() => {
+                switch (userInfo?.role) {
+                  case ROLES.INVESTIGATOR:
+                  case ROLES.RESEARCHER:
+                    router.push("/investigator/cases");
+                    break;
+                  case ROLES.INV_ADMIN:
+                    router.push("/manager/cases");
+                    break;
+                  default:
+                    break;
+                }
+              }}
             >
               {t("see-more")}+
             </button>
@@ -119,17 +116,17 @@ export default function Home() {
                 data={[
                   {
                     name: t("donut-chart.ongoing"),
-                    value: 3,
+                    value: data?.caseSummary?.OPEN || 0,
                     type: "#85D685",
                   },
                   {
                     name: t("donut-chart.unresolved"),
-                    value: 10,
+                    value: data?.caseSummary?.ON_HOLD || 0,
                     type: "#3EB491",
                   },
                   {
                     name: t("donut-chart.termination"),
-                    value: 24,
+                    value: data?.caseSummary?.CLOSED || 0,
                     type: "#206B7B",
                   },
                 ]}
@@ -138,15 +135,22 @@ export default function Home() {
             <div className="block lg:hidden h-[1px] w-full bg-color-44 my-6"></div>
             <div className="hidden lg:block w-[2px] bg-color-44 mx-8"></div>
             <div className="w-full flex flex-col gap-4.5 min-w-0">
-              {caseData.map((item, idx) => (
+              {data?.recentCases?.map((item) => (
                 <CaseCard
-                  key={idx}
-                  label={item.label}
-                  code={item.code}
-                  desc={item.desc}
-                  color={item.color}
-                  country={item.country}
+                  key={item.caseId}
+                  label={
+                    item?.infringementType
+                      ? t(
+                          `case_details.case_infringement_type.${item?.infringementType}`
+                        )
+                      : ""
+                  }
+                  code={`#${item.number}. ${item.caseId}`}
+                  desc={item.caseName}
+                  color={`${COLOR_MAP[item?.infringementType || "DEFAULT"]}`}
+                  country={item.relatedCountries}
                   isLoading={isLoading}
+                  onClick={() => onClickRecentCase(item)}
                 />
               ))}
             </div>

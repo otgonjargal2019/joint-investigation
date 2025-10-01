@@ -1,4 +1,4 @@
-package com.lsware.joint_investigation.user.controller;
+package com.lsware.joint_investigation.dashboard.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
@@ -8,16 +8,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.lsware.joint_investigation.posts.dto.PostDto;
-import com.lsware.joint_investigation.posts.entity.Post;
+
+import com.lsware.joint_investigation.config.CustomUser;
+import com.lsware.joint_investigation.dashboard.service.DashboardService;
 import com.lsware.joint_investigation.posts.repository.PostRepository;
+import com.lsware.joint_investigation.user.controller.UserController;
+
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/dashboard")
 public class MainController {
+
+    @Autowired
+    DashboardService dashboardService;
 
     @Autowired
     PostRepository postRepository;
@@ -25,20 +29,9 @@ public class MainController {
     @GetMapping("/main")
     public ResponseEntity<MappingJacksonValue> main(Authentication authentication) {
         if (authentication.isAuthenticated()) {
-            HashMap<String, Object> response = new HashMap<String, Object>();
-
-            List<PostDto> lastPosts = postRepository.findTop4ByBoardTypeOrderByCreatedAtDesc(Post.BOARD_TYPE.NOTICE)
-                    .stream()
-                    .map(PostDto::fromEntity)
-                    .collect(Collectors.toList());
-            response.put("lastPosts", lastPosts);
-
-            List<PostDto> lastResearch = postRepository
-                    .findTop4ByBoardTypeOrderByCreatedAtDesc(Post.BOARD_TYPE.RESEARCH).stream()
-                    .map(PostDto::fromEntity)
-                    .collect(Collectors.toList());
-            response.put("lastResearchs", lastResearch);
-            MappingJacksonValue mapping = new MappingJacksonValue(response);
+            CustomUser user = (CustomUser)authentication.getPrincipal();
+            HashMap<String, Object> data = dashboardService.getData(user);
+            MappingJacksonValue mapping = new MappingJacksonValue(data);
             mapping.setFilters(UserController.getUserFilter());
             return ResponseEntity.ok(mapping);
         }

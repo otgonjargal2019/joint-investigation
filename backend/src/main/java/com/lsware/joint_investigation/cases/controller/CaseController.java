@@ -83,6 +83,6 @@ public class CaseController {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return caseService.getAssignedCases(user.getId(), name, status, pageable);
+        return caseService.getAssignedCases(user, name, status, pageable);
     }
 }
