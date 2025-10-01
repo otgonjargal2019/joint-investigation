@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
@@ -54,7 +55,7 @@ public class PostController {
                         @RequestParam(defaultValue = "10") int size,
                         @RequestParam(required = false) Post.BOARD_TYPE boardType) {
 
-                Pageable pageable = PageRequest.of(page, size);
+                Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
                 Page<Post> postPage;
 
                 if (boardType != null) {
