@@ -40,10 +40,10 @@ public class DashboardService {
 				.collect(Collectors.toList());
 		response.put("lastResearchs", lastResearch);
 
-		Map<CASE_STATUS, Long> caseSummary = caseRepository.getAssignedCaseSummary(user.getId());
+		Map<CASE_STATUS, Long> caseSummary = caseRepository.getAssignedCaseSummary(user);
 		response.put("caseSummary", caseSummary);
 
-		List<Case> recentCases = caseRepository.findRecentAssignedCases(user.getId());
+		List<Case> recentCases = caseRepository.findRecentAssignedCases(user);
 		response.put("recentCases", recentCases.stream().map(Case::toDto).collect(Collectors.toList()));
 
 		return response;

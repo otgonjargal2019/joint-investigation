@@ -127,8 +127,8 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 					.select(qcase, qRecord)
 					.from(qcase)
 					.leftJoin(qRecord).on(
-						qRecord.caseInstance.caseId.eq(qcase.caseId)
-								.and(qRecord.updatedAt.eq(latestRecordSubquery)))
+							qRecord.caseInstance.caseId.eq(qcase.caseId)
+									.and(qRecord.updatedAt.eq(latestRecordSubquery)))
 					.where(rootPredicate)
 					.distinct() // important to avoid duplicates
 					.fetchOne();
@@ -143,8 +143,8 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 					.select(qcase, qRecord)
 					.from(qcase)
 					.leftJoin(qRecord).on(
-						qRecord.caseInstance.caseId.eq(qcase.caseId)
-								.and(qRecord.updatedAt.eq(latestRecordSubquery)))
+							qRecord.caseInstance.caseId.eq(qcase.caseId)
+									.and(qRecord.updatedAt.eq(latestRecordSubquery)))
 					.leftJoin(qcase.assignees, qAssignee)
 					.where(rootPredicate)
 					.distinct() // important to avoid duplicates
@@ -182,7 +182,8 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
-				.where(qRecord.caseInstance.caseId.eq(qCase.caseId).and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
+				.where(qRecord.caseInstance.caseId.eq(qCase.caseId)
+						.and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
 		// Main query with join to case_assignees
 		List<Tuple> results = queryFactory
@@ -226,36 +227,63 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 	 * @param userId The ID of the assigned user
 	 * @return List of the 3 most recently updated cases assigned to the user
 	 */
-	public List<Case> findRecentAssignedCases(UUID userId) {
+	public List<Case> findRecentAssignedCases(CustomUser user) {
 		QCase qCase = QCase.case$;
-		QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
 		QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
+
+		List<Tuple> results = null;
 
 		// Get latest investigation record subquery for each case
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
-				.where(qRecord.caseInstance.caseId.eq(qCase.caseId).and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
+				.where(qRecord.caseInstance.caseId.eq(qCase.caseId)
+						.and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
-		// Main query to get cases with their latest investigation records
-		List<Tuple> results = queryFactory
-				.select(qCase, qRecord)
-				.from(qCase)
-				.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
-				.leftJoin(qRecord).on(
-						qRecord.caseInstance.caseId.eq(qCase.caseId)
-								.and(qRecord.createdAt.eq(latestRecordSubquery)))
-				.where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
-				.orderBy(
-						// Order by the maximum value between investigation record updatedAt and case
-						// updatedAt
-						Expressions.dateTimeTemplate(
-								java.time.LocalDateTime.class,
-								"GREATEST({0}, {1})",
-								qRecord.updatedAt.coalesce(qCase.updatedAt),
-								qCase.updatedAt).desc())
-				.limit(3)
-				.fetch();
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+			results = queryFactory
+					.select(qCase, qRecord)
+					.from(qCase)
+					.leftJoin(qRecord).on(
+							qRecord.caseInstance.caseId.eq(qCase.caseId)
+									.and(qRecord.createdAt.eq(latestRecordSubquery)))
+					.where(qCase.creator.userId.eq(user.getId()).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+					.orderBy(
+							// Order by the maximum value between investigation record updatedAt and case
+							// updatedAt
+							Expressions.dateTimeTemplate(
+									java.time.LocalDateTime.class,
+									"GREATEST({0}, {1})",
+									qRecord.updatedAt.coalesce(qCase.updatedAt),
+									qCase.updatedAt).desc())
+					.limit(3)
+					.fetch();
+		}
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+						|| "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+			QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+
+			results = queryFactory
+					.select(qCase, qRecord)
+					.from(qCase)
+					.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+					.leftJoin(qRecord).on(
+							qRecord.caseInstance.caseId.eq(qCase.caseId)
+									.and(qRecord.createdAt.eq(latestRecordSubquery)))
+					.where(qAssignee.userId.eq(user.getId()).and(qCase.status.ne(CASE_STATUS.CLOSED)))
+					.orderBy(
+							// Order by the maximum value between investigation record updatedAt and case
+							// updatedAt
+							Expressions.dateTimeTemplate(
+									java.time.LocalDateTime.class,
+									"GREATEST({0}, {1})",
+									qRecord.updatedAt.coalesce(qCase.updatedAt),
+									qCase.updatedAt).desc())
+					.limit(3)
+					.fetch();
+		}
 
 		return results.stream()
 				.map(tuple -> {
@@ -269,19 +297,38 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 				.toList();
 	}
 
-    public Map<CASE_STATUS, Long> getAssignedCaseSummary(UUID userId) {
-        QCase qCase = QCase.case$;
-		QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+	public Map<CASE_STATUS, Long> getAssignedCaseSummary(CustomUser user) {
+		QCase qCase = QCase.case$;
 
-		BooleanExpression assigneePredicate = qAssignee.userId.eq(userId);
+		List<Tuple> results = null;
 
-		List<Tuple> results = queryFactory
-				.select(qCase.status, qCase.caseId.count())
-				.from(qCase)
-				.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
-				.where(assigneePredicate)
-				.groupBy(qCase.status)
-				.fetch();
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+			BooleanExpression predicate = qCase.creator.userId.eq(user.getId());
+
+			results = queryFactory
+					.select(qCase.status, qCase.caseId.count())
+					.from(qCase)
+					.where(predicate)
+					.groupBy(qCase.status)
+					.fetch();
+		}
+
+		if (user != null && user.getAuthorities() != null &&
+				user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
+						|| "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
+			QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+
+			BooleanExpression assigneePredicate = qAssignee.userId.eq(user.getId());
+
+			results = queryFactory
+					.select(qCase.status, qCase.caseId.count())
+					.from(qCase)
+					.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+					.where(assigneePredicate)
+					.groupBy(qCase.status)
+					.fetch();
+		}
 
 		// Initialize map with all statuses set to 0
 		Map<CASE_STATUS, Long> summary = new java.util.EnumMap<>(CASE_STATUS.class);
@@ -299,5 +346,5 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		});
 
 		return summary;
-    }
+	}
 }

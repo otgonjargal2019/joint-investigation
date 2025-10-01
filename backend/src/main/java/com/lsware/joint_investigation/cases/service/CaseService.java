@@ -110,10 +110,10 @@ public class CaseService {
 	}
 
 	@PreAuthorize("hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
-	public MappingJacksonValue getAssignedCases(UUID userId, String name, CASE_STATUS status, Pageable pageable) {
+	public MappingJacksonValue getAssignedCases(CustomUser user, String name, CASE_STATUS status, Pageable pageable) {
 		// Fetch cases where the user is assigned through case_assignees table
-		var casePage = caseRepository.findAssignedCases(userId, name, status, pageable);
-		List<Case> recentCases = caseRepository.findRecentAssignedCases(userId);
+		var casePage = caseRepository.findAssignedCases(user.getId(), name, status, pageable);
+		List<Case> recentCases = caseRepository.findRecentAssignedCases(user);
 
 		// Convert to DTOs
 		var caseDtos = casePage.getContent().stream()
