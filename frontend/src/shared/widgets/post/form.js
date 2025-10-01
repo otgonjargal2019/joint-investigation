@@ -86,7 +86,6 @@ const Form = ({
     const contentEmpty = !content?.trim() || content === "<p></p>";
 
     if (mode === "create") {
-      // For create mode, require both title and content
       return titleEmpty || contentEmpty;
     }
 
@@ -97,7 +96,6 @@ const Form = ({
         newFiles.length === 0 &&
         existingFiles.length === (defaultValues.attachments?.length || 0);
 
-      // For edit mode, disable if nothing changed OR if title/content is empty
       return (
         (titleUnchanged && contentUnchanged && filesUnchanged) ||
         titleEmpty ||

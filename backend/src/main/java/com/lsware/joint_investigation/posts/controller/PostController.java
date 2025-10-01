@@ -73,7 +73,6 @@ public class PostController {
                                 })
                                 .toList();
 
-                // Pagination metadata
                 Map<String, Object> meta = new HashMap<>();
                 meta.put("currentPage", postPage.getNumber());
                 meta.put("pageSize", postPage.getSize());
@@ -249,17 +248,14 @@ public class PostController {
                         return ResponseEntity.status(403).body(errorResponse);
                 }
 
-                // Delete files from MinIO first
                 if (post.getAttachments() != null && !post.getAttachments().isEmpty()) {
                         for (PostAttachment attachment : post.getAttachments()) {
                                 fileService.deleteFile(attachment.getFileUrl());
                         }
                 }
 
-                // Delete related post views first to avoid foreign key constraint error
                 postViewRepository.deleteByPost(post);
 
-                // Now delete the post
                 postRepository.delete(post);
 
                 ApiResponse<Void> response = new ApiResponse<>(true,

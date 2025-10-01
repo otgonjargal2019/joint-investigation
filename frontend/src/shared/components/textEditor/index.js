@@ -43,8 +43,7 @@ const Tiptap = ({ content, onChange }) => {
         allowBase64: true,
       }),
     ],
-    // content: "<p>Hello World!</p>",
-    // Don't render immediately on the server to avoid SSR issues
+
     editorProps: {
       attributes: {
         class: "min-h-[300px] border border-color-99 bg-color-98 py-2 px-3",

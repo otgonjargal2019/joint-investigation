@@ -165,9 +165,6 @@ public class UserRepository extends SimpleJpaRepository<Users, Integer> {
                 .fetch();
     }
 
-    /**
-     * Find users by multiple user IDs
-     */
     public List<Users> findByUserIds(List<UUID> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return List.of();

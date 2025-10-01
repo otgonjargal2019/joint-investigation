@@ -25,7 +25,6 @@ const InquiryDetailPage = () => {
   const caseId = params.id;
   const investigationRecordId = params.investigationRecordId;
 
-  // Fetch investigation record data
   const {
     data: investigationRecordRes,
     isLoading,
@@ -34,7 +33,6 @@ const InquiryDetailPage = () => {
 
   const investigationRecord = investigationRecordRes?.data;
 
-  // Request review mutation
   const requestReviewMutation = useRequestReviewInvestigationRecord();
 
   const t = useTranslations();
@@ -115,7 +113,6 @@ const InquiryDetailPage = () => {
       break;
   }
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -124,7 +121,6 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -135,7 +131,6 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show not found state
   if (!investigationRecord) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -159,15 +154,6 @@ const InquiryDetailPage = () => {
               <Cancel />
               {t("incident.cancel-editing")}
             </Button>
-            {/* <Button
-              type="button"
-              variant="white"
-              size="mediumWithShadow"
-              className="gap-3"
-            >
-              <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
-              {t("upload-investigation-material")}
-            </Button> */}
           </div>
           <div className="flex gap-2">
             {(investigationRecord.reviewStatus === REVIEW_STATUS.WRITING ||

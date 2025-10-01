@@ -21,18 +21,16 @@ public class PostAttachmentDto {
 
     private MultipartFile file;
 
-    // Convert DTO to Entity
     public PostAttachment toEntity(Post post) {
         PostAttachment attachment = new PostAttachment();
         attachment.setAttachmentId(this.attachmentId);
         attachment.setFileName(this.fileName);
         attachment.setFileUrl(this.fileUrl);
         attachment.setPost(post);
-        // createdAt is set automatically on persist
+
         return attachment;
     }
 
-    // Convert Entity to DTO
     public static PostAttachmentDto fromEntity(PostAttachment attachment) {
         PostAttachmentDto dto = new PostAttachmentDto();
         dto.setAttachmentId(attachment.getAttachmentId());

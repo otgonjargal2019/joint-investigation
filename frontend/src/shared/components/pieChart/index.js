@@ -20,11 +20,9 @@ export default function DonutChart({ data, isLoading = true }) {
 
   return (
     <div className="flex flex-col lg:flex-row justify-start items-center gap-6">
-      {/* Donut chart */}
       <div className="donut-chart-wrapper relative  w-[250px] h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            {/* Outer gray circle as background */}
             <Pie
               data={[{ value: 1 }]}
               dataKey="value"
@@ -41,7 +39,6 @@ export default function DonutChart({ data, isLoading = true }) {
               <Cell fill="#8E8E8E" />
             </Pie>
 
-            {/* Actual chart data on top */}
             {!isLoading && (
               <Pie
                 data={data}
@@ -64,7 +61,6 @@ export default function DonutChart({ data, isLoading = true }) {
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center total */}
         <div className="absolute inset-0 flex items-center justify-center gap-1">
           <span className="text-[19.9px] text-color-33 font-[500]">
             {t("total")}
@@ -76,7 +72,6 @@ export default function DonutChart({ data, isLoading = true }) {
         </div>
       </div>
 
-      {/* Legend - responsive positioning */}
       <div className="space-y-2 min-w-[150px] w-full lg:w-auto">
         {legendItems.map((item, index) => (
           <div key={index} className="flex items-center gap-2">

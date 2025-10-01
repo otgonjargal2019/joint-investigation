@@ -33,24 +33,20 @@ function InvestigatorAssignEdit({ caseId }) {
   const [data2, setData2] = useState([]);
   const t = useTranslations();
 
-  // Fetch organizational data with search functionality first
   const {
     data: currentCountryData,
     isLoading,
     error,
   } = useCurrentCountryOrganizationTree(queryCurrentCountry);
 
-  // Fetch foreign INV_ADMIN data with search functionality
   const {
     data: foreignInvAdminsData,
     isLoading: isForeignLoading,
     error: foreignError,
   } = useForeignInvAdminsTree(queryOtherCountries);
 
-  // Fetch current case assignees only after organizational data is loaded
   const { data: currentAssignees } = useCaseAssignees(caseId);
 
-  // Case assignment mutation
   const updateAssignmentsMutation = useUpdateCaseAssignments();
 
   useEffect(() => {
@@ -72,7 +68,6 @@ function InvestigatorAssignEdit({ caseId }) {
         }))
       );
     } else if (currentAssignees && currentAssignees.length === 0) {
-      // Clear data if no assignees
       setData([]);
     }
   }, [currentAssignees]);
@@ -162,7 +157,6 @@ function InvestigatorAssignEdit({ caseId }) {
   };
 
   const onClickSave = async () => {
-    // Extract user IDs from the data state
     const userIds = data.map((item) => item.id);
 
     if (!caseId) {

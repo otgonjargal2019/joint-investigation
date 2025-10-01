@@ -10,7 +10,10 @@ export const useCase = ({
   caseName,
 } = {}) => {
   return useQuery({
-    queryKey: ["/api/cases", { sortBy, sortDirection, page, size, status, caseName }],
+    queryKey: [
+      "/api/cases",
+      { sortBy, sortDirection, page, size, status, caseName },
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         sortBy,
@@ -38,7 +41,10 @@ export const useMyAssignedCase = ({
   caseName,
 } = {}) => {
   return useQuery({
-    queryKey: ["/api/cases/my-assigned", { sortBy, sortDirection, page, size, status, caseName }],
+    queryKey: [
+      "/api/cases/my-assigned",
+      { sortBy, sortDirection, page, size, status, caseName },
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         sortBy,
@@ -57,27 +63,24 @@ export const useMyAssignedCase = ({
   });
 };
 
-export const useCaseById = ({
-  id,
-  enabled = true,
-} = {}) => {
+export const useCaseById = ({ id, enabled = true } = {}) => {
   return useQuery({
     queryKey: ["/api/cases/id", { id }],
     queryFn: async () => {
-      const { data } = await axiosInstance.get(
-        `/api/cases/${id}`
-      );
+      const { data } = await axiosInstance.get(`/api/cases/${id}`);
       return data;
     },
-    enabled: enabled && !!id, // Only run query when enabled and id is provided
+    enabled: enabled && !!id,
   });
 };
 
 export const useCaseAssignees = (caseId, options = {}) => {
   return useQuery({
-    queryKey: ['caseAssignees', caseId],
+    queryKey: ["caseAssignees", caseId],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/api/cases/${caseId}/assignees`);
+      const response = await axiosInstance.get(
+        `/api/cases/${caseId}/assignees`
+      );
       return response.data;
     },
     enabled: options.enabled !== undefined ? options.enabled : !!caseId,
@@ -86,9 +89,9 @@ export const useCaseAssignees = (caseId, options = {}) => {
 
 export const useMyAssignments = () => {
   return useQuery({
-    queryKey: ['myAssignments'],
+    queryKey: ["myAssignments"],
     queryFn: async () => {
-      const response = await axiosInstance.get('/api/cases/my-assignments');
+      const response = await axiosInstance.get("/api/cases/my-assignments");
       return response.data;
     },
   });
@@ -96,9 +99,11 @@ export const useMyAssignments = () => {
 
 export const useUserAssignments = (userId) => {
   return useQuery({
-    queryKey: ['userAssignments', userId],
+    queryKey: ["userAssignments", userId],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/api/cases/user/${userId}/assignments`);
+      const response = await axiosInstance.get(
+        `/api/cases/user/${userId}/assignments`
+      );
       return response.data;
     },
     enabled: !!userId,
@@ -107,9 +112,11 @@ export const useUserAssignments = (userId) => {
 
 export const useIsUserAssignedToCase = (caseId, userId) => {
   return useQuery({
-    queryKey: ['userCaseAssignment', caseId, userId],
+    queryKey: ["userCaseAssignment", caseId, userId],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/api/cases/${caseId}/assignees/${userId}/exists`);
+      const response = await axiosInstance.get(
+        `/api/cases/${caseId}/assignees/${userId}/exists`
+      );
       return response.data;
     },
     enabled: !!(caseId && userId),
@@ -118,9 +125,11 @@ export const useIsUserAssignedToCase = (caseId, userId) => {
 
 export const useCaseAssignmentCount = (caseId) => {
   return useQuery({
-    queryKey: ['caseAssignmentCount', caseId],
+    queryKey: ["caseAssignmentCount", caseId],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/api/cases/${caseId}/assignment-count`);
+      const response = await axiosInstance.get(
+        `/api/cases/${caseId}/assignment-count`
+      );
       return response.data;
     },
     enabled: !!caseId,

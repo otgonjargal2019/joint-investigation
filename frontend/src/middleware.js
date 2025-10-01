@@ -5,7 +5,6 @@ import { ROLES } from "./shared/dictionary";
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // Only block homepage
   if (pathname === "/") {
     const token = req.cookies.get("access_token")?.value;
 
@@ -33,5 +32,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/"], // only homepage
+  matcher: ["/"],
 };

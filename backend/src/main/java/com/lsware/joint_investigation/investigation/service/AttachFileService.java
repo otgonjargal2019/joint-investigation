@@ -34,11 +34,8 @@ public class AttachFileService {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * Create a new attached file
-     */
     public AttachFileDto createAttachFile(CreateAttachFileRequest request, UUID uploadedByUserId) {
-        // Validate required fields
+
         if (request.getRecordId() == null) {
             throw new IllegalArgumentException("Record ID is required");
         }
@@ -52,15 +49,14 @@ public class AttachFileService {
             throw new IllegalArgumentException("Storage path is required");
         }
 
-        // Validate investigation record exists
-        InvestigationRecord investigationRecord = investigationRecordRepository.findById(request.getRecordId().toString())
-                .orElseThrow(() -> new EntityNotFoundException("Investigation record not found with id: " + request.getRecordId()));
+        InvestigationRecord investigationRecord = investigationRecordRepository
+                .findById(request.getRecordId().toString())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Investigation record not found with id: " + request.getRecordId()));
 
-        // Validate uploader exists
         Users uploader = userRepository.findByUserId(uploadedByUserId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + uploadedByUserId));
 
-        // Create new attach file
         AttachFile attachFile = new AttachFile();
         attachFile.setInvestigationRecord(investigationRecord);
         attachFile.setFileName(request.getFileName());
@@ -80,9 +76,6 @@ public class AttachFileService {
         return saved.toDto();
     }
 
-    /**
-     * Get attach file by ID
-     */
     @Transactional(readOnly = true)
     public AttachFileDto getAttachFileById(UUID fileId) {
         AttachFile attachFile = attachFileRepository.findById(fileId)
@@ -90,14 +83,10 @@ public class AttachFileService {
         return attachFile.toDto();
     }
 
-    /**
-     * Update an existing attach file
-     */
     public AttachFileDto updateAttachFile(UUID fileId, UpdateAttachFileRequest request) {
         AttachFile attachFile = attachFileRepository.findById(fileId)
                 .orElseThrow(() -> new EntityNotFoundException("Attach file not found with id: " + fileId));
 
-        // Update fields if provided
         if (request.getFileName() != null && !request.getFileName().trim().isEmpty()) {
             attachFile.setFileName(request.getFileName());
         }
@@ -133,9 +122,6 @@ public class AttachFileService {
         return saved.toDto();
     }
 
-    /**
-     * Delete an attach file
-     */
     public void deleteAttachFile(UUID fileId) {
         if (!attachFileRepository.existsById(fileId)) {
             throw new EntityNotFoundException("Attach file not found with id: " + fileId);
@@ -143,9 +129,6 @@ public class AttachFileService {
         attachFileRepository.deleteById(fileId);
     }
 
-    /**
-     * Get all attach files for an investigation record
-     */
     @Transactional(readOnly = true)
     public List<AttachFileDto> getAttachFilesByRecordId(UUID recordId) {
         List<AttachFile> attachFiles = attachFileRepository.findByInvestigationRecordRecordId(recordId);
@@ -154,9 +137,6 @@ public class AttachFileService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get attach files by file type
-     */
     @Transactional(readOnly = true)
     public List<AttachFileDto> getAttachFilesByFileType(AttachFile.FileType fileType) {
         List<AttachFile> attachFiles = attachFileRepository.findByFileType(fileType);
@@ -165,9 +145,6 @@ public class AttachFileService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get digital evidence files
-     */
     @Transactional(readOnly = true)
     public List<AttachFileDto> getDigitalEvidenceFiles() {
         List<AttachFile> attachFiles = attachFileRepository.findDigitalEvidenceFiles();
@@ -176,9 +153,6 @@ public class AttachFileService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get investigation report files
-     */
     @Transactional(readOnly = true)
     public List<AttachFileDto> getInvestigationReportFiles() {
         List<AttachFile> attachFiles = attachFileRepository.findInvestigationReportFiles();
@@ -187,9 +161,6 @@ public class AttachFileService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Count files by investigation record
-     */
     @Transactional(readOnly = true)
     public long countFilesByRecordId(UUID recordId) {
         return attachFileRepository.countByInvestigationRecordRecordId(recordId);

@@ -1,7 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { axiosInstance } from "@/shared/api/baseAxiosApi";
 
-//create
 export const useCreatePost = () => {
   return useMutation({
     mutationFn: async ({ boardType, title, content, files }) => {
@@ -24,7 +23,6 @@ export const useCreatePost = () => {
   });
 };
 
-//update
 export const useUpdatePost = () => {
   return useMutation({
     mutationFn: async ({
@@ -54,7 +52,6 @@ export const useUpdatePost = () => {
   });
 };
 
-//delete
 export const useDeletePost = () => {
   return useMutation({
     mutationFn: async ({ id }) => {
@@ -65,7 +62,6 @@ export const useDeletePost = () => {
   });
 };
 
-//add view on post
 export const useAddViewPost = () => {
   return useMutation({
     mutationFn: async ({ id }) => {

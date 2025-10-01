@@ -130,7 +130,7 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 							qRecord.caseInstance.caseId.eq(qcase.caseId)
 									.and(qRecord.updatedAt.eq(latestRecordSubquery)))
 					.where(rootPredicate)
-					.distinct() // important to avoid duplicates
+					.distinct()
 					.fetchOne();
 		}
 
@@ -147,7 +147,7 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 									.and(qRecord.updatedAt.eq(latestRecordSubquery)))
 					.leftJoin(qcase.assignees, qAssignee)
 					.where(rootPredicate)
-					.distinct() // important to avoid duplicates
+					.distinct()
 					.fetchOne();
 		}
 
@@ -178,14 +178,12 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 			combinedPredicate = combinedPredicate.and(statusPredicate);
 		}
 
-		// Get latest investigation record subquery
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
 				.where(qRecord.caseInstance.caseId.eq(qCase.caseId)
 						.and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
-		// Main query with join to case_assignees
 		List<Tuple> results = queryFactory
 				.select(qCase, qRecord)
 				.from(qCase)
@@ -221,19 +219,12 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		return new PageImpl<>(cases, pageable, total != null ? total : 0);
 	}
 
-	/**
-	 * Find the most recent 3 updated cases for a specific assignee
-	 *
-	 * @param userId The ID of the assigned user
-	 * @return List of the 3 most recently updated cases assigned to the user
-	 */
 	public List<Case> findRecentAssignedCases(CustomUser user) {
 		QCase qCase = QCase.case$;
 		QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
 
 		List<Tuple> results = null;
 
-		// Get latest investigation record subquery for each case
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
@@ -250,8 +241,6 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 									.and(qRecord.createdAt.eq(latestRecordSubquery)))
 					.where(qCase.creator.userId.eq(user.getId()).and(qCase.status.ne(CASE_STATUS.CLOSED)))
 					.orderBy(
-							// Order by the maximum value between investigation record updatedAt and case
-							// updatedAt
 							Expressions.dateTimeTemplate(
 									java.time.LocalDateTime.class,
 									"GREATEST({0}, {1})",
@@ -274,8 +263,6 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 									.and(qRecord.createdAt.eq(latestRecordSubquery)))
 					.where(qAssignee.userId.eq(user.getId()).and(qCase.status.ne(CASE_STATUS.CLOSED)))
 					.orderBy(
-							// Order by the maximum value between investigation record updatedAt and case
-							// updatedAt
 							Expressions.dateTimeTemplate(
 									java.time.LocalDateTime.class,
 									"GREATEST({0}, {1})",

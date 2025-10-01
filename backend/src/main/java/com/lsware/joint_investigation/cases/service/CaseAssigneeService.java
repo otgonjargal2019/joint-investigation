@@ -42,20 +42,15 @@ public class CaseAssigneeService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
-    /**
-     * Assign users to a case
-     */
     public List<CaseAssigneeDto> assignUsersToCase(AssignUsersRequest request, CustomUser user) {
         log.info("Assigning {} users to case {}", request.getUserIds().size(), request.getCaseId());
 
-        // Validate case exists
         Tuple caseInstance = caseRepository.findById(request.getCaseId(), user);
 
         if (caseInstance == null) {
             throw new IllegalArgumentException("Case not found with ID: " + request.getCaseId());
         }
 
-        // Validate users exist
         List<Users> users = userRepository.findByUserIds(request.getUserIds());
         if (users.size() != request.getUserIds().size()) {
             throw new IllegalArgumentException("One or more users not found");
@@ -65,7 +60,7 @@ public class CaseAssigneeService {
         LocalDateTime now = LocalDateTime.now();
 
         for (UUID userId : request.getUserIds()) {
-            // Check if user is already assigned to this case
+
             if (!caseAssigneeRepository.existsByCaseIdAndUserId(request.getCaseId(), userId)) {
                 CaseAssignee assignment = CaseAssignee.builder()
                         .caseId(request.getCaseId())
@@ -83,17 +78,12 @@ public class CaseAssigneeService {
             log.info("Successfully assigned {} users to case {}", assignments.size(), request.getCaseId());
         }
 
-        // Return the current assignments for the case
         return getCaseAssignees(request.getCaseId(), user);
     }
 
-    /**
-     * Remove user assignments from a case
-     */
     public void removeUsersFromCase(RemoveAssigneesRequest request) {
         log.info("Removing {} users from case {}", request.getUserIds().size(), request.getCaseId());
 
-        // Validate case exists
         if (!caseRepository.existsById(request.getCaseId())) {
             throw new IllegalArgumentException("Case not found with ID: " + request.getCaseId());
         }
@@ -102,16 +92,12 @@ public class CaseAssigneeService {
         log.info("Successfully removed {} users from case {}", request.getUserIds().size(), request.getCaseId());
     }
 
-    /**
-     * Get all users assigned to a case
-     */
     @Transactional(readOnly = true)
     public List<CaseAssigneeDto> getCaseAssignees(UUID caseId, CustomUser user) {
         log.debug("Fetching assignees for case {}", caseId);
 
         List<CaseAssignee> assignments = caseAssigneeRepository.findByCaseIdWithUserDetails(caseId, user.getId());
 
-        // Force loading of lazy user details
         if (!assignments.isEmpty()) {
             if (assignments.get(0).getUser() != null) {
                 assignments.get(0).getUser().getCountry();
@@ -125,9 +111,6 @@ public class CaseAssigneeService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all cases assigned to a user
-     */
     @Transactional(readOnly = true)
     public List<CaseAssigneeDto> getUserAssignments(UUID userId) {
         log.debug("Fetching case assignments for user {}", userId);
@@ -145,69 +128,49 @@ public class CaseAssigneeService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Check if a user is assigned to a case
-     */
     @Transactional(readOnly = true)
     public boolean isUserAssignedToCase(UUID caseId, UUID userId) {
         return caseAssigneeRepository.existsByCaseIdAndUserId(caseId, userId);
     }
 
-    /**
-     * Get assignment count for a case
-     */
     @Transactional(readOnly = true)
     public long getAssignmentCount(UUID caseId) {
         return caseAssigneeRepository.countByCaseId(caseId);
     }
 
-    /**
-     * Get case count for a user
-     */
     @Transactional(readOnly = true)
     public long getUserCaseCount(UUID userId) {
         return caseAssigneeRepository.countByUserId(userId);
     }
 
-    /**
-     * Remove all assignments for a case (used when deleting a case)
-     */
     public void removeAllAssignmentsForCase(UUID caseId) {
         log.info("Removing all assignments for case {}", caseId);
         caseAssigneeRepository.deleteByCaseId(caseId);
     }
 
-    /**
-     * Update all assignments for a case (replace existing assignments)
-     */
     public List<CaseAssigneeDto> updateCaseAssignments(AssignUsersRequest request, CustomUser user) {
         log.info("Updating all assignments for case {} with {} users",
                 request.getCaseId(), request.getUserIds().size());
 
-        // Validate case exists
         Tuple caseInstance = caseRepository.findById(request.getCaseId(), user);
         if (caseInstance == null) {
             throw new IllegalArgumentException("Case not found with ID: " + request.getCaseId());
         }
 
-        // Get case details for notification
         Case caseEntity = caseInstance.get(QCase.case$);
         CaseDto caseDto = caseEntity.toDto();
 
-        // Validate users exist
         List<Users> users = userRepository.findByUserIds(request.getUserIds());
         if (users.size() != request.getUserIds().size()) {
             throw new IllegalArgumentException("One or more users not found");
         }
 
-        // Get current assignees before making changes
         Set<UUID> currentAssignees = caseAssigneeRepository
                 .findByCaseIdWithUserDetails(request.getCaseId(), user.getId())
                 .stream()
                 .map(CaseAssignee::getUserId)
                 .collect(Collectors.toSet());
 
-        // Determine newly assigned and newly unassigned users
         Set<UUID> newAssignees = request.getUserIds().stream()
                 .filter(userId -> !currentAssignees.contains(userId))
                 .collect(Collectors.toSet());
@@ -216,10 +179,8 @@ public class CaseAssigneeService {
                 .filter(userId -> !request.getUserIds().contains(userId))
                 .collect(Collectors.toSet());
 
-        // Remove all existing assignments for this case
         caseAssigneeRepository.deleteByCaseId(request.getCaseId());
 
-        // Create new assignments
         List<CaseAssignee> assignments = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
@@ -231,12 +192,10 @@ public class CaseAssigneeService {
             assignments.add(assignment);
         }
 
-        // Save all assignments
         List<CaseAssignee> savedAssignments = caseAssigneeRepository.saveAll(assignments);
         log.info("Successfully updated {} assignments for case {}",
                 savedAssignments.size(), request.getCaseId());
 
-        // Send notifications to newly assigned users
         for (UUID userId : newAssignees) {
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -256,7 +215,6 @@ public class CaseAssigneeService {
             }
         }
 
-        // Send notifications to newly unassigned users
         for (UUID userId : removedAssignees) {
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -276,13 +234,9 @@ public class CaseAssigneeService {
             }
         }
 
-        // Fetch assignments with user details for return
         return getCaseAssignees(request.getCaseId(), user);
     }
 
-    /**
-     * Convert CaseAssignee entity to DTO
-     */
     private CaseAssigneeDto convertToDto(CaseAssignee assignment) {
         CaseAssigneeDto dto = CaseAssigneeDto.builder()
                 .caseId(assignment.getCaseId())

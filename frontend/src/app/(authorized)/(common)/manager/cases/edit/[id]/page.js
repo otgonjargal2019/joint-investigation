@@ -22,7 +22,7 @@ function EditCase() {
   const onSubmit = async (data) => {
     try {
       const response = await updateCase.mutateAsync({
-        caseId: caseId, // Include the case ID for update
+        caseId: caseId,
         caseName: data.caseName,
         caseOutline: data.caseOutline,
         contentType: data.contentType,

@@ -92,7 +92,7 @@ public class CaseService {
 	}
 
 	public MappingJacksonValue getCaseById(UUID caseId, CustomUser user) throws RuntimeException {
-		// Fetch the case with latest investigation record
+
 		Tuple caseEntity = caseRepository.findById(caseId, user);
 
 		if (caseEntity != null) {
@@ -111,24 +111,20 @@ public class CaseService {
 
 	@PreAuthorize("hasRole('INVESTIGATOR') or hasRole('RESEARCHER')")
 	public MappingJacksonValue getAssignedCases(CustomUser user, String name, CASE_STATUS status, Pageable pageable) {
-		// Fetch cases where the user is assigned through case_assignees table
 		var casePage = caseRepository.findAssignedCases(user.getId(), name, status, pageable);
 		List<Case> recentCases = caseRepository.findRecentAssignedCases(user);
 
-		// Convert to DTOs
 		var caseDtos = casePage.getContent().stream()
 				.map(Case::toDto)
 				.collect(Collectors.toList());
 
-		// Create response map with pagination info
 		Map<String, Object> response = Map.of(
-			"recentCases", recentCases.stream().map(Case::toDto).collect(Collectors.toList()),
-			"rows", caseDtos,
-			"total", casePage.getTotalElements(),
-			"totalPages", casePage.getTotalPages(),
-			"size", casePage.getSize(),
-			"number", casePage.getNumber()
-		);
+				"recentCases", recentCases.stream().map(Case::toDto).collect(Collectors.toList()),
+				"rows", caseDtos,
+				"total", casePage.getTotalElements(),
+				"totalPages", casePage.getTotalPages(),
+				"size", casePage.getSize(),
+				"number", casePage.getNumber());
 
 		MappingJacksonValue mapping = new MappingJacksonValue(response);
 

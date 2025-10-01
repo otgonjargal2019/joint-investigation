@@ -33,22 +33,19 @@ public class AttachFileController {
     @Autowired
     private AttachFileService attachFileService;
 
-    /**
-     * Create a new attached file
-     */
     @PostMapping("/create")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<AttachFileDto> createAttachFile(
             @RequestBody CreateAttachFileRequest request,
             Authentication authentication) {
-        
+
         try {
             // Get user ID from authentication
             UUID uploadedByUserId = UUID.fromString(authentication.getName());
-            
+
             AttachFileDto created = attachFileService.createAttachFile(request, uploadedByUserId);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
-            
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         } catch (EntityNotFoundException e) {
@@ -58,16 +55,13 @@ public class AttachFileController {
         }
     }
 
-    /**
-     * Get attach file by ID
-     */
     @GetMapping("/{fileId}")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<AttachFileDto> getAttachFileById(@PathVariable UUID fileId) {
         try {
             AttachFileDto attachFile = attachFileService.getAttachFileById(fileId);
             return ResponseEntity.ok(attachFile);
-            
+
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -75,19 +69,16 @@ public class AttachFileController {
         }
     }
 
-    /**
-     * Update an existing attach file
-     */
     @PutMapping("/{fileId}")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<AttachFileDto> updateAttachFile(
             @PathVariable UUID fileId,
             @RequestBody UpdateAttachFileRequest request) {
-        
+
         try {
             AttachFileDto updated = attachFileService.updateAttachFile(fileId, request);
             return ResponseEntity.ok(updated);
-            
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         } catch (EntityNotFoundException e) {
@@ -97,16 +88,13 @@ public class AttachFileController {
         }
     }
 
-    /**
-     * Delete an attach file
-     */
     @DeleteMapping("/{fileId}")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN')")
     public ResponseEntity<Void> deleteAttachFile(@PathVariable UUID fileId) {
         try {
             attachFileService.deleteAttachFile(fileId);
             return ResponseEntity.noContent().build();
-            
+
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -114,78 +102,63 @@ public class AttachFileController {
         }
     }
 
-    /**
-     * Get all attach files for an investigation record
-     */
     @GetMapping("/by-record/{recordId}")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<List<AttachFileDto>> getAttachFilesByRecordId(@PathVariable UUID recordId) {
         try {
             List<AttachFileDto> attachFiles = attachFileService.getAttachFilesByRecordId(recordId);
             return ResponseEntity.ok(attachFiles);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    /**
-     * Get attach files by file type
-     */
     @GetMapping("/by-type")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<List<AttachFileDto>> getAttachFilesByFileType(
             @RequestParam AttachFile.FileType fileType) {
-        
+
         try {
             List<AttachFileDto> attachFiles = attachFileService.getAttachFilesByFileType(fileType);
             return ResponseEntity.ok(attachFiles);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    /**
-     * Get digital evidence files
-     */
     @GetMapping("/digital-evidence")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<List<AttachFileDto>> getDigitalEvidenceFiles() {
         try {
             List<AttachFileDto> attachFiles = attachFileService.getDigitalEvidenceFiles();
             return ResponseEntity.ok(attachFiles);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    /**
-     * Get investigation report files
-     */
     @GetMapping("/investigation-reports")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<List<AttachFileDto>> getInvestigationReportFiles() {
         try {
             List<AttachFileDto> attachFiles = attachFileService.getInvestigationReportFiles();
             return ResponseEntity.ok(attachFiles);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    /**
-     * Count files by investigation record
-     */
     @GetMapping("/count/by-record/{recordId}")
     @PreAuthorize("hasAnyAuthority('INV_ADMIN', 'PLATFORM_ADMIN', 'INVESTIGATOR')")
     public ResponseEntity<Long> countFilesByRecordId(@PathVariable UUID recordId) {
         try {
             long count = attachFileService.countFilesByRecordId(recordId);
             return ResponseEntity.ok(count);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

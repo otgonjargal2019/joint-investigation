@@ -78,10 +78,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Create a new investigation record with file uploads
-	 * Handles multipart/form-data requests with files
-	 */
 	@PostMapping(value = "/create-with-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<MappingJacksonValue> createInvestigationRecordWithFiles(
 			@RequestPart("record") CreateInvestigationRecordMultipartRequest request,
@@ -107,9 +103,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Get investigation record by ID
-	 */
 	@GetMapping("/{recordId}")
 	public ResponseEntity<MappingJacksonValue> getInvestigationRecordById(
 			@PathVariable UUID recordId,
@@ -135,9 +128,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Update an existing investigation record
-	 */
 	@PutMapping("/{recordId}")
 	public ResponseEntity<MappingJacksonValue> updateInvestigationRecord(
 			@PathVariable UUID recordId,
@@ -161,10 +151,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Update an existing investigation record with new file attachments
-	 * New files are added to existing attachments without overwriting
-	 */
 	@PutMapping(value = "/update-with-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<MappingJacksonValue> updateInvestigationRecordWithFiles(
 			@RequestPart("record") UpdateInvestigationRecordRequest request,
@@ -200,9 +186,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Reject an investigation record
-	 */
 	@PostMapping("/reject")
 	public ResponseEntity<MappingJacksonValue> rejectInvestigationRecord(
 			@RequestBody RejectInvestigationRecordRequest request,
@@ -228,9 +211,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Approve an investigation record
-	 */
 	@PostMapping("/approve")
 	public ResponseEntity<MappingJacksonValue> approveInvestigationRecord(
 			@RequestBody ApproveInvestigationRecordRequest request,
@@ -256,9 +236,6 @@ public class InvestigationController {
 		}
 	}
 
-	/**
-	 * Request review for an investigation record
-	 */
 	@PatchMapping("/requestReview")
 	public ResponseEntity<MappingJacksonValue> requestReviewInvestigationRecord(
 			@RequestBody RequestReviewInvestigationRecordRequest request,

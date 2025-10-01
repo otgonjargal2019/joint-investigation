@@ -32,7 +32,6 @@ function LoginPage() {
     resolver: zodResolver(loginFormSchema),
     defaultValues: { stayLoggedIn: true },
   });
-  //const [error, setError] = useState(true);
 
   const t = useTranslations();
   const router = useRouter();

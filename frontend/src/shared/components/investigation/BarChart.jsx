@@ -1,11 +1,18 @@
 "use client";
 
-import React from 'react';
-import { BarChart as RBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import React from "react";
+import {
+  BarChart as RBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
-// Match palette used throughout the dashboard
-const COLORS = ['#36E1E9', '#1BD3C1', '#8FE36A', '#D9F36A'];
-const LABELS = ['드라마', '영화', '웹툰', '음원'];
+const COLORS = ["#36E1E9", "#1BD3C1", "#8FE36A", "#D9F36A"];
+const LABELS = ["드라마", "영화", "웹툰", "음원"];
 
 function LegendDots() {
   return (
@@ -29,7 +36,6 @@ export default function BarChart({ data }) {
       className="w-full outline-none focus:outline-none focus-visible:outline-none"
       onMouseDown={(e) => e.preventDefault()}
     >
-
       <div className="h-56">
         <ResponsiveContainer
           width="100%"
@@ -51,17 +57,17 @@ export default function BarChart({ data }) {
               dataKey="country"
               tickLine={false}
               axisLine={false}
-              tick={{ fill: '#e6e6e6', fontSize: 12 }}
+              tick={{ fill: "#e6e6e6", fontSize: 12 }}
             />
             <YAxis tick={false} tickLine={false} axisLine={false} width={0} />
             <Tooltip
               contentStyle={{
-                background: '#0f1110',
-                border: '1px solid #e6f36a',
-                color: '#ffffff',
+                background: "#0f1110",
+                border: "1px solid #e6f36a",
+                color: "#ffffff",
                 borderRadius: 8,
               }}
-              wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
+              wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
               cursor={false}
               offset={12}
               allowEscapeViewBox={{ x: true, y: true }}

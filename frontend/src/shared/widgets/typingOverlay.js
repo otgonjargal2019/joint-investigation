@@ -14,7 +14,6 @@ const TypingOverlay = ({ text, onComplete }) => {
     }
   }, []);
 
-  // Blinking cursor effect
   useEffect(() => {
     if (!isComplete) {
       const interval = setInterval(() => {
@@ -26,7 +25,6 @@ const TypingOverlay = ({ text, onComplete }) => {
     }
   }, [isComplete]);
 
-  // Call onComplete when typing is finished
   useEffect(() => {
     if (isComplete && onComplete) {
       onComplete();
@@ -37,7 +35,6 @@ const TypingOverlay = ({ text, onComplete }) => {
     const value = e.target.value;
     if (value.length > text.length) return;
 
-    // Allow all input, don't prevent incorrect characters
     setUserInput(value);
   };
 
@@ -50,7 +47,6 @@ const TypingOverlay = ({ text, onComplete }) => {
         margin: "20px auto",
       }}
     >
-      {/* Render text with per-character coloring */}
       <div
         style={{
           fontSize: "1.2rem",
@@ -60,36 +56,36 @@ const TypingOverlay = ({ text, onComplete }) => {
           padding: "12px",
           border: isComplete ? "2px solid #22c55e" : "2px solid #ccc",
           borderRadius: "8px",
-          minHeight: "60px", // Reduced minimum height
-          height: "auto", // Allow dynamic height
+          minHeight: "60px",
+          height: "auto",
           backgroundColor: isComplete ? "#f0fdf4" : "#ffffff",
           lineHeight: "1.5",
           position: "relative",
-          overflow: "visible", // Ensure content is not clipped
+          overflow: "visible",
         }}
       >
         {text.split("").map((char, idx) => {
           let style = {};
           if (idx < userInput.length) {
             if (userInput[idx] === char) {
-              style.color = "#22c55e"; // green for correct
+              style.color = "#22c55e";
               style.fontWeight = "600";
             } else {
-              style.color = "#ef4444"; // red for incorrect
+              style.color = "#ef4444";
               style.backgroundColor = "#fef2f2";
               style.fontWeight = "600";
             }
           } else if (idx === userInput.length) {
-            style.color = "#374151"; // current character
+            style.color = "#374151";
             style.backgroundColor = "#f3f4f6";
           } else {
-            style.color = "#9ca3af"; // not typed yet
+            style.color = "#9ca3af";
           }
 
           return (
             <React.Fragment key={idx}>
               <span style={style}>{char}</span>
-              {/* Show cursor after this character if it's the last typed character */}
+
               {idx === userInput.length - 1 && !isComplete && (
                 <span
                   style={{
@@ -107,7 +103,6 @@ const TypingOverlay = ({ text, onComplete }) => {
           );
         })}
 
-        {/* Show cursor at the beginning if no characters typed yet */}
         {userInput.length === 0 && !isComplete && (
           <span
             style={{
@@ -126,7 +121,6 @@ const TypingOverlay = ({ text, onComplete }) => {
         )}
       </div>
 
-      {/* Invisible input on top to capture typing */}
       <input
         ref={inputRef}
         type="text"
@@ -137,7 +131,7 @@ const TypingOverlay = ({ text, onComplete }) => {
           position: "absolute",
           top: 0,
           left: 0,
-          opacity: 0, // invisible
+          opacity: 0,
           width: "100%",
           height: "100%",
           cursor: isComplete ? "default" : "text",

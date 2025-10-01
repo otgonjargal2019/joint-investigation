@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -19,7 +18,6 @@ import com.lsware.joint_investigation.notification.service.NotificationService;
 import com.lsware.joint_investigation.user.dto.UserDto;
 import com.lsware.joint_investigation.user.entity.Role;
 import com.lsware.joint_investigation.user.entity.Users;
-import com.lsware.joint_investigation.user.entity.Users.USER_STATUS;
 import com.lsware.joint_investigation.user.repository.CountryRepository;
 import com.lsware.joint_investigation.user.repository.DepartmentRepository;
 import com.lsware.joint_investigation.user.repository.HeadquarterRepository;
@@ -222,49 +220,4 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<HashMap<String, Object>> create() {
-
-        String email = "user1@gmail.com";
-        String password = "password";
-        String nameEn = "user1";
-
-        Users testUser = new Users();
-        testUser.setEmail(email);
-        testUser.setNameEn(nameEn);
-        // testUser.setUserId(UUID.randomUUID());
-        testUser.setPasswordHash(passwordEncoder.encode(password));
-        // testUser.setCountry("MGL");
-        testUser.setLoginId("user1");
-        testUser.setNameKr("nameKr");
-        testUser.setRole(Role.PLATFORM_ADMIN);
-        testUser.setStatus(USER_STATUS.APPROVED);
-        testUser.setCreatedAt(LocalDateTime.now());
-        testUser.setUpdatedAt(LocalDateTime.now());
-        testUser.setCountryId(Long.valueOf(1));
-        testUser.setDepartmentId(Long.valueOf(1));
-        testUser.setHeadquarterId(Long.valueOf(1));
-        userRepository.save(testUser);
-
-        email = "user2@gmail.com";
-        nameEn = "user2";
-        testUser = new Users();
-        testUser.setEmail(email);
-        testUser.setNameEn(nameEn);
-        // testUser.setUserId(UUID.randomUUID());
-        testUser.setPasswordHash(passwordEncoder.encode(password));
-        // testUser.setCountry("MGL");
-        testUser.setLoginId("user2");
-        testUser.setNameKr("nameKr2");
-        testUser.setRole(Role.PLATFORM_ADMIN);
-        testUser.setStatus(USER_STATUS.APPROVED);
-        testUser.setCreatedAt(LocalDateTime.now());
-        testUser.setUpdatedAt(LocalDateTime.now());
-        testUser.setCountryId(Long.valueOf(1));
-        testUser.setDepartmentId(Long.valueOf(1));
-        testUser.setHeadquarterId(Long.valueOf(1));
-        userRepository.save(testUser);
-
-        return ResponseEntity.status(HttpStatusCode.valueOf(200)).build();
-    }
 }

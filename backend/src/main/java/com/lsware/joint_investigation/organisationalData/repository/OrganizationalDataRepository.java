@@ -25,9 +25,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         queryFactory = new JPAQueryFactory(em);
     }
 
-    /**
-     * Get all investigators from a specific country
-     */
     public List<Users> findInvestigatorsByCountryId(Long countryId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.eq(countryId));
@@ -41,9 +38,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get all INV_ADMIN users from countries other than the specified country
-     */
     public List<Users> findInvAdminsFromOtherCountries(Long excludeCountryId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.ne(excludeCountryId));
@@ -57,9 +51,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get all headquarters for a specific country
-     */
     public List<Headquarter> findHeadquartersByCountryId(Long countryId) {
         return queryFactory
                 .selectFrom(headquarter)
@@ -68,9 +59,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get all departments for a specific country
-     */
     public List<Department> findDepartmentsByCountryId(Long countryId) {
         return queryFactory
                 .selectFrom(department)
@@ -79,9 +67,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get country by ID
-     */
     public Country findCountryById(Long countryId) {
         return queryFactory
                 .selectFrom(country)
@@ -89,9 +74,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetchOne();
     }
 
-    /**
-     * Get all countries except the specified one
-     */
     public List<Country> findOtherCountries(Long excludeCountryId) {
         return queryFactory
                 .selectFrom(country)
@@ -100,9 +82,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get headquarters for a specific country with optional name search
-     */
     public List<Headquarter> findHeadquartersByCountryIdWithSearch(Long countryId, String headquarterName) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(headquarter.country.id.eq(countryId));
@@ -118,9 +97,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get departments for a specific country with optional name search
-     */
     public List<Department> findDepartmentsByCountryIdWithSearch(Long countryId, String headquarterName,
             String departmentName) {
         BooleanBuilder builder = new BooleanBuilder();
@@ -141,9 +117,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get investigators for a specific country with optional search filters
-     */
     public List<Users> findInvestigatorsByCountryIdWithSearch(Long countryId, String headquarterName,
             String departmentName, String investigatorName) {
         BooleanBuilder builder = new BooleanBuilder();
@@ -158,7 +131,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
             builder.and(nameBuilder);
         }
 
-        // Join with department and headquarter for filtering
         if ((headquarterName != null && !headquarterName.trim().isEmpty()) ||
                 (departmentName != null && !departmentName.trim().isEmpty())) {
 
@@ -184,10 +156,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         }
     }
 
-    /**
-     * Get INV_ADMIN users from countries other than the specified country with
-     * search filters
-     */
     public List<Users> findInvAdminsFromOtherCountriesWithSearch(Long excludeCountryId, String countryName,
             String invAdminName) {
         BooleanBuilder builder = new BooleanBuilder();
@@ -217,12 +185,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
 
     }
 
-    /**
-     * Get investigators for a specific country with unified search across all
-     * fields using OR operator
-     * Searches for the searchWord in country name, headquarter name, department
-     * name, or user name
-     */
     public List<Users> findInvestigatorsByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(users.countryId.eq(countryId));
@@ -236,15 +198,13 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
 
             searchBuilder.or(headquarter.name.containsIgnoreCase(searchWord.trim()));
             searchBuilder.or(department.name.containsIgnoreCase(searchWord.trim()));
-            // Search in user names (Korean or English)
+
             searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
 
             builder.and(searchBuilder);
         }
 
-        // Always join with department, headquarter, and country for complete data
-        // access
         return queryFactory
                 .selectFrom(users)
                 .join(department).on(users.departmentId.eq(department.id))
@@ -255,9 +215,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get headquarters for a specific country with unified search
-     */
     public List<Headquarter> findHeadquartersByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(headquarter.country.id.eq(countryId));
@@ -266,10 +223,8 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
             String trimmedSearch = searchWord.trim();
             BooleanBuilder searchBuilder = new BooleanBuilder();
 
-            // Search in country name or headquarter name
             searchBuilder.or(headquarter.name.containsIgnoreCase(trimmedSearch));
 
-            // Also search in departments and users associated with this headquarter
             searchBuilder.or(department.name.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameEn.containsIgnoreCase(trimmedSearch));
@@ -281,7 +236,8 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .selectFrom(headquarter)
                 .leftJoin(department).on(department.headquarter.id.eq(headquarter.id))
                 .leftJoin(users)
-                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)))
+                .on(users.departmentId.eq(department.id)
+                        .and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)))
                         .and(users.status.eq(Users.USER_STATUS.APPROVED)
                                 .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
                 .where(builder)
@@ -290,9 +246,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get departments for a specific country with unified search
-     */
     public List<Department> findDepartmentsByCountryIdWithUnifiedSearch(Long countryId, String searchWord) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(department.headquarter.country.id.eq(countryId));
@@ -301,7 +254,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
             String trimmedSearch = searchWord.trim();
             BooleanBuilder searchBuilder = new BooleanBuilder();
 
-            // Search in headquarter name, department name, or user names
             searchBuilder.or(department.headquarter.name.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(department.name.containsIgnoreCase(trimmedSearch));
             searchBuilder.or(users.nameKr.containsIgnoreCase(trimmedSearch));
@@ -313,7 +265,8 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
         return queryFactory
                 .selectFrom(department)
                 .leftJoin(users)
-                .on(users.departmentId.eq(department.id).and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)))
+                .on(users.departmentId.eq(department.id)
+                        .and(users.role.eq(Role.INVESTIGATOR).or(users.role.eq(Role.RESEARCHER)))
                         .and(users.status.eq(Users.USER_STATUS.APPROVED)
                                 .or(users.status.eq(Users.USER_STATUS.WAITING_TO_CHANGE))))
                 .where(builder)
@@ -322,9 +275,6 @@ public class OrganizationalDataRepository extends SimpleJpaRepository<Users, Int
                 .fetch();
     }
 
-    /**
-     * Get all countries except the specified one with optional name search
-     */
     public List<Country> findOtherCountriesWithSearch(Long excludeCountryId, List<Long> countryIds,
             String countryName) {
         BooleanBuilder builder = new BooleanBuilder();

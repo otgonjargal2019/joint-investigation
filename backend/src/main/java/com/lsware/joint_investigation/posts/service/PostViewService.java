@@ -34,7 +34,7 @@ public class PostViewService {
         try {
             postViewRepository.save(postView);
         } catch (DataIntegrityViolationException e) {
-            // Already exists, ignore
+
         }
     }
 }

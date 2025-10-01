@@ -15,7 +15,7 @@ export const useOrganizationalData = () => {
       const { data } = await axiosInstance.get(API_ENDPOINTS.COMPLETE_TREE);
       return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - organizational data doesn't change frequently
+    staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 };
@@ -37,14 +37,17 @@ export const useCurrentCountryOrganizationTree = (searchWord) => {
         params.searchWord = searchWord.trim();
       }
 
-      const { data } = await axiosInstance.get(API_ENDPOINTS.CURRENT_COUNTRY_TREE, {
-        params
-      });
+      const { data } = await axiosInstance.get(
+        API_ENDPOINTS.CURRENT_COUNTRY_TREE,
+        {
+          params,
+        }
+      );
       return data;
     },
-    staleTime: 3 * 60 * 1000, // 3 minutes - search results should be relatively fresh
+    staleTime: 3 * 60 * 1000, // 3 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
-    // Keep previous data while fetching new search results for better UX
+
     keepPreviousData: true,
   });
 };
@@ -66,14 +69,16 @@ export const useForeignInvAdminsTree = (searchWord) => {
         params.searchWord = searchWord.trim();
       }
 
-      const { data } = await axiosInstance.get(API_ENDPOINTS.FOREIGN_INV_ADMINS_TREE, {
-        params
-      });
+      const { data } = await axiosInstance.get(
+        API_ENDPOINTS.FOREIGN_INV_ADMINS_TREE,
+        {
+          params,
+        }
+      );
       return data;
     },
-    staleTime: 3 * 60 * 1000, // 3 minutes - search results should be relatively fresh
+    staleTime: 3 * 60 * 1000, // 3 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
-    // Keep previous data while fetching new search results for better UX
     keepPreviousData: true,
   });
 };
@@ -91,7 +96,7 @@ export const useCountries = () => {
       const { data } = await axiosInstance.get(API_ENDPOINTS.COUNTRIES);
       return data;
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes - countries rarely change
-    cacheTime: 30 * 60 * 1000, // 30 minutes - can cache longer
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
   });
 };

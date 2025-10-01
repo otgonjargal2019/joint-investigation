@@ -33,7 +33,8 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         super(InvestigationRecord.class, entityManager);
     }
 
-    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId, CustomUser user) {
+    private BooleanExpression createPredicate(String recordName, PROGRESS_STATUS progressStatus, String caseId,
+            CustomUser user) {
         QInvestigationRecord q = QInvestigationRecord.investigationRecord;
         QCase qcase = QCase.case$;
 
@@ -53,12 +54,11 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
 
         // Add role-based filtering for INV_ADMIN users
         if (user != null && user.getAuthorities() != null &&
-            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
             rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
             rootPredicate = rootPredicate.and(
-                q.reviewStatus.eq(REVIEW_STATUS.PENDING)
-                .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
-            );
+                    q.reviewStatus.eq(REVIEW_STATUS.PENDING)
+                            .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
         }
 
         // Add role-based filtering for INVESTIGATOR and RESEARCHER users
@@ -66,12 +66,8 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
                 user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
                         || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
             rootPredicate = rootPredicate.and(
-                q.creator.userId.eq(user.getId()).
-                or(
-                    q.creator.userId.ne(user.getId()).
-                    and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
-                )
-            );
+                    q.creator.userId.eq(user.getId()).or(
+                            q.creator.userId.ne(user.getId()).and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))));
         }
 
         return rootPredicate;
@@ -84,24 +80,19 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
         BooleanExpression rootPredicate = q.recordId.eq(recordId);
 
         if (user != null && user.getAuthorities() != null &&
-            user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
+                user.getAuthorities().stream().anyMatch(auth -> "ROLE_INV_ADMIN".equals(auth.getAuthority()))) {
             rootPredicate = rootPredicate.and(qcase.creator.userId.eq(user.getId()));
             rootPredicate = rootPredicate.and(
-                q.reviewStatus.eq(REVIEW_STATUS.PENDING)
-                .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
-            );
+                    q.reviewStatus.eq(REVIEW_STATUS.PENDING)
+                            .or(q.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
         }
 
         if (user != null && user.getAuthorities() != null &&
                 user.getAuthorities().stream().anyMatch(auth -> "ROLE_INVESTIGATOR".equals(auth.getAuthority())
                         || "ROLE_RESEARCHER".equals(auth.getAuthority()))) {
             rootPredicate = rootPredicate.and(
-                q.creator.userId.eq(user.getId()).
-                or(
-                    q.creator.userId.ne(user.getId()).
-                    and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
-                )
-            );
+                    q.creator.userId.eq(user.getId()).or(
+                            q.creator.userId.ne(user.getId()).and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))));
         }
 
         InvestigationRecord result = queryFactory
@@ -144,30 +135,24 @@ public class InvestigationRecordRepository extends SimpleJpaRepository<Investiga
                 "total", total);
     }
 
-    /**
-     * Find the most recent APPROVED investigation record for a case, excluding a specific record ID.
-     * Useful to compare the newly approved record's progress with the previous approved one.
-     */
     public Optional<InvestigationRecord> findPreviousApprovedByCase(UUID caseId, UUID excludeRecordId) {
-    QInvestigationRecord q = QInvestigationRecord.investigationRecord;
+        QInvestigationRecord q = QInvestigationRecord.investigationRecord;
 
-    InvestigationRecord result = queryFactory
-        .selectFrom(q)
-        .where(
-            q.caseInstance.caseId.eq(caseId)
-                .and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
-                .and(q.recordId.ne(excludeRecordId))
-        )
-        .orderBy(
-            // Prefer reviewedAt desc; fallback to updatedAt/createdAt for stable ordering
-            q.reviewedAt.desc(),
-            q.updatedAt.desc(),
-            q.createdAt.desc()
-        )
-        .limit(1)
-        .fetchOne();
+        InvestigationRecord result = queryFactory
+                .selectFrom(q)
+                .where(
+                        q.caseInstance.caseId.eq(caseId)
+                                .and(q.reviewStatus.eq(REVIEW_STATUS.APPROVED))
+                                .and(q.recordId.ne(excludeRecordId)))
+                .orderBy(
 
-    return Optional.ofNullable(result);
+                        q.reviewedAt.desc(),
+                        q.updatedAt.desc(),
+                        q.createdAt.desc())
+                .limit(1)
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 
 }

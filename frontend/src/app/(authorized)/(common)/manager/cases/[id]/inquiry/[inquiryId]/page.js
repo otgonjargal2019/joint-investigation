@@ -34,19 +34,13 @@ const InquiryDetailPage = () => {
 
   const router = useRouter();
 
-  // Fetch investigation record data
-  const {
-    data: investigationRecordRes,
-    isLoading,
-  } = useInvestigationRecord(inquiryId);
+  const { data: investigationRecordRes, isLoading } =
+    useInvestigationRecord(inquiryId);
 
   const investigationRecord = investigationRecordRes?.data;
 
-
-  // Reject mutation
   const rejectMutation = useRejectInvestigationRecord();
 
-  // Approve mutation
   const approveMutation = useApproveInvestigationRecord();
 
   const t = useTranslations();
@@ -166,7 +160,6 @@ const InquiryDetailPage = () => {
     );
   };
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -175,7 +168,6 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show not found state
   if (!investigationRecord) {
     return (
       <div className="flex justify-center items-center h-64">
