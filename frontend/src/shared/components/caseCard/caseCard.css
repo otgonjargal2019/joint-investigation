@@ -1,12 +1,14 @@
 .case-card-wrapper {
 }
 .case-card-head {
-  min-width: 100px;
+  min-width: 130px;
+  max-width: 130px;
   height: 100px;
 }
 
 .case-card-head-2 {
-  min-width: 120px;
+  min-width: 156px;
+  max-width: 156px;
   height: 100px;
 }
 
