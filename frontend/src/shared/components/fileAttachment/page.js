@@ -16,9 +16,15 @@ const FileAttachment = ({ files }) => {
             <span className="text-black text-[20px] font-normal whitespace-nowrap">
               {t("attached-file")}
             </span>
-            <span className="text-color-20 text-[20px] font-normal">
+            <a
+              href={file.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-color-20 text-[20px] font-normal hover:opacity-80"
+              title={file.fileName}
+            >
               {file.fileName}
-            </span>
+            </a>
           </li>
         ))}
       </ul>
