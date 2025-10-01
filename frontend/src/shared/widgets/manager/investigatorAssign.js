@@ -33,21 +33,18 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   const [data2, setData2] = useState([]);
   const t = useTranslations();
 
-  // Fetch organizational data with search functionality
   const {
     data: currentCountryData,
     isLoading,
     error,
   } = useCurrentCountryOrganizationTree(queryCurrentCountry);
 
-  // Fetch foreign INV_ADMIN data with search functionality
   const {
     data: foreignInvAdminsData,
     isLoading: isForeignLoading,
     error: foreignError,
   } = useForeignInvAdminsTree(queryOtherCountries);
 
-  // Case assignment mutation
   const assignUsersMutation = useAssignUsersToCase();
 
   const transformToTreeData = (currentCountry) => {
@@ -136,7 +133,6 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   };
 
   const onClickSave = async () => {
-    // Extract user IDs from the data state
     const userIds = data.map((item) => item.id);
 
     if (!createdCaseId) {
@@ -174,7 +170,6 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
       router.push("/manager/cases");
     } catch (error) {
       console.error("Failed to assign investigators:", error);
-      // TODO: Show error notification to user
     }
   };
 

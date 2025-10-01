@@ -50,24 +50,21 @@ function CaseForm({
     formState: { errors },
   } = useForm({ resolver: zodResolver(caseSchema) });
 
-  // Fetch countries for the select dropdown first
   const {
     data: countries = [],
     isLoading: isLoadingCountries,
     isSuccess: isCountriesSuccess,
   } = useCountries();
 
-  // Fetch existing case data only after countries are loaded
   const {
     data: caseData,
     isLoading: isLoadingCase,
     error: caseError,
   } = useCaseById({
     id: caseId,
-    enabled: !!caseId && isCountriesSuccess, // Only fetch case data after countries are successfully loaded
+    enabled: !!caseId && isCountriesSuccess,
   });
 
-  // Populate form with existing case data
   useEffect(() => {
     if (caseData) {
       reset({
@@ -109,13 +106,11 @@ function CaseForm({
     { value: "OTHER", label: t("case_details.case_infringement_type.OTHER") },
   ];
 
-  // Transform countries data for SelectBox options
   const countryOptions = countries.map((country) => ({
     label: `${country.name} (${country.code})`,
     value: `${country.name} (${country.code})`,
   }));
 
-  // Loading state - show loading if either countries or case data is loading
   if (isLoadingCountries || isLoadingCase) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -126,7 +121,6 @@ function CaseForm({
     );
   }
 
-  // Error state
   if (mode === "edit" && caseError) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen">
@@ -140,7 +134,6 @@ function CaseForm({
     );
   }
 
-  // Case not found
   if (mode === "edit" && !caseData) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen">
