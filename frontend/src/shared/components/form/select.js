@@ -41,11 +41,6 @@ const SelectBox = ({
             ${className}`}
           placeholder={placeholder}
         >
-          {/* {placeholder && (
-            <option value="" disabled hidden>
-              {placeholder}
-            </option>
-          )} */}
           {options.map(({ value, label }) => (
             <option key={value} value={value}>
               {label}

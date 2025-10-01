@@ -31,7 +31,6 @@ const COLOR_MAP = {
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
-// Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
   return path.split(".").reduce((current, key) => {
     return current ? current[key] : undefined;
@@ -45,7 +44,6 @@ function IncidentPage() {
 
   const t = useTranslations();
 
-  // Get status filter based on active tab
   const getStatusFilter = (tabValue) => {
     switch (tabValue) {
       case 1:
@@ -57,13 +55,12 @@ function IncidentPage() {
     }
   };
 
-  // Fetch cases using the real API
   const {
     data: casesResponse,
     isLoading,
     error,
   } = useMyAssignedCase({
-    page: page - 1, // API uses 0-based pagination
+    page: page - 1,
     size: ROWS_PER_PAGE,
     status: getStatusFilter(activeTab),
     sortBy: "createdAt",
@@ -74,7 +71,6 @@ function IncidentPage() {
     if (!casesResponse?.rows) return [];
     return casesResponse.rows.map((row) => ({
       ...row,
-      // Pre-compute nested values for table rendering
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country"),
       "latestRecord.progressStatus": getNestedValue(
@@ -90,7 +86,6 @@ function IncidentPage() {
     router.push(`/investigator/cases/${row.caseId}`);
   };
 
-  // Show loading or error states
   if (error) {
     return (
       <div>
@@ -106,7 +101,8 @@ function IncidentPage() {
     <div>
       <PageTitle title={t("header.current-state-entire-incident")} />
       <h3 className="text-[24px] text-color-8 font-medium mb-2">
-        {casesResponse?.recentCases?.length > 0 && t("subtitle.recent-investigation")}
+        {casesResponse?.recentCases?.length > 0 &&
+          t("subtitle.recent-investigation")}
       </h3>
       <div className="w-full flex gap-6">
         {casesResponse?.recentCases?.map((item) => (

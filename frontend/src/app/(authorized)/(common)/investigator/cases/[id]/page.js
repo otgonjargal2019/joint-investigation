@@ -19,9 +19,8 @@ import { CASE_STATUS } from "@/entities/case/model/constants";
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
-// Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
-  return path.split('.').reduce((current, key) => {
+  return path.split(".").reduce((current, key) => {
     return current ? current[key] : undefined;
   }, obj);
 };
@@ -32,21 +31,15 @@ function IncidentDetailPage() {
   const router = useRouter();
   const params = useParams();
 
-  // Fetch case data using the ID from URL params
-  const {
-    data: caseData,
-    isLoading,
-    error
-  } = useCaseById({ id: params.id });
+  const { data: caseData, isLoading, error } = useCaseById({ id: params.id });
 
-  // Fetch investigation records for this case
   const {
     data: investigationRecordsData,
     isLoading: isLoadingRecords,
-    error: recordsError
+    error: recordsError,
   } = useInvestigationRecords({
     caseId: params.id,
-    page: investigationRecordsPage - 1, // Convert to 0-based for API
+    page: investigationRecordsPage - 1,
     size: ROWS_PER_PAGE,
   });
 
@@ -55,10 +48,11 @@ function IncidentDetailPage() {
   };
 
   const onClickRow = (row) => {
-    router.push(`/investigator/cases/${params.id}/investigationRecord/${row.recordId}`);
+    router.push(
+      `/investigator/cases/${params.id}/investigationRecord/${row.recordId}`
+    );
   };
 
-  // Define investigation records table columns
   const investigationRecordsColumns = [
     { key: "number", title: "No." },
     { key: "recordName", title: "수사기록" },
@@ -67,61 +61,78 @@ function IncidentDetailPage() {
       key: "createdAt",
       title: "작성일",
       render: (value) => {
-        if (!value) return '';
+        if (!value) return "";
         const date = new Date(value);
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
-      }
+      },
     },
     {
       key: "attachedFiles",
       title: "디지털 증거물",
       render: (attachedFiles) => {
-        if (!attachedFiles) return 'X';
-        return attachedFiles?.find(file => file.digitalEvidence) ? 'O' : 'X';
-      }
+        if (!attachedFiles) return "X";
+        return attachedFiles?.find((file) => file.digitalEvidence) ? "O" : "X";
+      },
     },
     {
       key: "attachedFiles",
       title: "수사보고서",
       render: (attachedFiles) => {
-        if (!attachedFiles) return 'X';
-        return attachedFiles?.find(file => file.investigationReport) ? 'O' : 'X';
-      }
+        if (!attachedFiles) return "X";
+        return attachedFiles?.find((file) => file.investigationReport)
+          ? "O"
+          : "X";
+      },
     },
     {
-      key: "reviewStatus", title: "진행상태", render: (value) => {
+      key: "reviewStatus",
+      title: "진행상태",
+      render: (value) => {
         switch (value) {
           case REVIEW_STATUS.WRITING:
-            return <span className="text-[#6B62D3]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+            return (
+              <span className="text-[#6B62D3]">
+                {t(`incident.REVIEW_STATUS.${value}`)}
+              </span>
+            );
           case REVIEW_STATUS.PENDING:
-            return <span className="text-[#9B9B9B]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+            return (
+              <span className="text-[#9B9B9B]">
+                {t(`incident.REVIEW_STATUS.${value}`)}
+              </span>
+            );
           case REVIEW_STATUS.APPROVED:
-            return <span className="text-[#656161]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+            return (
+              <span className="text-[#656161]">
+                {t(`incident.REVIEW_STATUS.${value}`)}
+              </span>
+            );
           case REVIEW_STATUS.REJECTED:
-            return <span className="text-[#FF5759]">{t(`incident.REVIEW_STATUS.${value}`)}</span>;
+            return (
+              <span className="text-[#FF5759]">
+                {t(`incident.REVIEW_STATUS.${value}`)}
+              </span>
+            );
           default:
             break;
         }
         return "";
-      }
+      },
     },
   ];
 
   const transformedData = useMemo(() => {
     if (!investigationRecordsData?.rows) return [];
-    return investigationRecordsData.rows.map(row => ({
+    return investigationRecordsData.rows.map((row) => ({
       ...row,
-      // Pre-compute nested values for table rendering
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country"),
-      // "latestRecord.progressStatus": getNestedValue(row, "latestRecord.progressStatus")
     }));
   }, [investigationRecordsData]);
 
-  // Show loading state
   if (isLoading) {
     return (
       <div>
@@ -131,7 +142,6 @@ function IncidentDetailPage() {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div>
@@ -143,7 +153,6 @@ function IncidentDetailPage() {
     );
   }
 
-  // Show not found state
   if (!caseData) {
     return (
       <div>
@@ -179,7 +188,9 @@ function IncidentDetailPage() {
             className="gap-3 w-[228.5px]"
             onClick={onClickNew}
           >
-            <div className="ml-[6px] w-[30px]"><CreateDoc width={20} height={22} /></div>
+            <div className="ml-[6px] w-[30px]">
+              <CreateDoc width={20} height={22} />
+            </div>
             {t("create-new-investigation-record")}
           </Button>
         )}
@@ -192,7 +203,9 @@ function IncidentDetailPage() {
       />
       <Pagination
         currentPage={investigationRecordsPage}
-        totalPages={Math.ceil((investigationRecordsData?.total || 0) / ROWS_PER_PAGE)}
+        totalPages={Math.ceil(
+          (investigationRecordsData?.total || 0) / ROWS_PER_PAGE
+        )}
         onPageChange={setInvestigationRecordsPage}
       />
     </div>

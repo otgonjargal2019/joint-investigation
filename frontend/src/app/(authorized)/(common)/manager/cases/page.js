@@ -23,7 +23,6 @@ const tabs = [
 
 const ROWS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE) || 10;
 
-// Helper function to safely get nested object values
 const getNestedValue = (obj, path) => {
   return path.split(".").reduce((current, key) => {
     return current ? current[key] : undefined;
@@ -32,7 +31,7 @@ const getNestedValue = (obj, path) => {
 
 function CaseListPage() {
   const [activeTab, setActiveTab] = useState(0);
-  const [page, setPage] = useState(0); // React Query uses 0-based pagination
+  const [page, setPage] = useState(0);
   const t = useTranslations();
 
   const caseStatus =
@@ -48,12 +47,10 @@ function CaseListPage() {
     status: caseStatus,
   });
 
-  // Transform the data to handle nested properties
   const transformedData = useMemo(() => {
     if (!recordsData?.rows) return [];
     return recordsData.rows.map((row) => ({
       ...row,
-      // Pre-compute nested values for table rendering
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country"),
       "latestRecord.progressStatus": getNestedValue(

@@ -24,7 +24,6 @@ const InquiryDetailPage = () => {
   const caseId = params.id;
   const investigationRecordId = params.investigationRecordId;
 
-  // Fetch investigation record data
   const {
     data: investigationRecordRes,
     isLoading,
@@ -33,11 +32,9 @@ const InquiryDetailPage = () => {
 
   const investigationRecord = investigationRecordRes?.data;
 
-  // Update investigation record with files mutation
   const updateInvestigationRecordMutation =
     useUpdateInvestigationRecordWithFiles();
 
-  // State for file management
   const [reportFiles, setReportFiles] = useState([]);
   const [digitalEvidenceFiles, setDigitalEvidenceFiles] = useState([]);
 
@@ -67,7 +64,6 @@ const InquiryDetailPage = () => {
     );
   };
 
-  // File upload handler with categorization
   const handleFileUpload = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -77,7 +73,6 @@ const InquiryDetailPage = () => {
     input.onchange = (event) => {
       const files = Array.from(event.target.files);
 
-      // Simple categorization dialog or you could implement a modal
       const fileType = window.confirm(
         "Click OK for Investigation Report files, Cancel for Digital Evidence files"
       );
@@ -92,7 +87,6 @@ const InquiryDetailPage = () => {
     input.click();
   };
 
-  // Remove file handlers
   const removeReportFile = (index) => {
     setReportFiles((prev) => prev.filter((_, i) => i !== index));
   };
@@ -103,7 +97,6 @@ const InquiryDetailPage = () => {
 
   const handleUpdateInvestigationRecord = async (formData) => {
     try {
-      // Prepare the update request data
       const updateData = {
         recordId: investigationRecordId,
         recordName: formData.recordName,
@@ -115,7 +108,6 @@ const InquiryDetailPage = () => {
           formData.progressStatus || investigationRecord.progressStatus,
       };
 
-      // Prepare file arrays
       const allFiles = [...reportFiles, ...digitalEvidenceFiles];
       const fileTypes = [
         ...reportFiles.map(() => "REPORT"),
@@ -130,7 +122,6 @@ const InquiryDetailPage = () => {
         ...digitalEvidenceFiles.map(() => false),
       ];
 
-      // Call the mutation with new files
       await updateInvestigationRecordMutation.mutateAsync({
         record: updateData,
         files: allFiles,
@@ -141,11 +132,9 @@ const InquiryDetailPage = () => {
 
       toast.success(t("incident.update-success"));
 
-      // Clear files after successful update
       setReportFiles([]);
       setDigitalEvidenceFiles([]);
 
-      // Navigate back to view page
       router.push(`/investigator/cases/${caseId}`);
     } catch (error) {
       toast.error(error.response?.data?.message || t("incident.update-error"));
@@ -189,7 +178,6 @@ const InquiryDetailPage = () => {
       break;
   }
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -198,7 +186,6 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -209,7 +196,6 @@ const InquiryDetailPage = () => {
     );
   }
 
-  // Show not found state
   if (!investigationRecord) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -298,7 +284,6 @@ const InquiryDetailPage = () => {
                 investigationRecord?.recordName || "사건 B 목격자 관련 제보",
             }}
             report={[
-              // Existing files
               ...(investigationRecord?.attachedFiles
                 ?.filter((file) => file.fileType === "REPORT")
                 .map((file) => ({
@@ -308,7 +293,6 @@ const InquiryDetailPage = () => {
                     ? `${(file.fileSize / 1024).toFixed(1)}KB`
                     : "Unknown",
                 })) || []),
-              // New files to be uploaded
               ...reportFiles.map((file, index) => ({
                 name: file.name,
                 size: `${(file.size / 1024).toFixed(1)}KB`,
@@ -317,7 +301,6 @@ const InquiryDetailPage = () => {
               })),
             ]}
             digitalEvidence={[
-              // Existing files
               ...(investigationRecord?.attachedFiles
                 ?.filter((file) => file.fileType === "EVIDENCE")
                 .map((file) => ({
@@ -327,7 +310,6 @@ const InquiryDetailPage = () => {
                     ? `${(file.fileSize / 1024).toFixed(1)}KB`
                     : "Unknown",
                 })) || []),
-              // New files to be uploaded
               ...digitalEvidenceFiles.map((file, index) => ({
                 name: file.name,
                 size: `${(file.size / 1024).toFixed(1)}KB`,

@@ -44,22 +44,18 @@ function JoinMembershipPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Watch selected country
   const selectedCountryCode = watch("countryId");
   const selectedQuarterCode = watch("headquarterId");
 
-  // Filter headquarters by selected country using state/effect
   const [headquarterOptions, setHeadquarterOptions] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
 
-  // Convert API country data to SelectBox options
   const countryOptions =
     data?.listCountry?.map((country) => ({
       label: country.name,
       value: country.id,
     })) || [];
 
-  //Filter headquarters by selected country using state/effect
   useEffect(() => {
     if (!data?.listHeadquarter) {
       setHeadquarterOptions([]);
@@ -85,7 +81,6 @@ function JoinMembershipPage() {
     }
   }, [selectedCountryCode]);
 
-  // Filter departments by selected headquarter using state/effect
   useEffect(() => {
     if (!data?.listDepartments) {
       setDepartmentOptions([]);

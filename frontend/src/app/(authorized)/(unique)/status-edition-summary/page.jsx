@@ -10,7 +10,6 @@ import StatusBar from "@/shared/components/investigation/StatusBar";
 import StageCards from "@/shared/components/investigation/StageCards";
 import investigationData from "@/data/investigationData";
 
-// Colors (match screenshot palette)
 const COLORS = {
   드라마: "#36E1E9", // cyan
   영화: "#1BD3C1", // teal
@@ -19,7 +18,6 @@ const COLORS = {
 };
 const ORDER = ["드라마", "영화", "웹툰", "음원"];
 
-// Per-ring radii to create separated multi-rings
 const RINGS = [
   { key: "음원", inner: 26, outer: 30 },
   { key: "웹툰", inner: 36, outer: 40 },
@@ -29,7 +27,7 @@ const RINGS = [
 
 function CountryRingChart({ country }) {
   const [hover, setHover] = useState({ visible: false, x: 0, y: 0 });
-  // Convert 0~100 values to [value, remainder] per ring
+
   const ringData = (k) => [
     { name: k, value: country.stats[k] ?? 0 },
     { name: "rest", value: 100 - (country.stats[k] ?? 0) },
@@ -50,7 +48,6 @@ function CountryRingChart({ country }) {
       }}
       onMouseLeave={() => setHover({ visible: false, x: 0, y: 0 })}
     >
-      {/* subtle dark disc behind arcs */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="h-36 w-36 rounded-full bg-[#1f2020]" />
       </div>
@@ -91,7 +88,6 @@ function CountryRingChart({ country }) {
         </ResponsiveContainer>
       </div>
 
-      {/* hover tooltip over the entire wrapper */}
       {hover.visible && (
         <div
           className="pointer-events-none absolute"
@@ -137,7 +133,6 @@ function CountryRingChart({ country }) {
         </div>
       )}
 
-      {/* center label */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <span className="text-[15px] font-semibold text-white">
           {country.name}
@@ -163,16 +158,13 @@ export default function InvestigationDashboard() {
   return (
     <div className="min-h-screen bg-[#232424] flex flex-col items-center py-6 px-2 md:px-8">
       <div className="w-full flex flex-col md:flex-row gap-8">
-        {/* Left: Globe */}
         <div className="flex-1 flex items-center justify-center min-h-[500px]">
           <Globe pins={investigationData.globePins} />
         </div>
-        {/* Right: Charts and Cards */}
+
         <div className="flex-[1.2] flex flex-col gap-6">
-          {/* Top: Circular Charts */}
           <div>
             <section className="w-full">
-              {/* Title and legend row */}
               <div className="mb-4 relative">
                 <div className="text-center text-[20px] font-semibold text-white">
                   국가 별 사건 발생 통계
@@ -189,7 +181,6 @@ export default function InvestigationDashboard() {
                 </div>
               </div>
 
-              {/* Grid of 4 charts */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 {countryData.map((c) => (
                   <CountryRingChart key={c.name} country={c} />
@@ -197,7 +188,7 @@ export default function InvestigationDashboard() {
               </div>
             </section>
           </div>
-          {/* Middle: Bar Chart and Status Bar */}
+
           <div className="flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-4/6">
               <div className="mb-3">
@@ -222,7 +213,7 @@ export default function InvestigationDashboard() {
               </div>
             </div>
           </div>
-          {/* Bottom: Stage Cards */}
+
           <div className="mt-2">
             <div className="mb-3">
               <div className="text-center text-[18px] font-semibold text-white">

@@ -12,7 +12,10 @@ export const useInvestigationRecords = ({
   caseId,
 } = {}) => {
   return useQuery({
-    queryKey: ["investigationRecords", { sortBy, sortDirection, page, size, progressStatus, recordName, caseId }],
+    queryKey: [
+      "investigationRecords",
+      { sortBy, sortDirection, page, size, progressStatus, recordName, caseId },
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         sortBy,
@@ -48,11 +51,13 @@ export const useInvestigationRecord = (recordId, { enabled = true } = {}) => {
   });
 
   useEffect(() => {
-      if (query.error?.response?.status === 404) {
-        console.info(`Investigation record with ID ${recordId} not found.`);
-        // side effect on error
-        queryClient.removeQueries({ queryKey: ["investigationRecord", recordId] });
-      }
+    if (query.error?.response?.status === 404) {
+      console.info(`Investigation record with ID ${recordId} not found.`);
+
+      queryClient.removeQueries({
+        queryKey: ["investigationRecord", recordId],
+      });
+    }
   }, [query.error, recordId, queryClient]);
 
   return query;

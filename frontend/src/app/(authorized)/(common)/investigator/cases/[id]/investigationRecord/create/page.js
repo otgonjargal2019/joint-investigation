@@ -36,7 +36,6 @@ const IncidentCreatePage = () => {
   const params = useParams();
   const caseId = params.id;
 
-  // State for file management
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [reportFiles, setReportFiles] = useState([]);
   const [digitalEvidenceFiles, setDigitalEvidenceFiles] = useState([]);
@@ -63,7 +62,6 @@ const IncidentCreatePage = () => {
   const day = String(date.getDate()).padStart(2, "0");
   now = `${year}-${month}-${day}`;
 
-  // File upload handler with categorization
   const handleFileUpload = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -73,7 +71,6 @@ const IncidentCreatePage = () => {
     input.onchange = (event) => {
       const files = Array.from(event.target.files);
 
-      // Simple categorization dialog or you could implement a modal
       const fileType = window.confirm(
         "Click OK for Investigation Report files, Cancel for Digital Evidence files"
       );
@@ -90,7 +87,6 @@ const IncidentCreatePage = () => {
     input.click();
   };
 
-  // Remove file handlers
   const removeReportFile = (index) => {
     setReportFiles((prev) => prev.filter((_, i) => i !== index));
   };
@@ -99,16 +95,13 @@ const IncidentCreatePage = () => {
     setDigitalEvidenceFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Form submission handler
   const onSubmit = async (formData) => {
     try {
-      // Validate required fields
       if (!formData.recordName?.trim()) {
         alert(t("Please enter a record name"));
         return;
       }
 
-      // Prepare investigation record data
       const recordData = {
         recordName: formData.recordName.trim(),
         content: formData.overview || "",
@@ -119,7 +112,6 @@ const IncidentCreatePage = () => {
         caseId: caseId,
       };
 
-      // Prepare file arrays
       const allFiles = [...reportFiles, ...digitalEvidenceFiles];
       const fileTypes = [
         ...reportFiles.map(() => "REPORT"),
@@ -134,7 +126,6 @@ const IncidentCreatePage = () => {
         ...digitalEvidenceFiles.map(() => false),
       ];
 
-      // Call the mutation
       const result = await createInvestigationRecordMutation.mutateAsync({
         record: recordData,
         files: allFiles,
@@ -143,7 +134,6 @@ const IncidentCreatePage = () => {
         investigationReportFlags,
       });
 
-      // Show success message
       toast.success(t("incident.saved-successfully"), {
         position: "top-right",
         autoClose: 3000,
@@ -153,10 +143,8 @@ const IncidentCreatePage = () => {
         draggable: true,
       });
 
-      // Navigate back to case detail
       router.push(`/investigator/cases/${caseId}`);
     } catch (error) {
-      // Show error message
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
@@ -165,7 +153,6 @@ const IncidentCreatePage = () => {
     }
   };
 
-  // Cancel handler
   const handleCancel = () => {
     router.push(`/investigator/cases/${caseId}`);
   };
@@ -245,7 +232,6 @@ const IncidentCreatePage = () => {
                 item5: caseData?.creator?.nameKr || "",
                 item6: caseData?.reviewer?.nameKr || "",
                 requestedAt: caseData?.requestedAt || "",
-                // item8: "test2",
               }}
               data={{
                 item1: watch("recordName") || "사건 B 목격자 관련 제보",
