@@ -27,7 +27,9 @@ const GrayDiv = ({ className, children }) => (
 );
 
 const WhiteDiv = ({ className, children }) => (
-  <div className={`py-1.5 px-3 border-b border-color-53 ${className}`}>
+  <div
+    className={`py-1.5 px-3 border-b border-color-53 whitespace-normal break-words ${className}`}
+  >
     {children}
   </div>
 );
