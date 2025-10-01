@@ -54,7 +54,17 @@ export default function Home() {
   };
 
   const onClickRecentCase = (row) => {
-    router.push(`/investigator/cases/${row.caseId}`);
+    switch (userInfo?.role) {
+      case ROLES.INVESTIGATOR:
+      case ROLES.RESEARCHER:
+        router.push(`/investigator/cases/${row.caseId}`);
+        break;
+        case ROLES.INV_ADMIN:
+        router.push(`/manager/cases/${row.caseId}`);
+        break;
+      default:
+        break;
+    }
   };
 
   return (
