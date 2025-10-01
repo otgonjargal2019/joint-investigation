@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/providers/authProviders";
 import { useRealTime } from "@/providers/realtimeProvider";
@@ -10,6 +10,11 @@ import ChatComposer from "@/shared/widgets/messenger/chatComposer";
 import ChatMessages from "@/shared/widgets/messenger/chatMessages";
 import UserSearchBox from "@/shared/widgets/messenger/userSearchBox";
 import SidebarUserList from "@/shared/widgets/messenger/sidebarUserList";
+import {
+  mergeMessages,
+  movePeerFirst,
+} from "@/shared/widgets/messenger/utils/messenger";
+import useChatScroll from "@/shared/widgets/messenger/hooks/useChatScroll";
 
 const limit = 10;
 
@@ -32,43 +37,21 @@ export default function MessengerPage() {
   const [messageContent, setMessageContent] = useState("");
   const [isFetchingOlder, setIsFetchingOlder] = useState(false);
 
-  const mergeMessages = (prevMessages, newMessages, prepend = false) => {
-    const map = new Map();
-    const combined = prepend
-      ? [...newMessages, ...prevMessages]
-      : [...prevMessages, ...newMessages];
-    combined.forEach((m) => map.set(m.messageId, m));
-    return Array.from(map.values()).sort(
-      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-    );
-  };
-
-  const movePeerFirst = (list, peer) => {
-    if (!peer) return list;
-
-    const existing = Array.isArray(list)
-      ? list.find((u) => u.userId === peer.userId)
-      : null;
-
-    const top = {
-      ...peer,
-      lastMessage: peer.lastMessage ?? existing?.lastMessage ?? "",
-      lastMessageTime:
-        peer.lastMessageTime ?? existing?.lastMessageTime ?? null,
-    };
-
-    const rest = Array.isArray(list)
-      ? list.filter((u) => u.userId !== peer.userId)
-      : [];
-
-    return [top, ...rest];
-  };
+  useChatScroll({
+    containerRef: chatContainerRef,
+    selectedPeer,
+    allMessages,
+    currentUserId,
+    markMessagesAsRead,
+    limit,
+  });
 
   useEffect(() => {
     if (!socket) return;
 
     const handleDirectMessage = (msg) => {
       const container = chatContainerRef.current;
+
       const isMessageForSelected =
         selectedPeerRef.current &&
         (msg.senderId === selectedPeerRef.current.userId ||
@@ -76,11 +59,12 @@ export default function MessengerPage() {
           msg.senderId === currentUserId);
 
       if (isMessageForSelected) {
-        const nearBottom =
-          container.scrollHeight -
-            container.scrollTop -
-            container.clientHeight <
-          50;
+        const nearBottom = container
+          ? container.scrollHeight -
+              container.scrollTop -
+              container.clientHeight <
+            50
+          : false;
 
         setAllMessages((prev) => mergeMessages(prev, [msg]));
 
@@ -91,7 +75,7 @@ export default function MessengerPage() {
           markMessagesAsRead(msg.senderId);
         }
 
-        if (nearBottom) {
+        if (nearBottom && container) {
           requestAnimationFrame(() => {
             container.scrollTop = container.scrollHeight;
           });
@@ -113,14 +97,13 @@ export default function MessengerPage() {
     socket.on("directMessage", handleDirectMessage);
 
     socket.on("refreshUserList", (updatedUsers) => {
-      setDisplayedUsers((prev) =>
+      setDisplayedUsers(
         selectedPeerRef.current
           ? movePeerFirst(updatedUsers, selectedPeerRef.current)
           : updatedUsers
       );
     });
 
-    // Initial user list fetch
     socket.emit("getChatUsers", (res) => {
       setDisplayedUsers(res);
     });
@@ -129,7 +112,7 @@ export default function MessengerPage() {
       socket.off("directMessage", handleDirectMessage);
       socket.off("refreshUserList");
     };
-  }, [socket, currentUserId]);
+  }, [socket, currentUserId, markMessagesAsRead]);
 
   useEffect(() => {
     selectedPeerRef.current = selectedPeer;
@@ -137,8 +120,9 @@ export default function MessengerPage() {
 
   const handleSelectPeer = (peer) => {
     setSelectedPeer(peer);
-
     markMessagesAsRead(peer.userId);
+
+    oldestMessageRef.current = null;
 
     if (socket) {
       socket.emit("getHistory", { peerId: peer.userId, limit }, (res) => {
@@ -147,62 +131,17 @@ export default function MessengerPage() {
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
         setAllMessages(sorted);
-        if (sorted.length > 0) oldestMessageRef.current = sorted[0].createdAt;
+        oldestMessageRef.current = sorted[0]?.createdAt ?? null;
       });
     }
   };
-
-  useLayoutEffect(() => {
-    if (!chatContainerRef.current || !selectedPeer) return;
-
-    const container = chatContainerRef.current;
-
-    // Only auto-scroll if:
-    // 1. User just selected a peer (allMessages length small) OR
-    // 2. User is already near the bottom (new message)
-    const isNearBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight <
-      50;
-
-    const justSelectedPeer = allMessages.length <= limit;
-
-    if (isNearBottom || justSelectedPeer) {
-      container.scrollTop = container.scrollHeight;
-    }
-
-    // Mark messages as read when they become visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const messageId = entry.target.getAttribute("data-message-id");
-            const senderId = entry.target.getAttribute("data-sender-id");
-            if (senderId && senderId !== currentUserId) {
-              markMessagesAsRead(senderId);
-            }
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    // Observe all unread messages from the selected peer
-    const unreadMessages = container.querySelectorAll(
-      '.message-bubble[data-is-read="false"]'
-    );
-    unreadMessages.forEach((msg) => observer.observe(msg));
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [allMessages, selectedPeer, currentUserId, markMessagesAsRead]);
 
   const fetchHistory = (peerId, before = null) => {
     if (isFetchingOlder || !socket) return;
     setIsFetchingOlder(true);
 
     const container = chatContainerRef.current;
-    const previousScrollHeight = container.scrollHeight;
+    const previousScrollHeight = container ? container.scrollHeight : 0;
 
     socket.emit("getHistory", { peerId: peerId, before, limit }, (res) => {
       setIsFetchingOlder(false);
@@ -215,19 +154,18 @@ export default function MessengerPage() {
       setAllMessages((prev) => mergeMessages(sorted, prev, true));
       oldestMessageRef.current = sorted[0].createdAt;
 
-      // Maintain scroll position when loading older messages
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight - previousScrollHeight;
-      });
+      if (container) {
+        requestAnimationFrame(() => {
+          container.scrollTop = container.scrollHeight - previousScrollHeight;
+        });
+      }
     });
   };
 
-  // Add: handle scroll to load older messages when reaching top
   const handleScroll = () => {
     const container = chatContainerRef.current;
     if (!container || !selectedPeer) return;
 
-    // If user scrolled to top area, try to fetch older messages
     if (container.scrollTop <= 10 && oldestMessageRef.current) {
       fetchHistory(selectedPeer.userId, oldestMessageRef.current);
     }
@@ -243,20 +181,16 @@ export default function MessengerPage() {
       content: messageContent.trim(),
     };
 
-    // Clear input immediately for better UX
     const contentToSend = messageContent;
     setMessageContent("");
 
     socket.emit("sendDirectMessage", message, (error, result) => {
       if (error) {
         console.error("Failed to send message:", error);
-        // Restore the message content if sending failed
         setMessageContent(contentToSend);
-        // You can add error handling UI here
         return;
       }
-      // Message sent successfully, input is already cleared
-      // Optionally scroll to bottom
+
       if (chatContainerRef.current) {
         chatContainerRef.current.scrollTop =
           chatContainerRef.current.scrollHeight;
