@@ -268,4 +268,20 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 				})
 				.toList();
 	}
+
+    public List<Case> getAssignedCaseSummary(UUID userId) {
+        QCase qCase = QCase.case$;
+		QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
+
+		BooleanExpression assigneePredicate = qAssignee.userId.eq(userId);
+
+		List<Case> cases = queryFactory
+				.select(qCase)
+				.from(qCase)
+				.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
+				.where(assigneePredicate)
+				.fetch();
+
+		return cases;
+    }
 }
