@@ -127,10 +127,10 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 					.select(qcase, qRecord)
 					.from(qcase)
 					.leftJoin(qRecord).on(
-						qRecord.caseInstance.caseId.eq(qcase.caseId)
-								.and(qRecord.updatedAt.eq(latestRecordSubquery)))
+							qRecord.caseInstance.caseId.eq(qcase.caseId)
+									.and(qRecord.updatedAt.eq(latestRecordSubquery)))
 					.where(rootPredicate)
-					.distinct() // important to avoid duplicates
+					.distinct()
 					.fetchOne();
 		}
 
@@ -143,11 +143,11 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 					.select(qcase, qRecord)
 					.from(qcase)
 					.leftJoin(qRecord).on(
-						qRecord.caseInstance.caseId.eq(qcase.caseId)
-								.and(qRecord.updatedAt.eq(latestRecordSubquery)))
+							qRecord.caseInstance.caseId.eq(qcase.caseId)
+									.and(qRecord.updatedAt.eq(latestRecordSubquery)))
 					.leftJoin(qcase.assignees, qAssignee)
 					.where(rootPredicate)
-					.distinct() // important to avoid duplicates
+					.distinct()
 					.fetchOne();
 		}
 
@@ -178,13 +178,12 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 			combinedPredicate = combinedPredicate.and(statusPredicate);
 		}
 
-		// Get latest investigation record subquery
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
-				.where(qRecord.caseInstance.caseId.eq(qCase.caseId).and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
+				.where(qRecord.caseInstance.caseId.eq(qCase.caseId)
+						.and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
-		// Main query with join to case_assignees
 		List<Tuple> results = queryFactory
 				.select(qCase, qRecord)
 				.from(qCase)
@@ -231,13 +230,12 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 		QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
 		QInvestigationRecord qRecord = QInvestigationRecord.investigationRecord;
 
-		// Get latest investigation record subquery for each case
 		var latestRecordSubquery = queryFactory
 				.select(qRecord.createdAt.max())
 				.from(qRecord)
-				.where(qRecord.caseInstance.caseId.eq(qCase.caseId).and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
+				.where(qRecord.caseInstance.caseId.eq(qCase.caseId)
+						.and(qRecord.reviewStatus.eq(REVIEW_STATUS.APPROVED)));
 
-		// Main query to get cases with their latest investigation records
 		List<Tuple> results = queryFactory
 				.select(qCase, qRecord)
 				.from(qCase)
@@ -247,8 +245,7 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 								.and(qRecord.createdAt.eq(latestRecordSubquery)))
 				.where(qAssignee.userId.eq(userId).and(qCase.status.ne(CASE_STATUS.CLOSED)))
 				.orderBy(
-						// Order by the maximum value between investigation record updatedAt and case
-						// updatedAt
+
 						Expressions.dateTimeTemplate(
 								java.time.LocalDateTime.class,
 								"GREATEST({0}, {1})",

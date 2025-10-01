@@ -42,12 +42,6 @@ public class OrganizationalDataController {
     private final HeadquarterRepository headquarterRepository;
     private final DepartmentRepository departmentRepository;
 
-    /**
-     * Combined API: Get complete organizational data for INV_ADMIN
-     * Returns both current country organizational structure and foreign INV_ADMIN
-     * users
-     * Only accessible by INV_ADMIN role
-     */
     @GetMapping("/complete-tree")
     @PreAuthorize("hasRole('INV_ADMIN')")
     public ResponseEntity<CombinedOrganizationalDataDto> getCompleteOrganizationalTree(Authentication authentication) {
@@ -55,7 +49,6 @@ public class OrganizationalDataController {
         try {
             customUser = (CustomUser) authentication.getPrincipal();
 
-            // Get full user information from repository
             Optional<Users> currentUserOpt = userRepository.findByUserId(customUser.getId());
             if (!currentUserOpt.isPresent()) {
                 log.warn("User not found in database for userId: {}", customUser.getId());
@@ -64,7 +57,6 @@ public class OrganizationalDataController {
 
             Users currentUser = currentUserOpt.get();
 
-            // Verify the user has INV_ADMIN role
             if (!currentUser.getRole().equals(Role.INV_ADMIN)) {
                 log.warn("Access denied for user {} - role {} is not INV_ADMIN",
                         customUser.getId(), currentUser.getRole());
@@ -105,7 +97,6 @@ public class OrganizationalDataController {
             log.debug("getCurrentCountryOrganizationTree called by user {} with searchWord: {}",
                     customUser.getId(), searchWord);
 
-            // Get full user information from repository
             Optional<Users> currentUserOpt = userRepository.findByUserId(customUser.getId());
             if (!currentUserOpt.isPresent()) {
                 log.warn("User not found in database for userId: {}", customUser.getId());
@@ -114,7 +105,6 @@ public class OrganizationalDataController {
 
             Users currentUser = currentUserOpt.get();
 
-            // Verify the user has INV_ADMIN role
             if (!currentUser.getRole().equals(Role.INV_ADMIN)) {
                 log.warn("Access denied for user {} - role {} is not INV_ADMIN",
                         customUser.getId(), currentUser.getRole());
@@ -145,12 +135,6 @@ public class OrganizationalDataController {
         }
     }
 
-    /**
-     * Get foreign INV_ADMIN users tree for INV_ADMIN
-     * Returns list of foreign INV_ADMIN users grouped by country
-     * Supports search by country name and INV_ADMIN name
-     * Only accessible by INV_ADMIN role
-     */
     @GetMapping("/foreign-inv-admins-tree")
     @PreAuthorize("hasRole('INV_ADMIN')")
     public ResponseEntity<List<ForeignInvAdminTreeDto>> getForeignInvAdminsTree(
@@ -162,7 +146,6 @@ public class OrganizationalDataController {
             log.debug("getForeignInvAdminsTree called by user {} with searchWord: {}",
                     customUser.getId(), searchWord);
 
-            // Get full user information from repository
             Optional<Users> currentUserOpt = userRepository.findByUserId(customUser.getId());
             if (!currentUserOpt.isPresent()) {
                 log.warn("User not found in database for userId: {}", customUser.getId());
@@ -171,7 +154,6 @@ public class OrganizationalDataController {
 
             Users currentUser = currentUserOpt.get();
 
-            // Verify the user has INV_ADMIN role
             if (!currentUser.getRole().equals(Role.INV_ADMIN)) {
                 log.warn("Access denied for user {} - role {} is not INV_ADMIN",
                         customUser.getId(), currentUser.getRole());
@@ -202,11 +184,6 @@ public class OrganizationalDataController {
         }
     }
 
-    /**
-     * Get list of all countries
-     * Returns all countries ordered by name
-     * Accessible by all authenticated users with proper roles
-     */
     @GetMapping("/countries")
     @PreAuthorize("hasRole('INV_ADMIN') or hasRole('PLATFORM_ADMIN') or hasRole('INVESTIGATOR')")
     public ResponseEntity<List<CountryDto>> getAllCountries(Authentication authentication) {

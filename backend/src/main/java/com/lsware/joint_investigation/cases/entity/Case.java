@@ -84,11 +84,9 @@ public class Case {
     @Transient
     private InvestigationRecord latestRecord;
 
-    // One-to-many relationship to InvestigationRecord
     @OneToMany(mappedBy = "caseInstance", fetch = FetchType.LAZY)
     private List<InvestigationRecord> investigationRecords = new ArrayList<>();
 
-    // Many-to-many relationship with Users through CaseAssignee
     @OneToMany(mappedBy = "caseInstance", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CaseAssignee> assignees = new ArrayList<>();
 

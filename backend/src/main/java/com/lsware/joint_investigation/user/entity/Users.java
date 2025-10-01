@@ -68,7 +68,6 @@ public class Users {
     @Column(name = "department_id", nullable = false)
     private Long departmentId;
 
-    // Relationships to organizational entities
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id", insertable = false, updatable = false)
     private Country country;
@@ -81,7 +80,6 @@ public class Users {
     @JoinColumn(name = "department_id", insertable = false, updatable = false)
     private Department department;
 
-    // Many-to-many relationship with Cases through CaseAssignee
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<CaseAssignee> caseAssignments = new ArrayList<>();
 
@@ -107,7 +105,7 @@ public class Users {
         dto.setRole(this.role);
         dto.setStatus(this.status);
         dto.setCreatedAt(this.createdAt);
-        // Set organizational names if entities are loaded
+
         if (this.country != null) {
             dto.setCountryName(this.country.getName());
         }

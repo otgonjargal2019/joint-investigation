@@ -15,5 +15,5 @@ public class CaseAssigneeDto {
     private UUID userId;
     private LocalDateTime assignedAt;
     private UserDto user;
-    private String caseName; // Optional: include case name for display purposes
+    private String caseName;
 }
