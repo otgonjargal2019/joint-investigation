@@ -40,7 +40,6 @@ export default function Home() {
     };
   }, [user?.role]);
 
-
   const onClickNoticeRow = (row) => {
     if (row && row?.postId) {
       router.push(`${noticeLink}/${row.postId}`);
@@ -59,7 +58,7 @@ export default function Home() {
       case ROLES.RESEARCHER:
         router.push(`/investigator/cases/${row.caseId}`);
         break;
-        case ROLES.INV_ADMIN:
+      case ROLES.INV_ADMIN:
         router.push(`/manager/cases/${row.caseId}`);
         break;
       default:
@@ -85,7 +84,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="w-full space-y-2.5">
+        <div className="w-full space-y-2.5 overflow-hidden">
           <div className="flex justify-between">
             <h2 className="text-color-8 text-[24px] font-[700]">
               {t("home.status-of-my-case")}

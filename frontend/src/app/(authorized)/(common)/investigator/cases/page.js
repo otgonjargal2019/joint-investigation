@@ -11,7 +11,7 @@ import CaseCard from "@/shared/components/caseCard";
 import { useMyAssignedCase } from "@/entities/case";
 import TagCaseStatus from "@/shared/components/tagCaseStatus";
 import TagProgressStatus from "@/shared/components/tagProgressStatus";
-import { COLOR_MAP } from "@/entities/case/model/constants"
+import { COLOR_MAP } from "@/entities/case/model/constants";
 
 const tabs = [
   { label: "전체", value: 0 },
@@ -96,7 +96,7 @@ function IncidentPage() {
       </h3>
       <div className="w-full flex gap-6">
         {casesResponse?.recentCases?.map((item) => (
-          <div key={item.caseId} className="basis-1/3">
+          <div key={item.caseId} className="basis-1/3 overflow-hidden">
             <CaseCard
               key={item.caseId}
               size={"big"}
@@ -126,22 +126,31 @@ function IncidentPage() {
           {
             key: "number",
             title: t("incident.case-number"),
+            textAlign: "text-center",
+            width: "7%",
           },
           {
             key: "caseName",
             title: t("incident.title"),
+            textAlign: "text-left",
           },
           {
             key: "creator.nameKr",
             title: t("incident.manager"),
+            textAlign: "text-center",
+            width: "12%",
           },
           {
             key: "relatedCountries",
             title: t("incident.country-of-occurrence"),
+            textAlign: "text-center",
+            width: "12%",
           },
           {
             key: "investigationDate",
             title: t("incident.investigation-start-date"),
+            textAlign: "text-center",
+            width: "8%",
             render: (value) => {
               if (!value) return "";
               const date = new Date(value);
@@ -154,6 +163,8 @@ function IncidentPage() {
           {
             key: "infringementType",
             title: t("incident.infringement-type"),
+            textAlign: "text-center",
+            width: "12%",
             render: (value) => {
               if (!value) return "";
               return t(`case_details.case_infringement_type.${value}`);
@@ -162,11 +173,15 @@ function IncidentPage() {
           {
             key: "status",
             title: t("incident.status"),
+            textAlign: "text-center",
+            width: "10%",
             render: (value) => <TagCaseStatus status={value} />,
           },
           {
             key: "latestRecord.progressStatus",
             title: t("incident.progress-detail"),
+            textAlign: "text-center",
+            width: "10%",
             render: (value) => <TagProgressStatus status={value} />,
           },
         ]}

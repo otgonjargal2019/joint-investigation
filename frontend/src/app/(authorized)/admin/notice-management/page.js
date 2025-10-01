@@ -15,13 +15,24 @@ import TrashBin from "@/shared/components/icons/trashBin";
 import { postQuery, BOARD_TYPE, useDeletePost } from "@/entities/post";
 
 const tableColumns = [
-  { key: "no", title: "NO.", textAlign: "text-center" },
+  { key: "no", title: "NO.", textAlign: "text-center", width: "7%" },
   { key: "title", title: "제목" },
-  { key: "createdAt", title: "날짜", textAlign: "text-center" },
-  { key: "viewCount", title: "조회수", textAlign: "text-center" },
-  { key: "attachmentCount", title: "첨부파일", textAlign: "text-center" },
+  { key: "createdAt", title: "날짜", textAlign: "text-center", width: "12%" },
+  {
+    key: "viewCount",
+    title: "조회수",
+    textAlign: "text-center",
+    width: "12%",
+  },
+  {
+    key: "attachmentCount",
+    title: "첨부파일",
+    textAlign: "text-center",
+    width: "12%",
+  },
   {
     key: "action",
+    width: "120px",
     title: (
       <div className="flex justify-center">
         <TrashBin />

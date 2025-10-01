@@ -98,7 +98,7 @@ const InvestigationRecordForm = ({
           <TitleDiv>{t("case-form.case-number")}</TitleDiv>
           <TextDiv className="border-r">{headerInfo.item2}</TextDiv>
           <TitleDiv>{t("case-form.case-name")}</TitleDiv>
-          <TextDiv className="border-r">{headerInfo.item3}</TextDiv>
+          <TextDiv className="border-r truncate">{headerInfo.item3}</TextDiv>
           <TitleDiv>{textWriter}</TitleDiv>
           <TextDiv className="border-r">{headerInfo.item4}</TextDiv>
         </div>
@@ -176,9 +176,12 @@ const InvestigationRecordForm = ({
           />
         </TextDiv>
         <TitleDiv>{t("case-form.investigation-content")}</TitleDiv>
-        <TextDiv className="border-r">
+        <TextDiv className="border-r min-w-0">
           {readonly ? (
-            <div className="text-[18px] font-normal py-2 whitespace-pre-wrap min-h-[200px]">
+            <div
+              className="text-[18px] font-normal py-2 whitespace-pre-wrap break-words overflow-y-auto max-h-[220px] pr-2"
+              style={{ overflowWrap: "anywhere" }}
+            >
               {watch("overview") || t("case-form.no-content")}
             </div>
           ) : (

@@ -1,9 +1,16 @@
 import clsx from "clsx";
 
-export const Table = ({ children }) => {
+export const Table = ({ children, className }) => {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full  border-b border-color-97">{children}</table>
+      <table
+        className={clsx(
+          "w-full table-fixed border-b border-color-97",
+          className
+        )}
+      >
+        {children}
+      </table>
     </div>
   );
 };
@@ -40,9 +47,15 @@ export const Tr = ({ children, hover = false, onClick, variant = "body" }) => {
   );
 };
 
-export const Th = ({ children }) => {
+export const Th = ({ children, className, style }) => {
   return (
-    <th className="px-4 py-[9px] text-center text-[20px] font-medium text-color-24">
+    <th
+      className={clsx(
+        "px-4 py-[9px] text-center text-[20px] font-medium text-color-24 whitespace-nowrap",
+        className
+      )}
+      style={style}
+    >
       {children}
     </th>
   );
@@ -55,17 +68,19 @@ export const Td = ({
   colSpan,
   onClick,
   className,
+  style,
 }) => {
   return (
     <td
       className={clsx(
-        "px-4 py-[11px] text-[20px] font-normal text-color-24",
+        "px-4 py-[11px] text-[20px] font-normal text-color-24 whitespace-normal break-words",
         textAlign,
         className
       )}
       rowSpan={rowSpan}
       colSpan={colSpan}
       onClick={onClick}
+      style={style}
     >
       {children ?? "-"}
     </td>

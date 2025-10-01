@@ -54,12 +54,23 @@ function IncidentDetailPage() {
   };
 
   const investigationRecordsColumns = [
-    { key: "number", title: "No." },
-    { key: "recordName", title: "수사기록" },
-    { key: "creator.nameKr", title: "작성자" },
+    { key: "number", title: "No.", textAlign: "text-center", width: "7%" },
+    {
+      key: "recordName",
+      title: "수사기록",
+      textAlign: "text-left",
+    },
+    {
+      key: "creator.nameKr",
+      title: "작성자",
+      textAlign: "text-center",
+      width: "12%",
+    },
     {
       key: "createdAt",
       title: "작성일",
+      textAlign: "text-center",
+      width: "11%",
       render: (value) => {
         if (!value) return "";
         const date = new Date(value);
@@ -72,6 +83,8 @@ function IncidentDetailPage() {
     {
       key: "attachedFiles",
       title: "디지털 증거물",
+      textAlign: "text-center",
+      width: "11%",
       render: (attachedFiles) => {
         if (!attachedFiles) return "X";
         return attachedFiles?.find((file) => file.digitalEvidence) ? "O" : "X";
@@ -80,6 +93,8 @@ function IncidentDetailPage() {
     {
       key: "attachedFiles",
       title: "수사보고서",
+      textAlign: "text-center",
+      width: "11%",
       render: (attachedFiles) => {
         if (!attachedFiles) return "X";
         return attachedFiles?.find((file) => file.investigationReport)
@@ -90,6 +105,8 @@ function IncidentDetailPage() {
     {
       key: "reviewStatus",
       title: "진행상태",
+      textAlign: "text-center",
+      width: "11%",
       render: (value) => {
         switch (value) {
           case REVIEW_STATUS.WRITING:
@@ -167,7 +184,7 @@ function IncidentDetailPage() {
       <PageTitle title={t("header.incident-detail")} />
 
       <div className="flex gap-4 justify-center mt-2">
-        <TagCaseStatus status={caseData.status} border/>
+        <TagCaseStatus status={caseData.status} border />
         <TagProgressStatus status={caseData?.latestRecord?.progressStatus} />
       </div>
 

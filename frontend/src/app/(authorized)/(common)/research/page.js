@@ -12,11 +12,26 @@ import SimpleDataTable from "@/shared/widgets/simpleDataTable";
 import { postQuery, BOARD_TYPE } from "@/entities/post";
 
 export const tableColumns = [
-  { key: "no", title: "No.", textAlign: "text-center" },
+  { key: "no", title: "No.", textAlign: "text-center", width: "7%" },
   { key: "title", title: "제목", textAlign: "text-left" },
-  { key: "createdAtStr", title: "날짜", textAlign: "text-center" },
-  { key: "viewCount", title: "조회수", textAlign: "text-center" },
-  { key: "attachmentCount", title: "첨부파일", textAlign: "text-center" },
+  {
+    key: "createdAtStr",
+    title: "날짜",
+    textAlign: "text-center",
+    width: "15%",
+  },
+  {
+    key: "viewCount",
+    title: "조회수",
+    textAlign: "text-center",
+    width: "15%",
+  },
+  {
+    key: "attachmentCount",
+    title: "첨부파일",
+    textAlign: "text-center",
+    width: "15%",
+  },
 ];
 
 function ResearchListPage() {

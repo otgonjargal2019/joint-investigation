@@ -13,7 +13,13 @@ function SimpleDataTable({ columns, data, onClickRow }) {
       <Thead>
         <Tr variant="head">
           {columns.map((col, colIndex) => (
-            <Th key={`${col.key}_${colIndex}`}>{col.title}</Th>
+            <Th
+              key={`${col.key}_${colIndex}`}
+              style={col.width ? { width: col.width } : undefined}
+              className={col.thClassName}
+            >
+              {col.title}
+            </Th>
           ))}
         </Tr>
       </Thead>
@@ -26,6 +32,8 @@ function SimpleDataTable({ columns, data, onClickRow }) {
                   <Td
                     key={`${col.key}_${colIndex}`}
                     textAlign={col.textAlign}
+                    className={col.tdClassName}
+                    style={col.width ? { width: col.width } : undefined}
                     onClick={
                       col.key === "action"
                         ? (e) => e.stopPropagation()

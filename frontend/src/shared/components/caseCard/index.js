@@ -17,7 +17,10 @@ const CaseCard = ({
   const t = useTranslations();
 
   return (
-    <div className="case-card-wrapper w-full flex bg-white rounded-10 shadow-md overflow-hidden cursor-pointer" onClick={onClick}>
+    <div
+      className="case-card-wrapper w-full flex bg-white rounded-10 shadow-md overflow-hidden cursor-pointer"
+      onClick={onClick}
+    >
       {isLoading ? (
         <>
           <div
