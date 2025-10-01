@@ -2,6 +2,7 @@ package com.lsware.joint_investigation.dashboard.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +12,8 @@ import com.lsware.joint_investigation.config.CustomUser;
 import com.lsware.joint_investigation.posts.dto.PostDto;
 import com.lsware.joint_investigation.posts.entity.Post;
 import com.lsware.joint_investigation.posts.repository.PostRepository;
-import com.lsware.joint_investigation.cases.dto.CaseDto;
 import com.lsware.joint_investigation.cases.entity.Case;
+import com.lsware.joint_investigation.cases.entity.Case.CASE_STATUS;
 import com.lsware.joint_investigation.cases.repository.CaseRepository;
 
 @Service
@@ -39,11 +40,8 @@ public class DashboardService {
 				.collect(Collectors.toList());
 		response.put("lastResearchs", lastResearch);
 
-		List<Case> cases = caseRepository.getAssignedCaseSummary(user.getId());
-		List<CaseDto> caseDtos = cases.stream()
-				.map(Case::toDto)
-				.collect(Collectors.toList());
-		response.put("cases", caseDtos);
+		Map<CASE_STATUS, Long> caseSummary = caseRepository.getAssignedCaseSummary(user.getId());
+		response.put("caseSummary", caseSummary);
 
 		List<Case> recentCases = caseRepository.findRecentAssignedCases(user.getId());
 		response.put("recentCases", recentCases.stream().map(Case::toDto).collect(Collectors.toList()));

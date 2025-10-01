@@ -269,19 +269,35 @@ public class CaseRepository extends SimpleJpaRepository<Case, UUID> {
 				.toList();
 	}
 
-    public List<Case> getAssignedCaseSummary(UUID userId) {
+    public Map<CASE_STATUS, Long> getAssignedCaseSummary(UUID userId) {
         QCase qCase = QCase.case$;
 		QCaseAssignee qAssignee = QCaseAssignee.caseAssignee;
 
 		BooleanExpression assigneePredicate = qAssignee.userId.eq(userId);
 
-		List<Case> cases = queryFactory
-				.select(qCase)
+		List<Tuple> results = queryFactory
+				.select(qCase.status, qCase.caseId.count())
 				.from(qCase)
 				.innerJoin(qAssignee).on(qAssignee.caseId.eq(qCase.caseId))
 				.where(assigneePredicate)
+				.groupBy(qCase.status)
 				.fetch();
 
-		return cases;
+		// Initialize map with all statuses set to 0
+		Map<CASE_STATUS, Long> summary = new java.util.EnumMap<>(CASE_STATUS.class);
+		for (CASE_STATUS status : CASE_STATUS.values()) {
+			summary.put(status, 0L);
+		}
+
+		// Update with actual counts
+		results.forEach(tuple -> {
+			CASE_STATUS status = tuple.get(qCase.status);
+			Long count = tuple.get(qCase.caseId.count());
+			if (status != null && count != null) {
+				summary.put(status, count);
+			}
+		});
+
+		return summary;
     }
 }
