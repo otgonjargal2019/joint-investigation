@@ -28,15 +28,15 @@ const TreeNode = ({ node, onClick }) => {
           className={clsx(
             "flex items-center gap-1",
             node.type === "employee"
-              ? "text-[18px] text-color-10 font-[350]"
-              : "text-[16px] text-color-3 font-medium"
+              ? "text-[18px] text-color-10 font-[350] flex-1"
+              : "text-[16px] text-color-3 font-medium flex-1"
           )}
           onClick={() =>
             !hasChildren && node.type === "employee" && onClick(node)
           }
         >
           {node.type === "employee" && <User />}
-          <div className={`whitespace-nowrap ${node.type === "employee" ? 'max-w-[144px]' : 'max-w-[180px]'} overflow-hidden text-ellipsis hover:bg-color-76`}>{node.label}</div>
+          <div className={`whitespace-nowrap ${node.type === "employee" ? 'max-w-[144px] flex-1' : 'max-w-[180px] flex-1'} overflow-hidden text-ellipsis hover:bg-color-76`}>{node.label}</div>
         </div>
       </div>
 

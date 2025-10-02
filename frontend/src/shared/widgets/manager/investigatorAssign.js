@@ -151,7 +151,7 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   };
 
   const onClickSave = async () => {
-    const userIds = data.map((item) => item.id);
+    const userIds = data.filter(item => item.creator !== true).map((item) => item.id);
 
     if (!createdCaseId) {
       console.error("No case ID provided");
