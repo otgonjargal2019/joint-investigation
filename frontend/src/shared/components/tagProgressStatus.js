@@ -11,7 +11,7 @@ const TagProgressStatus = ({ status }) => {
 
 	if (Object.values(PROGRESS_STATUS).includes(status)) {
 		text = t(`incident.PROGRESS_STATUS.${status}`);
-		baseClasses = "flex gap-2 items-center justify-center h-[40px] text-center text-[20px] font-normal rounded-30 bg-white px-4";
+		baseClasses = "flex gap-2 items-center justify-center h-[40px] text-center text-[20px] font-normal rounded-30 bg-white px-4 whitespace-nowrap";
 		statusClasses = "border border-color-42 text-color-20";
 	}
 
