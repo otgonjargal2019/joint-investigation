@@ -43,6 +43,9 @@ function IncidentDetailPage() {
     size: ROWS_PER_PAGE,
   });
 
+  const totalRows = investigationRecordsData?.total || 0;
+  const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE);
+
   const onClickNew = () => {
     router.push(`/investigator/cases/${params.id}/investigationRecord/create`);
   };
@@ -54,7 +57,7 @@ function IncidentDetailPage() {
   };
 
   const investigationRecordsColumns = [
-    { key: "number", title: "No.", textAlign: "text-center", width: "7%" },
+    { key: "relativeNumber", title: "No.", textAlign: "text-center", width: "7%" },
     {
       key: "recordName",
       title: "수사기록",
@@ -143,12 +146,13 @@ function IncidentDetailPage() {
 
   const transformedData = useMemo(() => {
     if (!investigationRecordsData?.rows) return [];
-    return investigationRecordsData.rows.map((row) => ({
+    return investigationRecordsData.rows.map((row, index) => ({
       ...row,
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country"),
+      relativeNumber: totalRows - (investigationRecordsPage - 1) * ROWS_PER_PAGE - index,
     }));
-  }, [investigationRecordsData]);
+  }, [investigationRecordsData, investigationRecordsPage, totalRows]);
 
   if (isLoading) {
     return (
@@ -220,9 +224,7 @@ function IncidentDetailPage() {
       />
       <Pagination
         currentPage={investigationRecordsPage}
-        totalPages={Math.ceil(
-          (investigationRecordsData?.total || 0) / ROWS_PER_PAGE
-        )}
+        totalPages={totalPages}
         onPageChange={setInvestigationRecordsPage}
       />
     </div>

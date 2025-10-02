@@ -42,14 +42,18 @@ function IncidentDetailPage() {
       page: page - 1,
     });
 
+  const totalRows = investigationRecordData?.total || 0;
+  const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE);
+
   const transformedData = useMemo(() => {
     if (!investigationRecordData?.rows) return [];
-    return investigationRecordData.rows.map((row) => ({
+    return investigationRecordData.rows.map((row, index) => ({
       ...row,
       "creator.nameKr": getNestedValue(row, "creator.nameKr"),
       "creator.country": getNestedValue(row, "creator.country"),
+      relativeNumber: totalRows - (page - 1) * ROWS_PER_PAGE - index,
     }));
-  }, [investigationRecordData]);
+  }, [investigationRecordData, page, totalRows]);
 
   const onClickRow = (row) => {
     router.push(`/manager/cases/${params.id}/inquiry/${row.recordId}`);
@@ -117,7 +121,7 @@ function IncidentDetailPage() {
       <SimpleDataTable
         columns={[
           {
-            key: "number",
+            key: "relativeNumber",
             title: "No.",
             textAlign: "text-center",
             width: "7%",
@@ -198,9 +202,7 @@ function IncidentDetailPage() {
       />
       <Pagination
         currentPage={page}
-        totalPages={Math.ceil(
-          (investigationRecordData?.total || 0) / ROWS_PER_PAGE
-        )}
+        totalPages={totalPages}
         onPageChange={setPage}
       />
     </div>
