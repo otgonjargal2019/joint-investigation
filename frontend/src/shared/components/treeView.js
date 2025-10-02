@@ -10,7 +10,7 @@ const TreeNode = ({ node, onClick }) => {
   const hasChildren = node.children && node.children.length > 0;
 
   return (
-    <div className="mb-1">
+    <div className="mb-1 overflow-hidden">
       <div
         onClick={() => hasChildren && setExpanded(!expanded)}
         className="flex items-center gap-2 font-medium cursor-pointer"
@@ -20,9 +20,9 @@ const TreeNode = ({ node, onClick }) => {
             {expanded ? <MinusSmall /> : <PlusSmall />}
           </div>
         ) : node.type === "employee" ? (
-          <div className="w-[8.5px] h-[17px]" />
+          <div className="min-w-[8.5px] h-[17px]" />
         ) : (
-          <div className="w-[17px] h-[17px]" />
+          <div className="min-w-[17px] h-[17px]" />
         )}
         <div
           className={clsx(
@@ -36,7 +36,7 @@ const TreeNode = ({ node, onClick }) => {
           }
         >
           {node.type === "employee" && <User />}
-          {node.label}
+          <div className={`whitespace-nowrap ${node.type === "employee" ? 'max-w-[144px]' : 'max-w-[180px]'} overflow-hidden text-ellipsis hover:bg-color-61`}>{node.label}</div>
         </div>
       </div>
 
