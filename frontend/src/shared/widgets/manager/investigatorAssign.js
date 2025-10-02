@@ -1,6 +1,6 @@
 "use client";
+import { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -22,8 +22,10 @@ import {
   tableColumns,
   tableColumns2,
 } from "@/shared/widgets/manager/tableHelper";
+import { useUserInfo } from "@/providers/userInfoProviders";
 
 function InvestigatorAssign({ setActiveTab, createdCaseId }) {
+  const { userInfo } = useUserInfo();
   const router = useRouter();
   const [queryCurrentCountry, setQueryCurrentCountry] = useState("");
   const [queryOtherCountries, setQueryOtherCountries] = useState("");
@@ -46,6 +48,22 @@ function InvestigatorAssign({ setActiveTab, createdCaseId }) {
   } = useForeignInvAdminsTree(queryOtherCountries);
 
   const assignUsersMutation = useAssignUsersToCase();
+
+  useEffect(() => {
+    if (userInfo) {
+      const creator = {
+        id: userInfo?.userId,
+        nation: userInfo?.countryName,
+        role: t(`user-role.${userInfo?.role}`) || "-",
+        investigator: userInfo?.nameKr || userInfo?.nameEn,
+        affiliation: userInfo?.headquarterName,
+        department: userInfo?.departmentName,
+        action: '',
+        creator: true,
+      };
+      setData([creator]);
+    }
+  }, [userInfo]);
 
   const transformToTreeData = (currentCountry) => {
     if (!currentCountry) return [];

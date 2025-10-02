@@ -36,7 +36,7 @@ const TreeNode = ({ node, onClick }) => {
           }
         >
           {node.type === "employee" && <User />}
-          <div className={`whitespace-nowrap ${node.type === "employee" ? 'max-w-[144px]' : 'max-w-[180px]'} overflow-hidden text-ellipsis hover:bg-color-61`}>{node.label}</div>
+          <div className={`whitespace-nowrap ${node.type === "employee" ? 'max-w-[144px]' : 'max-w-[180px]'} overflow-hidden text-ellipsis hover:bg-color-76`}>{node.label}</div>
         </div>
       </div>
 

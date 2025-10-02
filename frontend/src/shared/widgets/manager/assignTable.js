@@ -61,7 +61,7 @@ function AssignTable({ columns, data, openModal }) {
                   }
                 }
 
-                return <Td key={col.key}>{row[col.key]}</Td>;
+                return <Td key={col.key} className={row.creator === true && 'bg-color-76'}>{row[col.key]}</Td>;
               })}
             </Tr>
           ))}

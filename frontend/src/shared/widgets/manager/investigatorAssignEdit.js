@@ -22,8 +22,10 @@ import {
   tableColumns,
   tableColumns2,
 } from "@/shared/widgets/manager/tableHelper";
+import { useUserInfo } from "@/providers/userInfoProviders";
 
 function InvestigatorAssignEdit({ caseId }) {
+  const { userInfo } = useUserInfo();
   const router = useRouter();
   const [queryCurrentCountry, setQueryCurrentCountry] = useState("");
   const [queryOtherCountries, setQueryOtherCountries] = useState("");
@@ -50,9 +52,19 @@ function InvestigatorAssignEdit({ caseId }) {
   const updateAssignmentsMutation = useUpdateCaseAssignments();
 
   useEffect(() => {
-    if (currentAssignees) {
-      setData(
-        currentAssignees.map((obj) => ({
+    if (userInfo) {
+      const creator = {
+        id: userInfo?.userId,
+        nation: userInfo?.countryName,
+        role: t(`user-role.${userInfo?.role}`) || "-",
+        investigator: userInfo?.nameKr || userInfo?.nameEn,
+        affiliation: userInfo?.headquarterName,
+        department: userInfo?.departmentName,
+        action: '',
+        creator: true,
+      };
+      if (currentAssignees) {
+        const transformedAssignees = currentAssignees.map((obj) => ({
           id: obj.userId,
           nation: obj.user.countryName,
           role: t(`user-role.${obj.user.role}`) || "-",
@@ -65,12 +77,13 @@ function InvestigatorAssignEdit({ caseId }) {
               onClick={() => removeCurrentCountryInvestigator(obj.userId)}
             />
           ),
-        }))
-      );
-    } else if (currentAssignees && currentAssignees.length === 0) {
-      setData([]);
+        }));
+        setData([creator, ...transformedAssignees]);
+      } else if (currentAssignees && currentAssignees.length === 0) {
+        setData([creator]);
+      }
     }
-  }, [currentAssignees]);
+  }, [currentAssignees, userInfo]);
 
   const transformToTreeData = (currentCountry) => {
     if (!currentCountry) return [];
@@ -185,7 +198,6 @@ function InvestigatorAssignEdit({ caseId }) {
 
       router.push(`/manager/cases/${caseId}`);
     } catch (error) {
-      console.error("Failed to update assignments:", error);
       toast.error(t("case-detail.update-error"), {
         position: "top-right",
         autoClose: 5000,
