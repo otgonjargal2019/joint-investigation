@@ -234,8 +234,7 @@ const InquiryDetailPage = () => {
                 investigationRecord?.createdAt?.split("T")[0] ||
                 "",
               item2:
-                investigationRecord?.caseInstance?.caseNumber ||
-                investigationRecord?.number ||
+                investigationRecord?.caseInstance?.number ||
                 "",
               item3: investigationRecord?.caseInstance?.caseName || "",
               item4: investigationRecord?.creator?.nameKr || "",
