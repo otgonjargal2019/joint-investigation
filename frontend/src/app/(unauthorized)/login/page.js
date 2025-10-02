@@ -56,10 +56,10 @@ function LoginPage() {
       },
       onError: (err) => {
         if (err.response?.data?.message == "ADMIN_CONFIRMATION_NEEDED") {
-          setAlertMessage(t("auth.admin-approve-msg"));
+          setAlertMessage("auth.admin-approve-msg");
           setModalOpen(true);
         } else if (err.response?.data?.message == "ADMIN_REJECTED") {
-          setAlertMessage(t("auth.admin-rejected-msg"));
+          setAlertMessage("auth.admin-rejected-msg");
           setModalOpen(true);
         } else {
           setError("root", {
